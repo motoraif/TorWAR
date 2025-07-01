@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 AWS Authentication Routes for TorWAR
-Simplified to only support AWS Profile authentication
+Author: Mohamed Toraif
+
+Flask routes for handling AWS authentication, profile management,
+and session handling for the TorWAR application.
+
+Author: Mohamed Toraif
+License: MIT
 """
 
 from flask import render_template, request, redirect, url_for, flash, session, jsonify

@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 AWS Authentication Module for TorWAR
-Simplified to only support AWS Profile authentication
+Author: Mohamed Toraif
+
+Handles AWS authentication using AWS CLI profiles and session management
+for the TorWAR Well-Architected Review Tool.
+
+Author: Mohamed Toraif
+License: MIT
 """
 
 import boto3

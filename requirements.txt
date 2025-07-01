@@ -1,4 +1,7 @@
-# TorWAR Requirements - Minimal working set
+# TorWAR - AWS Well-Architected Review Tool
+# Author: Mohamed Toraif
+# Requirements - Minimal working set
+
 # Flask web framework
 Flask>=3.0.0
 

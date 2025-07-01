@@ -2,6 +2,10 @@
 
 > **Tor**aif's **W**ell-**A**rchitected **R**eview Tool - A streamlined, user-friendly web application for conducting comprehensive AWS Well-Architected Framework reviews with advanced report generation and management capabilities.
 
+**Author:** Mohamed Toraif  
+**Created:** 2024
+**License:** MIT
+
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com)
 [![AWS](https://img.shields.io/badge/AWS-Well--Architected-orange.svg)](https://aws.amazon.com/architecture/well-architected)
@@ -301,6 +305,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ in Bahrain 🇧🇭**
+**Created by Mohamed Toraif with ❤️ in Bahrain 🇧🇭**
 
 *TorWAR - Making AWS Well-Architected Reviews Simple and Effective*
+
+**© 2024 Mohamed Toraif. Licensed under MIT License.**

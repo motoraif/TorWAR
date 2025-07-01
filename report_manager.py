@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 """
 Enhanced Report Management System for TorWAR
-Handles saving, loading, and comparing Well-Architected reports
+Author: Mohamed Toraif
+
+Comprehensive report management system for handling Well-Architected reports
+including saving, loading, comparing, and versioning capabilities.
+
+Features:
+- Report generation and storage
+- Version management
+- Report comparison
+- Data persistence
+- Metadata management
+
+Author: Mohamed Toraif
+License: MIT
 """
 
 import json

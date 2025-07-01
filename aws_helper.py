@@ -1,6 +1,13 @@
+#!/usr/bin/env python3
 """
-AWS Helper module to manage AWS sessions and credentials consistently across the application.
-Simplified to only support AWS Profile authentication.
+AWS Helper Module for TorWAR
+Author: Mohamed Toraif
+
+Manages AWS sessions and credentials consistently across the TorWAR application.
+Provides centralized AWS client management and session handling.
+
+Author: Mohamed Toraif
+License: MIT
 """
 
 import boto3

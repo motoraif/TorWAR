@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """
-TorWAR - Streamlined Version
-AWS Well-Architected Review Tool with Enhanced Report Management
+TorWAR - AWS Well-Architected Review Tool
+Author: Mohamed Toraif
+Description: Streamlined AWS Well-Architected Review Tool with Enhanced Report Management
 
-Removed Features:
-- Accounts Management
-- Custom Rules
-- Scheduled Reviews
-- Scheduled Reports
+A comprehensive web application for conducting AWS Well-Architected Framework reviews
+with advanced report generation, comparison, and management capabilities.
+
+Features:
+- AWS Profile Authentication
+- Workload Management
+- Interactive Well-Architected Reviews
+- Professional Report Generation
+- Report Comparison and Versioning
+- Print-Optimized Layouts
+
+Author: Mohamed Toraif
+Created: 2024
+License: MIT
 
 Enhanced Features:
 - Advanced Report Saving and Management

@@ -1,0 +1,32 @@
+# Author Information
+
+## TorWAR - AWS Well-Architected Review Tool
+
+**Author:** Mohamed Toraif  
+**Created:** 2024  
+**Location:** Bahrain 🇧🇭  
+
+### About the Author
+
+Mohamed Toraif is the creator and primary developer of TorWAR (Toraif's Well-Architected Review Tool), a comprehensive web application designed to streamline AWS Well-Architected Framework reviews.
+
+### Project Vision
+
+TorWAR was created to simplify and enhance the AWS Well-Architected review process, providing organizations with an intuitive, feature-rich tool for conducting thorough architectural assessments and generating professional reports.
+
+### Key Contributions
+
+- **Application Architecture**: Designed and implemented the complete Flask-based web application
+- **AWS Integration**: Developed seamless integration with AWS Well-Architected Tool APIs
+- **Report Management**: Created comprehensive report generation, comparison, and versioning system
+- **User Experience**: Designed intuitive, responsive user interface with accessibility considerations
+- **Documentation**: Authored comprehensive documentation and user guides
+
+### Contact
+
+For questions, suggestions, or contributions to TorWAR, please reach out through the project's GitHub repository.
+
+---
+
+*"Making AWS Well-Architected Reviews Simple and Effective"*  
+**- Mohamed Toraif, Creator of TorWAR**
