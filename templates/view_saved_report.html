@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.metadata.custom_name }} - TorWAR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Simple Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-file-earmark-text"></i> {{ report.metadata.custom_name }}</h2>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-diagram-3"></i> {{ report.metadata.workload_name }} 
+                    <span class="badge bg-primary ms-2">v{{ report.metadata.version }}</span>
+                </p>
+            </div>
+            <div>
+                <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Reports
+                </a>
+                <button onclick="window.print()" class="btn btn-outline-primary">
+                    <i class="bi bi-printer"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Report Summary -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Report Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Workload:</dt>
+                            <dd class="col-sm-8">{{ report.metadata.workload_name }}</dd>
+                            
+                            <dt class="col-sm-4">Report Name:</dt>
+                            <dd class="col-sm-8">{{ report.metadata.custom_name }}</dd>
+                            
+                            <dt class="col-sm-4">Version:</dt>
+                            <dd class="col-sm-8">{{ report.metadata.version }}</dd>
+                            
+                            <dt class="col-sm-4">Created:</dt>
+                            <dd class="col-sm-8">{{ report.metadata.created_at[:19] | replace('T', ' ') }}</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-6">Total Questions:</dt>
+                            <dd class="col-sm-6">{{ report.metadata.summary.total_questions }}</dd>
+                            
+                            <dt class="col-sm-6">Answered:</dt>
+                            <dd class="col-sm-6">{{ report.metadata.summary.answered_questions }}</dd>
+                            
+                            <dt class="col-sm-6">Completion:</dt>
+                            <dd class="col-sm-6">
+                                {% set completion = (report.metadata.summary.answered_questions / report.metadata.summary.total_questions * 100) if report.metadata.summary.total_questions > 0 else 0 %}
+                                {{ "%.1f"|format(completion) }}%
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Summary (Simple Table) -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Risk Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-3">
+                        <div class="p-3 border rounded bg-danger text-white">
+                            <h3>{{ report.metadata.summary.high_risks }}</h3>
+                            <small>High Risk</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 border rounded bg-warning text-dark">
+                            <h3>{{ report.metadata.summary.medium_risks }}</h3>
+                            <small>Medium Risk</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 border rounded bg-info text-white">
+                            <h3>{{ report.metadata.summary.low_risks }}</h3>
+                            <small>Low Risk</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 border rounded bg-success text-white">
+                            <h3>{{ report.metadata.summary.no_risks }}</h3>
+                            <small>No Risk</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillars Summary -->
+        {% if report.report_data.pillars %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-columns"></i> Pillars Reviewed</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for pillar_id, pillar_data in report.report_data.pillars.items() %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">{{ pillar_id|title }} Pillar</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Questions:</strong> {{ pillar_data.questions|length }}</p>
+                                {% if pillar_data.risk_counts %}
+                                <div class="small">
+                                    <span class="text-danger">High: {{ pillar_data.risk_counts.HIGH|default(0) }}</span> |
+                                    <span class="text-warning">Medium: {{ pillar_data.risk_counts.MEDIUM|default(0) }}</span> |
+                                    <span class="text-info">Low: {{ pillar_data.risk_counts.LOW|default(0) }}</span> |
+                                    <span class="text-success">None: {{ pillar_data.risk_counts.NONE|default(0) }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Notes Section -->
+        {% if report.metadata.user_notes %}
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-sticky"></i> Notes</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ report.metadata.user_notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left-right"></i> Compare with Another Report
+                    </a>
+                    <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list"></i> View All Reports
+                    </a>
+                    <form method="POST" action="{{ url_for('delete_report', report_id=report.metadata.report_id) }}" class="d-inline" 
+                          onsubmit="return confirm('Are you sure you want to delete this report?')">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .card-header { 
+        display: none !important; 
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

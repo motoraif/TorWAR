@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}AWS Authentication - TorWAR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-card {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+    
+    .auth-method {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .auth-method:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+    
+    .auth-method.selected {
+        border-color: #0d6efd;
+        background-color: #e7f3ff;
+    }
+    
+    .auth-method input[type="radio"] {
+        margin-right: 0.5rem;
+    }
+    
+    .current-auth {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-select {
+        margin-top: 1rem;
+    }
+    
+    .region-select {
+        margin-top: 1rem;
+    }
+    
+    .auth-icon {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+    }
+    
+    .loading {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-card">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3><i class="bi bi-shield-lock"></i> AWS Authentication</h3>
+                <p class="text-muted mb-0">Connect to your AWS account to access Well-Architected workloads</p>
+            </div>
+            <div class="card-body">
+                {% if current_auth %}
+                <!-- Current Authentication Status -->
+                <div class="current-auth">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5><i class="bi bi-check-circle"></i> Currently Connected</h5>
+                            <strong>Account:</strong> {{ current_auth.user_info.Account }}<br>
+                            <strong>Region:</strong> {{ current_auth.region }}<br>
+                            <strong>Profile:</strong> {{ current_auth.user_info.Profile }}<br>
+                            <strong>ARN:</strong> <small>{{ current_auth.user_info.Arn }}</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('aws_login') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </a>
+                        <a href="{{ url_for('aws_logout') }}" class="btn btn-outline-light btn-sm ms-2">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Authentication Form -->
+                <form method="POST" action="{{ url_for('aws_authenticate') }}" id="authForm">
+                    <!-- AWS Profile Authentication -->
+                    <div class="auth-method selected" onclick="selectAuthMethod('profile')">
+                        <input type="radio" name="auth_method" value="profile" id="auth_profile" checked>
+                        <label for="auth_profile" class="form-label">
+                            <i class="bi bi-person-badge text-primary"></i>
+                            <strong>AWS Profile</strong>
+                        </label>
+                        <p class="text-muted mb-2">Use AWS credentials from your local profile</p>
+                        
+                        <div class="profile-select">
+                            <label for="profile_name" class="form-label">Select Profile:</label>
+                            <select class="form-select" name="profile_name" id="profile_name" onchange="updateProfileInfo()">
+                                {% for profile in profiles %}
+                                <option value="{{ profile }}" {% if profile == 'beyon-marketplace' %}selected{% endif %}>
+                                    {{ profile }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-success" id="profile-status">
+                                <i class="bi bi-check-circle"></i>
+                                beyon-marketplace profile is verified and working with Well-Architected service
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Region Selection -->
+                    <div class="region-select">
+                        <label for="region" class="form-label">AWS Region:</label>
+                        <select class="form-select" name="region" id="region">
+                            <option value="me-south-1" selected>Middle East (Bahrain) - me-south-1</option>
+                            <option value="us-east-1">US East (N. Virginia) - us-east-1</option>
+                            <option value="us-west-2">US West (Oregon) - us-west-2</option>
+                            <option value="eu-west-1">Europe (Ireland) - eu-west-1</option>
+                            <option value="ap-southeast-1">Asia Pacific (Singapore) - ap-southeast-1</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="not-loading">
+                                <i class="bi bi-shield-check"></i> Authenticate with AWS
+                            </span>
+                            <span class="loading">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Authenticating...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Help Section -->
+                <div class="mt-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><i class="bi bi-info-circle"></i> Need Help?</h6>
+                            <p class="mb-2"><strong>Setting up AWS Profile:</strong></p>
+                            <ol class="mb-0">
+                                <li>Install AWS CLI: <code>pip install awscli</code></li>
+                                <li>Configure profile: <code>aws configure --profile your-profile-name</code></li>
+                                <li>Enter your AWS Access Key ID and Secret Access Key</li>
+                                <li>Set default region (e.g., me-south-1)</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateProfileInfo() {
+    const profileName = document.getElementById('profile_name').value;
+    const statusElement = document.getElementById('profile-status');
+    
+    // Fetch profile information
+    fetch('{{ url_for("aws_profile_info") }}')
+        .then(response => response.json())
+        .then(data => {
+            const profile = data.profiles.find(p => p.name === profileName);
+            
+            if (profile) {
+                if (profile.status === 'active') {
+                    statusElement.innerHTML = '<i class="bi bi-check-circle"></i> Profile has valid AWS credentials';
+                    statusElement.className = 'form-text text-success';
+                } else {
+                    statusElement.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Profile may need credential refresh';
+                    statusElement.className = 'form-text text-warning';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching profile info:', error);
+        });
+}
+
+function selectAuthMethod(method) {
+    // Remove selected class from all methods
+    document.querySelectorAll('.auth-method').forEach(el => {
+        el.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked method
+    event.currentTarget.classList.add('selected');
+    
+    // Check the radio button
+    document.getElementById('auth_' + method).checked = true;
+}
+
+// Form submission handling
+document.getElementById('authForm').addEventListener('submit', function() {
+    const loadingSpan = document.querySelector('.loading');
+    const notLoadingSpan = document.querySelector('.not-loading');
+    
+    loadingSpan.style.display = 'inline';
+    notLoadingSpan.style.display = 'none';
+});
+
+// Initialize profile info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateProfileInfo();
+});
+</script>
+{% endblock %}

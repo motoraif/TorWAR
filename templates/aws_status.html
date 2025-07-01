@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}AWS Connection Status - TorWAR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .status-connected {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .status-error {
+        background: linear-gradient(135deg, #dc3545, #fd7e14);
+        color: white;
+    }
+    
+    .detail-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+    
+    .detail-value {
+        font-family: 'Courier New', monospace;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        word-break: break-all;
+    }
+    
+    .status-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-refresh {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+    
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-cloud-check"></i> AWS Connection Status</h2>
+                <div>
+                    <a href="{{ url_for('aws_status') }}" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Status Overview -->
+            <div class="card status-card {% if details.status == 'Connected' %}status-connected{% else %}status-error{% endif %}">
+                <div class="card-body text-center">
+                    <div class="status-icon">
+                        {% if details.status == 'Connected' %}
+                        <i class="bi bi-check-circle"></i>
+                        {% else %}
+                        <i class="bi bi-exclamation-triangle"></i>
+                        {% endif %}
+                    </div>
+                    <h3>{{ details.status }}</h3>
+                    <p class="mb-3">{{ details.message }}</p>
+                    
+                    {% if details.status == 'Connected' %}
+                    <button class="btn btn-refresh" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                    </button>
+                    {% else %}
+                    <a href="{{ url_for('aws_login') }}" class="btn btn-refresh">
+                        <i class="bi bi-arrow-right-circle"></i> Reconnect
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Connection Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> Connection Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">AWS Account ID</div>
+                                <div class="detail-value">{{ details.account_id or 'Not available' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">Account Alias</div>
+                                <div class="detail-value">{{ details.account_alias or 'Not set' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">AWS Region</div>
+                                <div class="detail-value">{{ details.region or 'Not available' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">Profile Used</div>
+                                <div class="detail-value">{{ details.profile or 'default' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if details.user_id %}
+                    <div class="detail-item">
+                        <div class="detail-label">User ID</div>
+                        <div class="detail-value">{{ details.user_id }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if details.arn %}
+                    <div class="detail-item">
+                        <div class="detail-label">ARN (Amazon Resource Name)</div>
+                        <div class="detail-value">{{ details.arn }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if details.workload_count is defined %}
+                    <div class="detail-item">
+                        <div class="detail-label">Well-Architected Workloads</div>
+                        <div class="detail-value">
+                            {{ details.workload_count }} workload{{ 's' if details.workload_count != 1 else '' }} accessible
+                            {% if details.workload_count > 0 %}
+                            <a href="{{ url_for('list_workloads') }}" class="btn btn-sm btn-primary ms-2">
+                                <i class="bi bi-diagram-3"></i> View Workloads
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if details.auth_time %}
+                    <div class="detail-item">
+                        <div class="detail-label">Authentication Time</div>
+                        <div class="detail-value">{{ details.auth_time }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if details.status == 'Connected' %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('list_workloads') }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="bi bi-diagram-3"></i><br>
+                                <small>View Workloads</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('create_workload') }}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="bi bi-plus-circle"></i><br>
+                                <small>Create Workload</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="bi bi-file-earmark-text"></i><br>
+                                <small>Saved Reports</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('aws_logout') }}" class="btn btn-outline-danger w-100 mb-2">
+                                <i class="bi bi-box-arrow-right"></i><br>
+                                <small>Logout</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh every 30 seconds if there's an error
+{% if details.status != 'Connected' %}
+setTimeout(function() {
+    location.reload();
+}, 30000);
+{% endif %}
+
+// Add loading state to refresh button
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshButtons = document.querySelectorAll('.btn-refresh');
+    refreshButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Refreshing...';
+            this.disabled = true;
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TorWAR - AWS Well-Architected Review Tool{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --torwar-primary: #FF9500;
+            --torwar-secondary: #1D1D1F;
+            --torwar-accent: #007AFF;
+            --torwar-success: #34C759;
+            --torwar-warning: #FF9500;
+            --torwar-danger: #FF3B30;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--torwar-primary) !important;
+        }
+        
+        .btn-torwar {
+            background-color: var(--torwar-primary);
+            border-color: var(--torwar-primary);
+            color: white;
+        }
+        
+        .btn-torwar:hover {
+            background-color: #e6850e;
+            border-color: #e6850e;
+            color: white;
+        }
+        
+        .risk-high { color: var(--torwar-danger); }
+        .risk-medium { color: var(--torwar-warning); }
+        .risk-low { color: var(--torwar-accent); }
+        .risk-none { color: var(--torwar-success); }
+        
+        .report-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Print-friendly styles */
+        @media print {
+            .navbar, .btn, .alert { display: none !important; }
+            .container { max-width: none !important; }
+            body { font-size: 12px; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Simplified Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shield-check"></i> TorWAR
+            </a>
+            
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mt-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Simplified Footer -->
+    <footer class="bg-dark text-light mt-5 py-3">
+        <div class="container text-center">
+            <small class="text-white">Made with ❤️ in Bahrain 🇧🇭</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

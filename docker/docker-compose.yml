@@ -1,0 +1,42 @@
+services:
+  torwar:
+    build: .
+    container_name: torwar-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-this}
+      # AWS configuration file paths
+      - AWS_CONFIG_FILE=/home/torwar/.aws/config
+      - AWS_SHARED_CREDENTIALS_FILE=/home/torwar/.aws/credentials
+      # Set proper HOME directory for AWS SDK
+      - HOME=/home/torwar
+    volumes:
+      # Mount AWS configuration files (read-only for security)
+      - ~/.aws/config:/home/torwar/.aws/config:ro
+      - ~/.aws/credentials:/home/torwar/.aws/credentials:ro
+      # Mount data directory for persistence
+      - ./data:/app/data:rw
+      # Mount logs directory
+      - ./logs:/app/logs:rw
+    # Map container user to host user for proper file permissions
+    user: "1000:1000"
+    restart: unless-stopped
+    networks:
+      - torwar-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  torwar-network:
+    driver: bridge
+
+volumes:
+  torwar-data:
+    driver: local

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Create Workload - Well-Architected Review Tool{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Create New Workload</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label for="name" class="form-label">Workload Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="environment" class="form-label">Environment</label>
+                <select class="form-select" id="environment" name="environment" required>
+                    <option value="PRODUCTION">Production</option>
+                    <option value="PREPRODUCTION">Pre-production</option>
+                    <option value="DEVELOPMENT">Development</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="account_id" class="form-label">AWS Account ID</label>
+                <input type="text" class="form-control" id="account_id" name="account_id" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="review_owner" class="form-label">Review Owner</label>
+                <input type="text" class="form-control" id="review_owner" name="review_owner" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Workload</button>
+            <a href="/workloads" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

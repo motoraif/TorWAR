@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pillar_name }} Review - Well-Architected Review Tool{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-card {
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    .question-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .risk-high {
+        color: #dc3545;
+    }
+    .risk-medium {
+        color: #fd7e14;
+    }
+    .risk-low {
+        color: #ffc107;
+    }
+    .risk-none {
+        color: #198754;
+    }
+    .risk-na {
+        color: #6c757d;
+    }
+    .progress-container {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background-color: white;
+        padding: 1rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .report-button-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    .help-panel {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1.5rem;
+        border-radius: 0.375rem;
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+    .help-section {
+        margin-bottom: 1.5rem;
+    }
+    .help-section:last-child {
+        margin-bottom: 0;
+    }
+    .help-title {
+        color: #0d6efd;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .help-content {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    .best-practice-item {
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .best-practice-item:last-child {
+        margin-bottom: 0;
+    }
+    .resource-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #0d6efd;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        background-color: #ffffff;
+        border: 1px solid #0d6efd;
+        border-radius: 0.375rem;
+        transition: all 0.3s;
+        margin-bottom: 0.5rem;
+        display: block;
+        text-align: center;
+    }
+    .resource-link:hover {
+        background-color: #0d6efd;
+        color: white;
+        text-decoration: none;
+    }
+    .questions-content {
+        padding-right: 1rem;
+    }
+    .pillar-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="progress-container">
+    <h2>{{ pillar_name }} Pillar Review</h2>
+    
+    <div class="progress mb-3">
+        {% set answered_count = questions|selectattr('SelectedChoices')|selectattr('SelectedChoices', 'defined')|list|length %}
+        {% set total_count = questions|length %}
+        {% set completion_percentage = (answered_count / total_count * 100)|round|int if total_count > 0 else 0 %}
+        
+        <div class="progress-bar" role="progressbar" 
+            style="width: {{ completion_percentage }}%;" 
+            aria-valuenow="{{ completion_percentage }}" 
+            aria-valuemin="0" 
+            aria-valuemax="100">
+            {{ completion_percentage }}% Complete ({{ answered_count }}/{{ total_count }})
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between mb-3">
+        <a href="/review/{{ prev_pillar }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Previous Pillar
+        </a>
+        
+        <a href="/select_pillars" class="btn btn-outline-secondary">
+            <i class="bi bi-grid"></i> All Pillars
+        </a>
+        
+        <a href="/review/{{ next_pillar }}" class="btn btn-outline-primary">
+            Next Pillar <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Questions Content (Left Side) -->
+        <div class="col-lg-8">
+            <div class="questions-content">
+                <div class="questions-container">
+                    {% if questions %}
+                        {% for question in questions %}
+                            <div class="card question-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">{{ question.QuestionNumber }}. {{ question.QuestionTitle }}</h5>
+                                    <span class="badge 
+                                        {% if question.Risk == 'HIGH' %}bg-danger
+                                        {% elif question.Risk == 'MEDIUM' %}bg-warning text-dark
+                                        {% elif question.Risk == 'LOW' %}bg-info text-dark
+                                        {% elif question.Risk == 'NONE' %}bg-success
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ question.Risk if question.Risk else 'NOT ANSWERED' }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <a href="/answer/{{ question.QuestionId }}?pillar_id={{ pillar_id }}" class="btn btn-primary">
+                                            {% if question.SelectedChoices %}Update Answer{% else %}Answer Question{% endif %}
+                                        </a>
+                                    </div>
+                                    
+                                    {% if question.SelectedChoices %}
+                                        <div class="selected-choices mt-3">
+                                            <h6>Selected Choices:</h6>
+                                            <ul class="list-group">
+                                                {% for choice in question.Choices %}
+                                                    {% if choice.ChoiceId in question.SelectedChoices %}
+                                                        <li class="list-group-item">{{ choice.Title }}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% elif question.IsApplicable is defined and question.IsApplicable == false %}
+                                        <div class="mt-3">
+                                            <span class="badge bg-secondary">Not Applicable</span>
+                                            {% if question.Reason %}
+                                                <p class="mt-2"><strong>Reason:</strong> {{ question.Reason|replace('_', ' ')|title }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            No questions found for this pillar. Please make sure the Well-Architected lens is associated with your workload.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Help and Hints Panel (Right Side) -->
+        <div class="col-lg-4">
+            <div class="help-panel">
+                <!-- Pillar Overview -->
+                <div class="help-section">
+                    <div class="help-title">
+                        {% if pillar_id == 'operationalExcellence' %}
+                            <i class="bi bi-gear-fill text-primary"></i>
+                        {% elif pillar_id == 'security' %}
+                            <i class="bi bi-shield-fill-check text-danger"></i>
+                        {% elif pillar_id == 'reliability' %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                        {% elif pillar_id == 'performance' %}
+                            <i class="bi bi-speedometer2 text-warning"></i>
+                        {% elif pillar_id == 'costOptimization' %}
+                            <i class="bi bi-cash-coin text-info"></i>
+                        {% elif pillar_id == 'sustainability' %}
+                            <i class="bi bi-tree-fill text-success"></i>
+                        {% endif %}
+                        {{ pillar_name }} Overview
+                    </div>
+                    <div class="help-content">
+                        {% if pillar_id == 'operationalExcellence' %}
+                            <p><strong>Focus:</strong> The ability to run and monitor systems to deliver business value and to continually improve supporting processes and procedures.</p>
+                            <p><strong>Key Areas:</strong> Organization, Prepare, Operate, Evolve</p>
+                        {% elif pillar_id == 'security' %}
+                            <p><strong>Focus:</strong> The ability to protect information, systems, and assets while delivering business value through risk assessments and mitigation strategies.</p>
+                            <p><strong>Key Areas:</strong> Identity & Access Management, Detective Controls, Infrastructure Protection, Data Protection, Incident Response</p>
+                        {% elif pillar_id == 'reliability' %}
+                            <p><strong>Focus:</strong> The ability of a system to recover from infrastructure or service disruptions, dynamically acquire computing resources to meet demand, and mitigate disruptions.</p>
+                            <p><strong>Key Areas:</strong> Foundations, Change Management, Failure Management</p>
+                        {% elif pillar_id == 'performance' %}
+                            <p><strong>Focus:</strong> The ability to use computing resources efficiently to meet system requirements, and to maintain that efficiency as demand changes and technologies evolve.</p>
+                            <p><strong>Key Areas:</strong> Selection, Review, Monitoring, Tradeoffs</p>
+                        {% elif pillar_id == 'costOptimization' %}
+                            <p><strong>Focus:</strong> The ability to run systems to deliver business value at the lowest price point.</p>
+                            <p><strong>Key Areas:</strong> Practice Cloud Financial Management, Expenditure Awareness, Cost-Effective Resources, Manage Demand, Optimize Over Time</p>
+                        {% elif pillar_id == 'sustainability' %}
+                            <p><strong>Focus:</strong> The ability to continually improve sustainability impacts by reducing energy consumption and increasing efficiency across all components of a workload.</p>
+                            <p><strong>Key Areas:</strong> Region Selection, User Behavior Patterns, Software Patterns, Data Patterns, Hardware Patterns, Development Process</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- How to Answer Questions -->
+                <div class="help-section">
+                    <div class="help-title">
+                        <i class="bi bi-question-circle-fill"></i>
+                        How to Answer Questions
+                    </div>
+                    <div class="help-content">
+                        <div class="best-practice-item">
+                            <strong>Be Honest & Accurate</strong>
+                            <p class="mb-0 mt-1">Answer based on your current implementation, not future plans</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <strong>Select All That Apply</strong>
+                            <p class="mb-0 mt-1">Choose multiple options if your workload implements several practices</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <strong>Use Notes Effectively</strong>
+                            <p class="mb-0 mt-1">Document specific implementations, exceptions, or planned improvements</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <strong>Mark Not Applicable Carefully</strong>
+                            <p class="mb-0 mt-1">Only use when the question truly doesn't apply to your workload</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Levels Guide -->
+                <div class="help-section">
+                    <div class="help-title">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Understanding Risk Levels
+                    </div>
+                    <div class="help-content">
+                        <div class="best-practice-item">
+                            <span class="badge bg-danger me-2">HIGH</span>
+                            <strong>Immediate Attention Required</strong>
+                            <p class="mb-0 mt-1">Critical gaps that could impact business operations</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <span class="badge bg-warning text-dark me-2">MEDIUM</span>
+                            <strong>Should Be Addressed</strong>
+                            <p class="mb-0 mt-1">Important improvements that enhance your architecture</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <span class="badge bg-info text-dark me-2">LOW</span>
+                            <strong>Consider Implementing</strong>
+                            <p class="mb-0 mt-1">Good practices that provide additional benefits</p>
+                        </div>
+                        <div class="best-practice-item">
+                            <span class="badge bg-success me-2">NONE</span>
+                            <strong>Well Implemented</strong>
+                            <p class="mb-0 mt-1">You're following best practices in this area</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AWS Resources -->
+                <div class="help-section">
+                    <div class="help-title">
+                        <i class="bi bi-book-fill"></i>
+                        AWS Resources
+                    </div>
+                    <div class="help-content">
+                        <p>Get detailed guidance for this pillar:</p>
+                        {% if pillar_id == 'operationalExcellence' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Operational Excellence Pillar Guide
+                            </a>
+                        {% elif pillar_id == 'security' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Security Pillar Guide
+                            </a>
+                        {% elif pillar_id == 'reliability' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Reliability Pillar Guide
+                            </a>
+                        {% elif pillar_id == 'performance' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Performance Efficiency Pillar Guide
+                            </a>
+                        {% elif pillar_id == 'costOptimization' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Cost Optimization Pillar Guide
+                            </a>
+                        {% elif pillar_id == 'sustainability' %}
+                            <a href="https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/welcome.html" target="_blank" class="resource-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Sustainability Pillar Guide
+                            </a>
+                        {% endif %}
+                        <a href="https://aws.amazon.com/architecture/well-architected/" target="_blank" class="resource-link">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            AWS Well-Architected Framework
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Tips -->
+                <div class="help-section">
+                    <div class="help-title">
+                        <i class="bi bi-lightbulb-fill"></i>
+                        Quick Tips
+                    </div>
+                    <div class="help-content">
+                        <ul class="mb-0">
+                            <li><strong>Start with high-risk items</strong> - Address critical gaps first</li>
+                            <li><strong>Review regularly</strong> - Architecture evolves over time</li>
+                            <li><strong>Involve your team</strong> - Get input from different perspectives</li>
+                            <li><strong>Document decisions</strong> - Use notes to explain your choices</li>
+                            <li><strong>Plan improvements</strong> - Use results to create action items</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Navigation Help -->
+                <div class="help-section">
+                    <div class="help-title">
+                        <i class="bi bi-compass-fill"></i>
+                        Navigation
+                    </div>
+                    <div class="help-content">
+                        <ul class="mb-0">
+                            <li><strong>Answer Question</strong> - Click to provide detailed responses</li>
+                            <li><strong>Previous/Next Pillar</strong> - Navigate between pillars</li>
+                            <li><strong>All Pillars</strong> - Return to pillar selection</li>
+                            <li><strong>Generate Report</strong> - Create comprehensive assessment report</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Generate Report Button -->
+<div class="report-button-container">
+    <a href="/report" class="btn btn-lg btn-success">
+        <i class="bi bi-file-earmark-text"></i> Generate Report
+    </a>
+</div>
+{% endblock %}

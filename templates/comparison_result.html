@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Report Comparison - TorWAR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-bar-chart-line"></i> Report Comparison</h2>
+            <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Compare
+            </a>
+        </div>
+
+        {% if comparison %}
+        <!-- Comparison Header -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Report 1</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>{{ comparison.report1.name }}</h6>
+                        <p class="text-muted mb-1">
+                            <i class="bi bi-calendar"></i> {{ comparison.report1.created_at[:16].replace('T', ' ') }}
+                        </p>
+                        <span class="badge bg-primary">v{{ comparison.report1.version }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Report 2</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>{{ comparison.report2.name }}</h6>
+                        <p class="text-muted mb-1">
+                            <i class="bi bi-calendar"></i> {{ comparison.report2.created_at[:16].replace('T', ' ') }}
+                        </p>
+                        <span class="badge bg-success">v{{ comparison.report2.version }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Comparison -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Overall Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-{{ 'success' if comparison.summary.high_risk_change < 0 else 'danger' if comparison.summary.high_risk_change > 0 else 'secondary' }}">
+                                {{ comparison.summary.high_risk_change if comparison.summary.high_risk_change != 0 else '0' }}
+                            </h4>
+                            <small class="text-muted">High Risk Change</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-{{ 'success' if comparison.summary.medium_risk_change < 0 else 'warning' if comparison.summary.medium_risk_change > 0 else 'secondary' }}">
+                                {{ comparison.summary.medium_risk_change if comparison.summary.medium_risk_change != 0 else '0' }}
+                            </h4>
+                            <small class="text-muted">Medium Risk Change</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-{{ 'success' if comparison.summary.low_risk_change < 0 else 'info' if comparison.summary.low_risk_change > 0 else 'secondary' }}">
+                                {{ comparison.summary.low_risk_change if comparison.summary.low_risk_change != 0 else '0' }}
+                            </h4>
+                            <small class="text-muted">Low Risk Change</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-{{ 'success' if comparison.summary.overall_improvement > 0 else 'danger' if comparison.summary.overall_improvement < 0 else 'secondary' }}">
+                                {{ comparison.summary.overall_improvement if comparison.summary.overall_improvement != 0 else '0' }}
+                            </h4>
+                            <small class="text-muted">Overall Improvement</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Questions Answered Change:</strong> {{ comparison.summary.questions_change }}
+                            {% if comparison.summary.questions_change > 0 %}
+                                <span class="text-success">({{ comparison.summary.questions_change }} more questions answered)</span>
+                            {% elif comparison.summary.questions_change < 0 %}
+                                <span class="text-warning">({{ comparison.summary.questions_change|abs }} fewer questions answered)</span>
+                            {% else %}
+                                <span class="text-muted">(No change in questions answered)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar-by-Pillar Comparison -->
+        {% if comparison.differences and comparison.differences.pillar_changes %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-columns"></i> Pillar Changes</h5>
+            </div>
+            <div class="card-body">
+                {% for pillar_id, pillar_changes in comparison.differences.pillar_changes.items() %}
+                <div class="mb-4">
+                    <h6>
+                        <i class="bi bi-diagram-3"></i> 
+                        {{ pillar_id|title }} Pillar
+                    </h6>
+                    
+                    {% if pillar_changes.changed_answers %}
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-arrow-repeat"></i> Changed Answers ({{ pillar_changes.changed_answers|length }})</h6>
+                        {% for change in pillar_changes.changed_answers %}
+                        <div class="mb-2">
+                            <strong>{{ change.title }}</strong><br>
+                            <small class="text-muted">Question ID: {{ change.question_id }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if pillar_changes.new_questions %}
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-plus-circle"></i> New Questions ({{ pillar_changes.new_questions|length }})</h6>
+                        {% for question in pillar_changes.new_questions %}
+                        <div class="mb-1">
+                            <small>{{ question.title }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if pillar_changes.removed_questions %}
+                    <div class="alert alert-secondary">
+                        <h6><i class="bi bi-dash-circle"></i> Removed Questions ({{ pillar_changes.removed_questions|length }})</h6>
+                        {% for question in pillar_changes.removed_questions %}
+                        <div class="mb-1">
+                            <small>{{ question.title }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if not pillar_changes.changed_answers and not pillar_changes.new_questions and not pillar_changes.removed_questions %}
+                    <div class="text-muted">
+                        <i class="bi bi-check-circle"></i> No changes in this pillar
+                    </div>
+                    {% endif %}
+                </div>
+                <hr>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-columns"></i> Pillar Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    <p>No detailed pillar changes detected or comparison data unavailable.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+            <h4 class="mt-3">Comparison Failed</h4>
+            <p class="text-muted">Unable to compare the selected reports. Please try again.</p>
+            <a href="{{ url_for('compare_reports') }}" class="btn btn-torwar">
+                <i class="bi bi-arrow-left"></i> Back to Compare
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

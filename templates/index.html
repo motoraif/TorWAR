@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Home - TorWAR{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">TorWAR - AWS Well-Architected Review Tool</h1>
+    <p class="lead">Streamlined AWS Well-Architected Framework reviews with enhanced report management</p>
+    <hr class="my-4">
+    
+    {% if is_connected %}
+        <div class="alert alert-success">
+            <div class="row">
+                <div class="col-md-8">
+                    <strong><i class="bi bi-check-circle"></i> Connected to AWS</strong>
+                    <br>
+                    <small>
+                        Account: {{ aws_account_id }} | 
+                        Region: {{ aws_region }} | 
+                        Profile: {{ session.get('aws_profile', 'default') }}
+                    </small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('aws_status') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-info-circle"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if workload_id %}
+            <div class="alert alert-info">
+                <strong><i class="bi bi-briefcase"></i> Selected Workload:</strong> {{ workload_name }} ({{ workload_id }})
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning">
+            <div class="row">
+                <div class="col-md-8">
+                    <strong><i class="bi bi-exclamation-triangle"></i> Not connected to AWS</strong>
+                    <br>
+                    <small>Please authenticate with AWS to start using TorWAR</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('aws_login') }}" class="btn btn-warning">
+                        <i class="bi bi-shield-lock"></i> AWS Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Main Dashboard -->
+<div class="row">
+    {% if is_connected %}
+        <!-- Workload Management -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-diagram-3 text-primary"></i> Workload Management
+                    </h5>
+                    <p class="card-text">Manage your AWS workloads and select one for review.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
+                            <i class="bi bi-list"></i> List Workloads
+                        </a>
+                        <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Create Workload
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if workload_id %}
+        <!-- Review Process -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-shield-check text-success"></i> Well-Architected Review
+                    </h5>
+                    <p class="card-text">Conduct comprehensive reviews across all pillars.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('select_pillars') }}" class="btn btn-success">
+                            <i class="bi bi-play-circle"></i> Start Review
+                        </a>
+                        <small class="text-muted">Current: {{ workload_name }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Reports -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-file-earmark-text text-info"></i> Enhanced Reports
+                    </h5>
+                    <p class="card-text">Generate, save, and compare Well-Architected reports.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('generate_report') }}" class="btn btn-info">
+                            <i class="bi bi-file-plus"></i> Generate Report
+                        </a>
+                        <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info">
+                            <i class="bi bi-folder"></i> Saved Reports
+                        </a>
+                        <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left-right"></i> Compare Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- No Workload Selected -->
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="bi bi-arrow-right text-warning"></i> Next Steps
+                    </h5>
+                    <p class="card-text">Select or create a workload to begin your Well-Architected review.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
+                            <i class="bi bi-list"></i> Select Existing Workload
+                        </a>
+                        <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Create New Workload
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <!-- Not Connected -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="bi bi-cloud-arrow-up text-primary"></i> Get Started with TorWAR
+                    </h5>
+                    <p class="card-text">Connect to your AWS account to begin conducting Well-Architected reviews.</p>
+                    <a href="{{ url_for('aws_login') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-shield-lock"></i> Connect to AWS
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Features Overview -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3><i class="bi bi-star"></i> TorWAR Features</h3>
+        <p class="text-muted">Streamlined for enhanced report management and comparison</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="card-title text-primary">
+                    <i class="bi bi-shield-check"></i> Comprehensive Reviews
+                </h6>
+                <p class="card-text small">
+                    Conduct thorough Well-Architected reviews across all six pillars with guided questionnaires.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="card-title text-success">
+                    <i class="bi bi-file-earmark-text"></i> Advanced Report Management
+                </h6>
+                <p class="card-text small">
+                    Save reports with custom names, notes, and version tracking for better organization.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="card-title text-info">
+                    <i class="bi bi-arrow-left-right"></i> Report Comparison
+                </h6>
+                <p class="card-text small">
+                    Compare different report versions to track improvements and identify changes over time.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats (if connected and workload selected) -->
+{% if is_connected and workload_id %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-graph-up"></i> Quick Actions</h6>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('select_pillars') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-play-circle"></i> Continue Review
+                    </a>
+                    <a href="{{ url_for('generate_report') }}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-file-plus"></i> Generate Report
+                    </a>
+                    <a href="{{ url_for('saved_reports') }}" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-folder"></i> View Saved Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.jumbotron {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-group .btn {
+    margin: 0 0.25rem;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth animations to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

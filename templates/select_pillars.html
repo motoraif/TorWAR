@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Select Pillars - Well-Architected Review Tool{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-info {
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    .pillar-card {
+        transition: all 0.3s ease;
+    }
+    .pillar-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .progress-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.8rem;
+        animation: fadeInScale 0.6s ease-out;
+    }
+    .generate-report-section {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 2px dashed #dee2e6;
+    }
+    
+    /* Animated Progress Bar Styles */
+    .animated-progress {
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .animated-progress-bar {
+        height: 100%;
+        border-radius: 5px;
+        position: relative;
+        overflow: hidden;
+        transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.2) 75%);
+        background-size: 20px 20px;
+        animation: progressStripes 1s linear infinite;
+    }
+    
+    .animated-progress-bar.bg-success {
+        background-color: #198754;
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+    }
+    
+    .animated-progress-bar.bg-warning {
+        background-color: #ffc107;
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+    }
+    
+    .animated-progress-bar.bg-info {
+        background-color: #0dcaf0;
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+    }
+    
+    .animated-progress-bar.bg-secondary {
+        background-color: #6c757d;
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+    }
+    
+    /* Keyframe Animations */
+    @keyframes progressStripes {
+        0% {
+            background-position: 0 0;
+        }
+        100% {
+            background-position: 20px 0;
+        }
+    }
+    
+    @keyframes fadeInScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes countUp {
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .progress-text {
+        animation: countUp 0.8s ease-out 0.5s both;
+    }
+    
+    .pillar-card {
+        animation: slideInUp 0.6s ease-out;
+    }
+    
+    .pillar-card:nth-child(1) { animation-delay: 0.1s; }
+    .pillar-card:nth-child(2) { animation-delay: 0.2s; }
+    .pillar-card:nth-child(3) { animation-delay: 0.3s; }
+    .pillar-card:nth-child(4) { animation-delay: 0.4s; }
+    .pillar-card:nth-child(5) { animation-delay: 0.5s; }
+    .pillar-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    @keyframes slideInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Pulse animation for completed pillars */
+    .progress-badge.bg-success {
+        animation: fadeInScale 0.6s ease-out, pulse 2s infinite 1s;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    /* Shimmer effect for progress bars */
+    .animated-progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Select Pillars for Review</h2>
+        <div>
+            <button type="submit" form="pillar-form" class="btn btn-primary btn-lg">
+                <i class="bi bi-play-fill"></i> Start Review
+            </button>
+            <a href="/" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="lead">Select the pillars you want to include in your Well-Architected review.</p>
+
+        <form method="post" action="/start_review" id="pillar-form">
+            <div class="row">
+                {% for pillar_id, pillar in pillars.items() %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 pillar-card position-relative">
+                            <!-- Progress Badge -->
+                            {% set stats = pillar_stats.get(pillar_id, {'answered_questions': 0, 'total_questions': 0, 'completion_percentage': 0}) %}
+                            <span class="badge progress-badge 
+                                {% if stats.completion_percentage == 100 %}bg-success
+                                {% elif stats.completion_percentage >= 50 %}bg-warning
+                                {% elif stats.completion_percentage > 0 %}bg-info
+                                {% else %}bg-secondary
+                                {% endif %}" 
+                                data-count="{{ stats.answered_questions }}/{{ stats.total_questions }}">
+                                <span class="counter" data-target="{{ stats.answered_questions }}">0</span>/{{ stats.total_questions }}
+                            </span>
+
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="pillars" value="{{ pillar_id }}" id="pillar-{{ pillar_id }}" checked>
+                                    <label class="form-check-label" for="pillar-{{ pillar_id }}">
+                                        <h5 class="card-title">{{ pillar }}</h5>
+                                    </label>
+                                </div>
+
+                                <div class="pillar-icon text-center my-3">
+                                    {% if pillar_id == 'operationalExcellence' %}
+                                        <i class="bi bi-gear-fill text-primary" style="font-size: 2rem;"></i>
+                                    {% elif pillar_id == 'security' %}
+                                        <i class="bi bi-shield-fill-check text-danger" style="font-size: 2rem;"></i>
+                                    {% elif pillar_id == 'reliability' %}
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                    {% elif pillar_id == 'performance' %}
+                                        <i class="bi bi-speedometer2 text-warning" style="font-size: 2rem;"></i>
+                                    {% elif pillar_id == 'costOptimization' %}
+                                        <i class="bi bi-cash-coin text-info" style="font-size: 2rem;"></i>
+                                    {% elif pillar_id == 'sustainability' %}
+                                        <i class="bi bi-tree-fill text-success" style="font-size: 2rem;"></i>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Animated Progress Bar -->
+                                {% if stats.total_questions > 0 %}
+                                <div class="animated-progress mb-2">
+                                    <div class="animated-progress-bar 
+                                        {% if stats.completion_percentage == 100 %}bg-success
+                                        {% elif stats.completion_percentage >= 50 %}bg-warning
+                                        {% elif stats.completion_percentage > 0 %}bg-info
+                                        {% else %}bg-secondary
+                                        {% endif %}" 
+                                        data-width="{{ stats.completion_percentage }}"
+                                        style="width: 0%;">
+                                    </div>
+                                </div>
+                                <div class="progress-info text-muted progress-text">
+                                    <small>
+                                        <i class="bi bi-check-circle"></i> 
+                                        <span class="counter" data-target="{{ stats.answered_questions }}">0</span> answered of 
+                                        {{ stats.total_questions }} questions 
+                                        (<span class="counter" data-target="{{ stats.completion_percentage }}">0</span>%)
+                                    </small>
+                                </div>
+                                {% endif %}
+
+                                <p class="card-text mt-3">
+                                    {% if pillar_id == 'operationalExcellence' %}
+                                        The ability to run and monitor systems to deliver business value and to continually improve supporting processes and procedures.
+                                    {% elif pillar_id == 'security' %}
+                                        The ability to protect information, systems, and assets while delivering business value through risk assessments and mitigation strategies.
+                                    {% elif pillar_id == 'reliability' %}
+                                        The ability of a system to recover from infrastructure or service disruptions, dynamically acquire computing resources to meet demand, and mitigate disruptions.
+                                    {% elif pillar_id == 'performance' %}
+                                        The ability to use computing resources efficiently to meet system requirements, and to maintain that efficiency as demand changes and technologies evolve.
+                                    {% elif pillar_id == 'costOptimization' %}
+                                        The ability to run systems to deliver business value at the lowest price point.
+                                    {% elif pillar_id == 'sustainability' %}
+                                        The ability to continually improve sustainability impacts by reducing energy consumption and increasing efficiency.
+                                    {% endif %}
+                                </p>
+
+                                <!-- Quick Review Link -->
+                                {% if stats.total_questions > 0 %}
+                                <div class="mt-auto">
+                                    <a href="/review/{{ pillar_id }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-arrow-right"></i> Review Questions
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </form>
+
+        <!-- Generate Report Section -->
+        <div class="generate-report-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4><i class="bi bi-file-earmark-text text-primary"></i> Generate Well-Architected Report</h4>
+                    <p class="mb-0">Create a comprehensive report based on your current answers and assessment progress.</p>
+                    {% set total_answered = pillar_stats.values() | map(attribute='answered_questions') | sum %}
+                    {% set total_questions = pillar_stats.values() | map(attribute='total_questions') | sum %}
+                    {% if total_questions > 0 %}
+                        <small class="text-muted">
+                            Overall progress: <span class="counter" data-target="{{ total_answered }}">0</span>/{{ total_questions }} questions answered 
+                            (<span class="counter" data-target="{{ ((total_answered / total_questions * 100) | round | int) }}">0</span>%)
+                        </small>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/report" class="btn btn-success btn-lg">
+                        <i class="bi bi-file-earmark-text"></i> Generate Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    setTimeout(function() {
+        const progressBars = document.querySelectorAll('.animated-progress-bar');
+        progressBars.forEach(function(bar) {
+            const targetWidth = bar.getAttribute('data-width');
+            bar.style.width = targetWidth + '%';
+        });
+    }, 500);
+    
+    // Animate counters
+    function animateCounter(element, target, duration = 2000) {
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current);
+        }, 16);
+    }
+    
+    // Start counter animations with delay
+    setTimeout(function() {
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(function(counter, index) {
+            const target = parseInt(counter.getAttribute('data-target'));
+            setTimeout(function() {
+                animateCounter(counter, target);
+            }, index * 100);
+        });
+    }, 800);
+    
+    // Add hover effects for progress bars
+    const pillarCards = document.querySelectorAll('.pillar-card');
+    pillarCards.forEach(function(card) {
+        const progressBar = card.querySelector('.animated-progress-bar');
+        if (progressBar) {
+            card.addEventListener('mouseenter', function() {
+                progressBar.style.animationDuration = '0.5s';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                progressBar.style.animationDuration = '1s';
+            });
+        }
+    });
+    
+    // Refresh progress every 30 seconds (optional - for real-time updates)
+    setInterval(function() {
+        // You could add AJAX call here to refresh progress data
+        // For now, we'll just restart the shimmer animation
+        const progressBars = document.querySelectorAll('.animated-progress-bar');
+        progressBars.forEach(function(bar) {
+            bar.style.animation = 'none';
+            setTimeout(function() {
+                bar.style.animation = '';
+            }, 10);
+        });
+    }, 30000);
+});
+</script>
+{% endblock %}

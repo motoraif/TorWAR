@@ -1,0 +1,851 @@
+{% extends "base.html" %}
+
+{% block title %}Well-Architected Report - TorWAR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .risk-high { color: #dc3545; font-weight: bold; }
+    .risk-medium { color: #fd7e14; font-weight: bold; }
+    .risk-low { color: #ffc107; font-weight: bold; }
+    .risk-none { color: #198754; font-weight: bold; }
+    .risk-na { color: #6c757d; }
+    
+    .pillar-card {
+        margin-bottom: 1.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .question-item {
+        border-left: 4px solid #dee2e6;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .question-item.risk-high { border-left-color: #dc3545; }
+    .question-item.risk-medium { border-left-color: #fd7e14; }
+    .question-item.risk-low { border-left-color: #ffc107; }
+    .question-item.risk-none { border-left-color: #198754; }
+    
+    @media print {
+        .no-print { display: none !important; }
+        
+        /* Optimize page usage with narrow borders */
+        @page {
+            margin: 0.5in !important;
+            size: letter;
+        }
+        
+        body { 
+            font-size: 11px !important; 
+            line-height: 1.3 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .container-fluid {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Charts section - full page width utilization */
+        .charts-section {
+            width: 100% !important;
+            display: block !important;
+            page-break-inside: avoid;
+            margin-bottom: 25px !important;
+            overflow: hidden;
+        }
+        
+        .charts-section .row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            margin: 0 !important;
+            gap: 15px !important;
+            width: 100% !important;
+        }
+        
+        .charts-section .col-md-6 {
+            width: calc(50% - 7.5px) !important;
+            flex: 1 1 calc(50% - 7.5px) !important;
+            display: inline-block !important;
+            vertical-align: top !important;
+            float: left !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        
+        .charts-section .col-md-6:first-child {
+            margin-right: 15px !important;
+        }
+        
+        .charts-section .col-md-6:last-child {
+            margin-left: 0 !important;
+        }
+        
+        /* Ensure row clears floats */
+        .charts-section .row::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        /* Chart container - optimized sizing without stretching */
+        .chart-container {
+            height: 320px !important;
+            width: 100% !important;
+            margin: 10px 0 !important;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .chart-container canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Force side-by-side layout for charts */
+        .charts-section .card {
+            width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            float: none !important;
+        }
+        
+        /* Prevent any breaking or wrapping */
+        .charts-section * {
+            box-sizing: border-box !important;
+        }
+        
+        /* Alternative layout using table display for better print support */
+        @supports not (display: flex) {
+            .charts-section .row {
+                display: table !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+            }
+            
+            .charts-section .col-md-6 {
+                display: table-cell !important;
+                width: 50% !important;
+                vertical-align: top !important;
+                float: none !important;
+            }
+        }
+        
+        /* Card styling for print */
+        .card {
+            margin-bottom: 12px !important;
+            page-break-inside: avoid;
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+            background: white !important;
+        }
+        
+        .card-header {
+            background: #f8f9fa !important;
+            color: #333 !important;
+            border-bottom: 1px solid #ccc !important;
+            padding: 8px 12px !important;
+        }
+        
+        .card-body {
+            padding: 12px !important;
+        }
+        
+        /* Executive summary optimization */
+        .stats-card {
+            background: #f8f9fa !important;
+            color: #333 !important;
+            border: 1px solid #ccc !important;
+            margin-bottom: 20px !important;
+            page-break-inside: avoid;
+            padding: 15px !important;
+        }
+        
+        .stats-card .row {
+            margin: 0 !important;
+        }
+        
+        .stats-card .col-md-3 {
+            width: 25% !important;
+            float: left !important;
+            text-align: center !important;
+            padding: 5px !important;
+        }
+        
+        /* Risk summary card */
+        .card-header.bg-info {
+            background: #e3f2fd !important;
+            color: #333 !important;
+        }
+        
+        /* Pillar cards optimization */
+        .pillar-card {
+            page-break-inside: avoid;
+            margin-bottom: 15px !important;
+        }
+        
+        /* Ensure accordion content is visible */
+        .accordion-collapse {
+            display: block !important;
+        }
+        
+        .accordion-button {
+            display: none !important;
+        }
+        
+        /* Progress bars */
+        .progress {
+            border: 1px solid #ccc !important;
+            height: 18px !important;
+        }
+        
+        .progress-bar {
+            background-color: #007bff !important;
+        }
+        
+        /* Text and badge adjustments */
+        .text-white {
+            color: #333 !important;
+        }
+        
+        .badge {
+            border: 1px solid #333 !important;
+            color: #333 !important;
+        }
+        
+        .badge.bg-danger {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+        }
+        
+        .badge.bg-warning {
+            background-color: #fff3cd !important;
+            border-color: #ffc107 !important;
+        }
+        
+        .badge.bg-success {
+            background-color: #d1e7dd !important;
+            border-color: #198754 !important;
+        }
+        
+        /* Question items */
+        .question-item {
+            page-break-inside: avoid;
+            margin-bottom: 8px !important;
+            padding: 8px !important;
+        }
+        
+        .alert {
+            page-break-inside: avoid;
+            margin-bottom: 10px !important;
+            padding: 10px !important;
+        }
+        
+        /* Headers and titles */
+        h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+            margin-top: 15px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        /* Clear any floats */
+        .clearfix::after,
+        .row::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        /* Force page break after charts if needed */
+        .page-break-after {
+            page-break-after: always;
+        }
+        
+        /* Recommendations section */
+        .card:last-child {
+            margin-bottom: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2><i class="bi bi-file-earmark-text"></i> Well-Architected Review Report</h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-diagram-3"></i> {{ workload.WorkloadName }} 
+                <span class="badge bg-primary ms-2">{{ report_version }}</span>
+            </p>
+        </div>
+        <div>
+            <button class="btn btn-primary me-2" onclick="handlePrint()">
+                <i class="bi bi-printer"></i> Print
+            </button>
+            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#saveReportModal">
+                <i class="bi bi-save"></i> Save Report
+            </button>
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="stats-card">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ overall_stats.total_questions }}</span>
+                    <span class="stat-label">Total Questions</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ overall_stats.answered_questions }}</span>
+                    <span class="stat-label">Answered</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ overall_stats.completion_percentage }}%</span>
+                    <span class="stat-label">Complete</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ risk_counts.HIGH + risk_counts.MEDIUM }}</span>
+                    <span class="stat-label">Priority Issues</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Summary -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Risk Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-3">
+                    <div class="risk-high">
+                        <div class="stat-number">{{ risk_counts.HIGH }}</div>
+                        <div class="stat-label">High Risk</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="risk-medium">
+                        <div class="stat-number">{{ risk_counts.MEDIUM }}</div>
+                        <div class="stat-label">Medium Risk</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="risk-low">
+                        <div class="stat-number">{{ risk_counts.LOW }}</div>
+                        <div class="stat-label">Low Risk</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="risk-none">
+                        <div class="stat-number">{{ risk_counts.NONE }}</div>
+                        <div class="stat-label">No Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4 charts-section">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-pie-chart"></i> Risk Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-bar-chart"></i> Completion by Pillar</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print page break after charts -->
+    <div class="d-none d-print-block page-break-after"></div>
+
+    <!-- Detailed Pillar Analysis -->
+    {% for pillar_id, pillar_name in pillars.items() %}
+    {% set pillar_data = report_data.pillars.get(pillar_id, {}) %}
+    {% set pillar_review = pillar_reviews.get(pillar_id, {}) %}
+    {% set pillar_stats = pillar_review.get('Statistics', {}) %}
+    {% set pillar_risks = pillar_review.get('RiskCounts', {}) %}
+    
+    <div class="card pillar-card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-shield-check"></i> {{ pillar_name }}
+                <span class="badge bg-secondary ms-2">
+                    {{ pillar_stats.get('answered_questions', 0) }}/{{ pillar_stats.get('total_questions', 0) }} answered
+                </span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Pillar Progress -->
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="progress">
+                        {% set completion = (pillar_stats.get('answered_questions', 0) / pillar_stats.get('total_questions', 1) * 100) if pillar_stats.get('total_questions', 0) > 0 else 0 %}
+                        <div class="progress-bar" style="width: {{ completion }}%">
+                            {{ "%.1f"|format(completion) }}% Complete
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="row text-center small">
+                        <div class="col-3">
+                            <div class="risk-high">
+                                <strong>{{ pillar_risks.get('HIGH', 0) }}</strong><br>
+                                <small>High</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="risk-medium">
+                                <strong>{{ pillar_risks.get('MEDIUM', 0) }}</strong><br>
+                                <small>Med</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="risk-low">
+                                <strong>{{ pillar_risks.get('LOW', 0) }}</strong><br>
+                                <small>Low</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="risk-none">
+                                <strong>{{ pillar_risks.get('NONE', 0) }}</strong><br>
+                                <small>None</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Risk Questions -->
+            {% if pillar_data.get('questions') %}
+                {% set high_risk_questions = pillar_data.questions | selectattr('Risk', 'equalto', 'HIGH') | list %}
+                {% if high_risk_questions %}
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> High Risk Issues ({{ high_risk_questions|length }})</h6>
+                    {% for question in high_risk_questions %}
+                    <div class="question-item risk-high">
+                        <h6>{{ question.QuestionTitle }}</h6>
+                        {% if question.SelectedChoices %}
+                        <p><strong>Selected:</strong> {{ question.SelectedChoices | join(', ') }}</p>
+                        {% endif %}
+                        {% if question.Notes %}
+                        <p><strong>Notes:</strong> {{ question.Notes }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Medium Risk Questions -->
+                {% set medium_risk_questions = pillar_data.questions | selectattr('Risk', 'equalto', 'MEDIUM') | list %}
+                {% if medium_risk_questions %}
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-circle"></i> Medium Risk Issues ({{ medium_risk_questions|length }})</h6>
+                    {% for question in medium_risk_questions %}
+                    <div class="question-item risk-medium">
+                        <h6>{{ question.QuestionTitle }}</h6>
+                        {% if question.SelectedChoices %}
+                        <p><strong>Selected:</strong> {{ question.SelectedChoices | join(', ') }}</p>
+                        {% endif %}
+                        {% if question.Notes %}
+                        <p><strong>Notes:</strong> {{ question.Notes }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- All Questions (Collapsible) -->
+                <div class="accordion" id="accordion{{ pillar_id }}">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ pillar_id }}">
+                                <i class="bi bi-list-ul"></i> View All Questions ({{ pillar_data.questions|length }})
+                            </button>
+                        </h2>
+                        <div id="collapse{{ pillar_id }}" class="accordion-collapse collapse" 
+                             data-bs-parent="#accordion{{ pillar_id }}">
+                            <div class="accordion-body">
+                                {% for question in pillar_data.questions %}
+                                <div class="question-item risk-{{ question.Risk|lower if question.Risk else 'na' }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6>{{ question.QuestionTitle }}</h6>
+                                        <span class="badge bg-{{ 'danger' if question.Risk == 'HIGH' else 'warning' if question.Risk == 'MEDIUM' else 'info' if question.Risk == 'LOW' else 'success' if question.Risk == 'NONE' else 'secondary' }}">
+                                            {{ question.Risk or 'UNANSWERED' }}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if question.SelectedChoices %}
+                                    <p><strong>Selected Answers:</strong></p>
+                                    <ul>
+                                        {% for choice in question.SelectedChoices %}
+                                        <li>{{ choice }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    <p class="text-muted"><em>Not answered</em></p>
+                                    {% endif %}
+                                    
+                                    {% if question.Notes %}
+                                    <p><strong>Notes:</strong> {{ question.Notes }}</p>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted">No questions available for this pillar.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Recommendations -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recommendations</h5>
+        </div>
+        <div class="card-body">
+            {% if risk_counts.HIGH > 0 %}
+            <div class="alert alert-danger">
+                <h6><i class="bi bi-exclamation-triangle"></i> Immediate Action Required</h6>
+                <p>Address {{ risk_counts.HIGH }} high-risk issue(s) to improve your workload's security and reliability posture.</p>
+            </div>
+            {% endif %}
+            
+            {% if risk_counts.MEDIUM > 0 %}
+            <div class="alert alert-warning">
+                <h6><i class="bi bi-exclamation-circle"></i> Plan for Improvement</h6>
+                <p>Consider addressing {{ risk_counts.MEDIUM }} medium-risk issue(s) in your next development cycle.</p>
+            </div>
+            {% endif %}
+            
+            {% if risk_counts.HIGH == 0 and risk_counts.MEDIUM == 0 %}
+            <div class="alert alert-success">
+                <h6><i class="bi bi-check-circle"></i> Excellent Work!</h6>
+                <p>Your workload shows no high or medium risk issues. Continue monitoring and consider the low-risk improvements for optimization.</p>
+            </div>
+            {% endif %}
+            
+            <h6>Next Steps</h6>
+            <ul>
+                <li>Review and prioritize the identified risk issues</li>
+                <li>Create action items for high and medium risk findings</li>
+                <li>Schedule regular reviews to track improvement progress</li>
+                <li>Consider generating a new report after implementing changes</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Save Report Modal -->
+<div class="modal fade" id="saveReportModal" tabindex="-1" aria-labelledby="saveReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveReportModalLabel">
+                    <i class="bi bi-save"></i> Save Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="/save_report">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="custom_name" class="form-label">Report Name</label>
+                        <input type="text" class="form-control" id="custom_name" name="custom_name" 
+                               placeholder="Enter a custom name for this report" maxlength="100">
+                        <div class="form-text">Optional: Give this report a memorable name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="user_notes" name="user_notes" rows="3" 
+                                  placeholder="Add any notes or comments about this report" maxlength="500"></textarea>
+                        <div class="form-text">Optional: Add notes about this assessment or recommendations</div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Report Details:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Workload: {{ workload.WorkloadName }}</li>
+                            <li>Generated: {{ report_data.generated_at[:19] | replace('T', ' ') if report_data.generated_at else 'Now' }}</li>
+                            <li>Pillars: {{ report_data.pillars|length }} assessed</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Save Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let riskChart, completionChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Risk Distribution Pie Chart
+    const riskCtx = document.getElementById('riskChart').getContext('2d');
+    riskChart = new Chart(riskCtx, {
+        type: 'pie',
+        data: {
+            labels: ['High Risk', 'Medium Risk', 'Low Risk', 'No Risk'],
+            datasets: [{
+                data: [
+                    {{ risk_counts.HIGH }},
+                    {{ risk_counts.MEDIUM }},
+                    {{ risk_counts.LOW }},
+                    {{ risk_counts.NONE }}
+                ],
+                backgroundColor: [
+                    '#dc3545',
+                    '#fd7e14',
+                    '#ffc107',
+                    '#198754'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Completion by Pillar Bar Chart
+    const completionCtx = document.getElementById('completionChart').getContext('2d');
+    completionChart = new Chart(completionCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for pillar_id, pillar_name in pillars.items() %}
+                '{{ pillar_name }}'{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Completion %',
+                data: [
+                    {% for pillar_id, pillar_name in pillars.items() %}
+                    {% set pillar_review = pillar_reviews.get(pillar_id, {}) %}
+                    {% set pillar_stats = pillar_review.get('Statistics', {}) %}
+                    {% set completion = (pillar_stats.get('answered_questions', 0) / pillar_stats.get('total_questions', 1) * 100) if pillar_stats.get('total_questions', 0) > 0 else 0 %}
+                    {{ "%.1f"|format(completion) }}{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: '#667eea',
+                borderColor: '#764ba2',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        },
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+
+// Simplified print handler
+function handlePrint() {
+    console.log('Preparing charts for print...');
+    
+    // Prepare charts for print with optimal sizing
+    setTimeout(function() {
+        if (riskChart) {
+            riskChart.resize();
+            riskChart.update('none');
+        }
+        if (completionChart) {
+            completionChart.resize();
+            completionChart.update('none');
+        }
+        
+        // Trigger print after charts are ready
+        setTimeout(function() {
+            window.print();
+        }, 400);
+    }, 200);
+}
+
+// Handle print events for optimal chart rendering
+window.addEventListener('beforeprint', function() {
+    console.log('Before print - optimizing charts...');
+    
+    setTimeout(function() {
+        if (riskChart) {
+            riskChart.resize();
+            riskChart.update('none');
+        }
+        if (completionChart) {
+            completionChart.resize();
+            completionChart.update('none');
+        }
+    }, 100);
+});
+
+window.addEventListener('afterprint', function() {
+    console.log('After print - restoring charts...');
+    
+    setTimeout(function() {
+        if (riskChart) {
+            riskChart.resize();
+            riskChart.update('none');
+        }
+        if (completionChart) {
+            completionChart.resize();
+            completionChart.update('none');
+        }
+    }, 100);
+});
+
+// Handle media query changes for print mode
+if (window.matchMedia) {
+    const mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function(mql) {
+        if (mql.matches) {
+            console.log('Entering print mode...');
+            setTimeout(function() {
+                if (riskChart) {
+                    riskChart.resize();
+                    riskChart.update('none');
+                }
+                if (completionChart) {
+                    completionChart.resize();
+                    completionChart.update('none');
+                }
+            }, 50);
+        } else {
+            console.log('Exiting print mode...');
+            setTimeout(function() {
+                if (riskChart) {
+                    riskChart.resize();
+                    riskChart.update('none');
+                }
+                if (completionChart) {
+                    completionChart.resize();
+                    completionChart.update('none');
+                }
+            }, 50);
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,344 @@
+# TorWAR - AWS Well-Architected Review Tool
+# .gitignore file to exclude unnecessary files from Git repository
+
+# ============================================================================
+# TESTING AND DOCUMENTATION FILES
+# ============================================================================
+
+# Testing directory (contains all test files and documentation)
+testing/
+
+# Documentation files (markdown files) - except essential ones
+*.md
+!README.md
+!CHANGELOG.md
+!LICENSE.md
+
+# Test files
+test_*.py
+test_*.html
+test_*.sh
+*_test.py
+*_tests.py
+
+# ============================================================================
+# DEVELOPMENT AND BACKUP FILES
+# ============================================================================
+
+# Backup and alternative versions of main files
+*.original
+*.clean
+*.backup
+*.bak
+*.old
+*.save
+app_*.py
+!app.py
+
+# Debug and development scripts
+debug_*.py
+create_*.py
+check_*.sh
+cookies.txt
+diagnose_*.py
+fix_*.py
+fix_*.sh
+generate_*.py
+fixed_*.py
+
+# Alternative implementations
+*_streamlined.py
+*_report.py
+aws_credential_helper.py
+aws_regions.py
+
+# Docker development files
+.dockerignore
+docker-compose.*.yml
+docker-entrypoint.sh
+
+# ============================================================================
+# LOG FILES
+# ============================================================================
+
+# Application logs
+*.log
+logs/
+app.log
+app_debug.log
+debug.log
+error.log
+access.log
+
+# ============================================================================
+# PYTHON CACHE AND COMPILED FILES
+# ============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ============================================================================
+# ENVIRONMENT AND CONFIGURATION
+# ============================================================================
+
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================================================
+# DATA AND RUNTIME FILES
+# ============================================================================
+
+# Application data (reports contain sensitive information)
+data/reports/*.json
+data/reports/*.html
+data/reports/*.pdf
+data/workloads/
+data/cache/
+data/temp/
+
+# Keep data directory structure but ignore contents
+data/reports/*
+!data/reports/.gitkeep
+
+# Session files
+flask_session/
+sessions/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# ============================================================================
+# DOCKER AND DEPLOYMENT
+# ============================================================================
+
+# Docker development files (keep main Dockerfile and docker-compose.yml)
+docker-compose.override.yml
+docker-compose.dev.yml
+docker-compose.prod.yml
+.dockerignore
+
+# Deployment scripts
+deploy.sh
+deploy/
+scripts/deploy/
+docker-entrypoint.sh
+
+# ============================================================================
+# AWS AND CLOUD CREDENTIALS
+# ============================================================================
+
+# AWS credentials (never commit these!)
+.aws/
+aws-credentials.json
+credentials.json
+*.pem
+*.key
+
+# Cloud configuration
+.cloud/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+
+# ============================================================================
+# DEVELOPMENT AND BUILD FILES
+# ============================================================================
+
+# Node.js (if using for frontend build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build/
+dist/
+out/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# SECURITY AND SENSITIVE DATA
+# ============================================================================
+
+# Security files
+*.crt
+*.csr
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration with secrets
+config.json
+secrets.json
+local_settings.py
+*.json
+
+# ============================================================================
+# BACKUP AND ARCHIVE FILES
+# ============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ============================================================================
+# SPECIFIC TO TORWAR APPLICATION
+# ============================================================================
+
+# Summary and documentation files created during development
+*_SUMMARY.md
+*_IMPROVEMENTS.md
+*_FIX.md
+COMPLETE_*.md
+STREAMLINED_*.md
+
+# Application-specific temporary files
+torwar_*.tmp
+wa_*.cache
+pillar_*.backup
+
+# Report exports (may contain sensitive data)
+exports/
+reports_export/
+*.xlsx
+*.csv
+
+# Development and utility scripts
+migrate_*.py
+update_*.py
+cleanup_*.py
+optimize_*.py
+validate_*.py
+
+# ============================================================================
+# KEEP THESE FILES (EXCEPTIONS)
+# ============================================================================
+
+# Keep essential documentation
+!README.md
+!CHANGELOG.md
+!LICENSE.md
+!CONTRIBUTING.md
+
+# Keep essential configuration examples
+!.env.example
+!config.example.json
+
+# Keep main Docker files
+!Dockerfile
+!docker-compose.yml
+
+# Keep data directory structure
+!data/
+!data/reports/
+!data/reports/.gitkeep
+
+# Keep static assets
+!static/
+!static/**
+
+# Keep all templates
+!templates/
+!templates/**
+
+# ============================================================================
+# END OF .gitignore
+# ============================================================================

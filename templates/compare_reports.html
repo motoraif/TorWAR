@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Reports - TorWAR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-bar-chart-line"></i> Compare Reports</h2>
+            <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Saved Reports
+            </a>
+        </div>
+
+        {% if workload_reports %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Select Two Reports to Compare</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('compare_reports_result') }}" method="GET">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="report1" class="form-label">First Report</label>
+                                <select class="form-select" id="report1" name="report1" required>
+                                    <option value="">Select first report...</option>
+                                    {% for workload_id, workload_data in workload_reports.items() %}
+                                        <optgroup label="{{ workload_data.workload_name }}">
+                                            {% for report in workload_data.reports %}
+                                                <option value="{{ report.report_id }}">
+                                                    {{ report.created_at[:16].replace('T', ' ') }} 
+                                                    {% if report.version %}(v{{ report.version }}){% endif %}
+                                                    - {{ report.custom_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="report2" class="form-label">Second Report</label>
+                                <select class="form-select" id="report2" name="report2" required>
+                                    <option value="">Select second report...</option>
+                                    {% for workload_id, workload_data in workload_reports.items() %}
+                                        <optgroup label="{{ workload_data.workload_name }}">
+                                            {% for report in workload_data.reports %}
+                                                <option value="{{ report.report_id }}">
+                                                    {{ report.created_at[:16].replace('T', ' ') }} 
+                                                    {% if report.version %}(v{{ report.version }}){% endif %}
+                                                    - {{ report.custom_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-torwar">
+                            <i class="bi bi-bar-chart-line"></i> Compare Reports
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reports Overview -->
+        <div class="mt-4">
+            <h4>Available Reports by Workload</h4>
+            {% for workload_id, workload_data in workload_reports.items() %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-building"></i> {{ workload_data.workload_name }}
+                        <span class="badge bg-secondary ms-2">{{ workload_data.reports|length }} reports</span>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for report in workload_data.reports %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 report-card">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        {{ report.custom_name }}
+                                        {% if report.version %}
+                                            <span class="version-badge">v{{ report.version }}</span>
+                                        {% endif %}
+                                    </h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> {{ report.created_at[:16].replace('T', ' ') }}<br>
+                                            {% if report.summary and report.summary.total_questions %}
+                                                <i class="bi bi-question-circle"></i> {{ report.summary.total_questions }} questions
+                                            {% endif %}
+                                        </small>
+                                    </p>
+                                    <a href="{{ url_for('view_saved_report', report_id=report.report_id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+            <h4 class="mt-3">No Reports Available</h4>
+            <p class="text-muted">You need at least two saved reports to perform a comparison.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-torwar">
+                <i class="bi bi-plus-circle"></i> Start a Review
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const report1Select = document.getElementById('report1');
+    const report2Select = document.getElementById('report2');
+    
+    // Prevent selecting the same report twice
+    function updateOptions() {
+        const selectedValue1 = report1Select.value;
+        const selectedValue2 = report2Select.value;
+        
+        // Reset all options to enabled
+        Array.from(report1Select.options).forEach(option => option.disabled = false);
+        Array.from(report2Select.options).forEach(option => option.disabled = false);
+        
+        // Disable selected options in the other select
+        if (selectedValue1) {
+            Array.from(report2Select.options).forEach(option => {
+                if (option.value === selectedValue1) option.disabled = true;
+            });
+        }
+        
+        if (selectedValue2) {
+            Array.from(report1Select.options).forEach(option => {
+                if (option.value === selectedValue2) option.disabled = true;
+            });
+        }
+    }
+    
+    report1Select.addEventListener('change', updateOptions);
+    report2Select.addEventListener('change', updateOptions);
+});
+</script>
+{% endblock %}
