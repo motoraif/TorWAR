@@ -38,6 +38,30 @@ from report_manager import ReportManager
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
+def is_question_answered(question_data):
+    """
+    Determine if a question is answered based on SelectedChoices.
+    Handles various edge cases like empty arrays, null values, etc.
+    """
+    selected_choices = question_data.get('SelectedChoices', [])
+    
+    # Handle None or undefined
+    if selected_choices is None:
+        return False
+    
+    # Handle empty list
+    if not selected_choices:
+        return False
+    
+    # Handle list with empty/null elements
+    if isinstance(selected_choices, list):
+        # Check if there are any non-empty, non-null choice selections
+        valid_choices = [choice for choice in selected_choices if choice and str(choice).strip()]
+        return len(valid_choices) > 0
+    
+    # Handle non-list values (shouldn't happen but just in case)
+    return bool(selected_choices)
+
 # Custom Jinja2 filter for choice mapping
 def get_choice_titles(selected_choices, all_choices):
     """Map choice IDs to their titles."""
@@ -317,7 +341,8 @@ def select_pillars():
                 answers = get_all_pillar_answers(wa_client, workload_id, pillar_id)
                 
                 total_questions = len(answers)
-                answered_questions = sum(1 for answer in answers if answer.get('SelectedChoices'))
+                # Use standardized answered questions counting
+                answered_questions = sum(1 for answer in answers if is_question_answered(answer))
                 
                 # Count risk levels
                 risk_counts = {'HIGH': 0, 'MEDIUM': 0, 'LOW': 0, 'NONE': 0, 'UNANSWERED': 0}
@@ -821,14 +846,17 @@ def generate_report():
                         selected_choices = detailed_answer.get('SelectedChoices', [])
                         print(f"DEBUG: Question {question_id} - Risk: {risk}, Choices: {len(selected_choices)}")
                         
-                        if detailed_answer.get('SelectedChoices'):
+                        # Use standardized logic for determining if a question is answered
+                        is_answered = is_question_answered(detailed_answer)
+                        
+                        if is_answered:
                             report_data['summary']['answered_questions'] += 1
                             overall_stats['answered_questions'] += 1
                             pillar_stats['answered_questions'] += 1
-                            print(f"DEBUG: Question {question_id} marked as ANSWERED - Choices: {detailed_answer.get('SelectedChoices')}")
+                            print(f"DEBUG: Question {question_id} marked as ANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
                         else:
-                            print(f"DEBUG: Question {question_id} marked as UNANSWERED - Choices: {detailed_answer.get('SelectedChoices')}")
-                            print(f"DEBUG: Question {question_id} - Full SelectedChoices data: {repr(detailed_answer.get('SelectedChoices'))}")
+                            print(f"DEBUG: Question {question_id} marked as UNANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
+                            print(f"DEBUG: Question {question_id} - SelectedChoices type: {type(detailed_answer.get('SelectedChoices'))}, value: {repr(detailed_answer.get('SelectedChoices'))}")
                         
                         if not detailed_answer.get('IsApplicable', True):
                             overall_stats['not_applicable_questions'] += 1
@@ -911,14 +939,26 @@ def generate_report():
                     print(f"  Questions processed: {len(detailed_answers)}")
                     answered_count = 0
                     for i, q in enumerate(detailed_answers):
-                        has_choices = bool(q.get('SelectedChoices'))
-                        if has_choices:
+                        is_answered = is_question_answered(q)
+                        if is_answered:
                             answered_count += 1
-                        print(f"    Q{i+1} ({q.get('QuestionId', 'Unknown')}): {'ANSWERED' if has_choices else 'UNANSWERED'} - Choices: {q.get('SelectedChoices', [])}")
+                        print(f"    Q{i+1} ({q.get('QuestionId', 'Unknown')}): {'ANSWERED' if is_answered else 'UNANSWERED'} - Choices: {q.get('SelectedChoices', [])}")
                     print(f"  Manual count of answered questions: {answered_count}")
                     print(f"  Pillar stats answered count: {pillar_stats['answered_questions']}")
                     if answered_count != pillar_stats['answered_questions']:
                         print(f"  ⚠️ MISMATCH DETECTED! Manual: {answered_count}, Stats: {pillar_stats['answered_questions']}")
+                
+                # Add debugging for all pillars to catch the issue
+                print(f"DEBUG: {pillar_name} PILLAR ANALYSIS:")
+                answered_count_check = sum(1 for q in detailed_answers if is_question_answered(q))
+                print(f"  Questions processed: {len(detailed_answers)}")
+                print(f"  Manual answered count: {answered_count_check}")
+                print(f"  Stats answered count: {pillar_stats['answered_questions']}")
+                if answered_count_check != pillar_stats['answered_questions']:
+                    print(f"  ⚠️ MISMATCH DETECTED in {pillar_name}! Manual: {answered_count_check}, Stats: {pillar_stats['answered_questions']}")
+                    # Fix the mismatch
+                    pillar_stats['answered_questions'] = answered_count_check
+                    print(f"  ✅ CORRECTED: Updated stats to {answered_count_check}")
                 
                 
             except Exception as e:
