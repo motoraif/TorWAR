@@ -38,6 +38,27 @@ from report_manager import ReportManager
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
+# Custom Jinja2 filter for choice mapping
+def get_choice_titles(selected_choices, all_choices):
+    """Map choice IDs to their titles."""
+    if not selected_choices or not all_choices:
+        return []
+    
+    titles = []
+    for choice_id in selected_choices:
+        for choice in all_choices:
+            if choice.get('ChoiceId') == choice_id:
+                titles.append(choice.get('Title', choice_id))
+                break
+        else:
+            # Choice ID not found, add it as-is for debugging
+            titles.append(f"{choice_id} (ID not found)")
+    
+    return titles
+
+# Register the filter
+app.jinja_env.filters['get_choice_titles'] = get_choice_titles
+
 # Initialize Report Manager with correct data directory
 data_dir = os.path.join(os.path.dirname(__file__), 'data', 'reports')
 report_manager = ReportManager(data_dir)
@@ -322,7 +343,10 @@ def select_pillars():
                     'completion_percentage': 0
                 }
     
-    return render_template('select_pillars.html', pillar_stats=pillar_stats, pillars=PILLARS)
+    return render_template('select_pillars.html', 
+                         pillar_stats=pillar_stats, 
+                         pillars=PILLARS,
+                         selected_pillars=session.get('selected_pillars', []))
 
 @app.route('/routes')
 def list_routes():
@@ -664,21 +688,35 @@ def save_answer():
 @app.route('/report')  # Add alias for common URL pattern
 def generate_report():
     """Generate a comprehensive Well-Architected report."""
+    print("DEBUG: Starting generate_report function")
+    
     if 'aws_region' not in session:
+        print("DEBUG: No AWS region in session")
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
     if 'workload_id' not in session:
+        print("DEBUG: No workload_id in session")
         flash('Please select a workload first', 'warning')
         return redirect(url_for('list_workloads'))
     
     try:
         workload_id = session['workload_id']
+        print(f"DEBUG: Processing workload_id: {workload_id}")
+        
         wa_client = get_wellarchitected_client()
+        if not wa_client:
+            print("DEBUG: Failed to get Well-Architected client")
+            flash('Unable to connect to AWS Well-Architected service', 'error')
+            return redirect(url_for('index'))
+        
+        print("DEBUG: Got Well-Architected client successfully")
         
         # Get workload details
+        print("DEBUG: Getting workload details...")
         workload_response = wa_client.get_workload(WorkloadId=workload_id)
         workload = workload_response.get('Workload', {})
+        print(f"DEBUG: Got workload: {workload.get('WorkloadName', 'Unknown')}")
         
         # Initialize data structures
         report_data = {
@@ -712,10 +750,22 @@ def generate_report():
             'NONE': 0
         }
         
+        # Get selected pillars from session, default to all if none selected
+        selected_pillars = session.get('selected_pillars', list(PILLARS.keys()))
+        print(f"DEBUG: Selected pillars for report: {selected_pillars}")
+        
         # Initialize pillar reviews
         pillar_reviews = {}
         
-        for pillar_id, pillar_name in PILLARS.items():
+        # Only process selected pillars
+        for pillar_id in selected_pillars:
+            if pillar_id not in PILLARS:
+                print(f"WARNING: Unknown pillar ID {pillar_id}, skipping")
+                continue
+                
+            pillar_name = PILLARS[pillar_id]
+            print(f"DEBUG: Processing pillar: {pillar_id} - {pillar_name}")
+            
             try:
                 # Get answers for this pillar using pagination
                 answers = get_all_pillar_answers(wa_client, workload_id, pillar_id)
@@ -745,6 +795,24 @@ def generate_report():
                             QuestionId=answer['QuestionId']
                         )
                         detailed_answer = detail_response.get('Answer', {})
+                        
+                        # Ensure we have choice data - the get_answer call should include it
+                        choices = detailed_answer.get('Choices', [])
+                        selected_choices = detailed_answer.get('SelectedChoices', [])
+                        question_id = detailed_answer.get('QuestionId', 'Unknown')
+                        
+                        # Debug logging
+                        print(f"DEBUG: Question {question_id}")
+                        print(f"  - Selected Choices: {selected_choices}")
+                        print(f"  - Available Choices: {len(choices)}")
+                        
+                        if choices:
+                            print(f"  - First choice example: {choices[0].get('ChoiceId')} -> {choices[0].get('Title', 'No Title')}")
+                        else:
+                            print(f"  - WARNING: No choices data in response for {question_id}")
+                            # Add empty choices list to prevent template errors
+                            detailed_answer['Choices'] = []
+                        
                         detailed_answers.append(detailed_answer)
                         
                         # Debug logging
@@ -753,14 +821,14 @@ def generate_report():
                         selected_choices = detailed_answer.get('SelectedChoices', [])
                         print(f"DEBUG: Question {question_id} - Risk: {risk}, Choices: {len(selected_choices)}")
                         
-                        # Update summary counts
-                        report_data['summary']['total_questions'] += 1
-                        overall_stats['total_questions'] += 1
-                        
                         if detailed_answer.get('SelectedChoices'):
                             report_data['summary']['answered_questions'] += 1
                             overall_stats['answered_questions'] += 1
                             pillar_stats['answered_questions'] += 1
+                            print(f"DEBUG: Question {question_id} marked as ANSWERED - Choices: {detailed_answer.get('SelectedChoices')}")
+                        else:
+                            print(f"DEBUG: Question {question_id} marked as UNANSWERED - Choices: {detailed_answer.get('SelectedChoices')}")
+                            print(f"DEBUG: Question {question_id} - Full SelectedChoices data: {repr(detailed_answer.get('SelectedChoices'))}")
                         
                         if not detailed_answer.get('IsApplicable', True):
                             overall_stats['not_applicable_questions'] += 1
@@ -792,7 +860,22 @@ def generate_report():
                             
                     except Exception as e:
                         print(f"Error getting answer details for {answer['QuestionId']}: {e}")
+                        # Create a minimal question entry so it's still counted in the pillar
+                        minimal_answer = {
+                            'QuestionId': answer.get('QuestionId', 'Unknown'),
+                            'QuestionTitle': answer.get('QuestionTitle', 'Question details unavailable'),
+                            'Risk': 'UNANSWERED',
+                            'SelectedChoices': [],
+                            'Choices': [],
+                            'Notes': f'Error loading question details: {str(e)}'
+                        }
+                        detailed_answers.append(minimal_answer)
                         continue
+                
+                # Add pillar question count to overall totals
+                pillar_question_count = len(answers)
+                report_data['summary']['total_questions'] += pillar_question_count
+                overall_stats['total_questions'] += pillar_question_count
                 
                 # Calculate pillar completion percentage
                 if pillar_stats['total_questions'] > 0:
@@ -802,7 +885,9 @@ def generate_report():
                 
                 report_data['pillars'][pillar_id] = {
                     'name': pillar_name,
-                    'questions': detailed_answers
+                    'questions': detailed_answers,
+                    'stats': pillar_stats,
+                    'risk_counts': pillar_risk_counts
                 }
                 
                 # Add to pillar reviews for template
@@ -819,6 +904,22 @@ def generate_report():
                 print(f"  Total questions: {pillar_stats['total_questions']}")
                 print(f"  Answered questions: {pillar_stats['answered_questions']}")
                 print(f"  Risk counts: {pillar_risk_counts}")
+                
+                # Special debugging for Security pillar
+                if pillar_id == 'security':
+                    print(f"DEBUG: SECURITY PILLAR DETAILED ANALYSIS:")
+                    print(f"  Questions processed: {len(detailed_answers)}")
+                    answered_count = 0
+                    for i, q in enumerate(detailed_answers):
+                        has_choices = bool(q.get('SelectedChoices'))
+                        if has_choices:
+                            answered_count += 1
+                        print(f"    Q{i+1} ({q.get('QuestionId', 'Unknown')}): {'ANSWERED' if has_choices else 'UNANSWERED'} - Choices: {q.get('SelectedChoices', [])}")
+                    print(f"  Manual count of answered questions: {answered_count}")
+                    print(f"  Pillar stats answered count: {pillar_stats['answered_questions']}")
+                    if answered_count != pillar_stats['answered_questions']:
+                        print(f"  ⚠️ MISMATCH DETECTED! Manual: {answered_count}, Stats: {pillar_stats['answered_questions']}")
+                
                 
             except Exception as e:
                 print(f"Error processing pillar {pillar_id}: {e}")
@@ -842,14 +943,28 @@ def generate_report():
         print(f"  Overall risk counts: {risk_counts}")
         print(f"  Pillar reviews keys: {list(pillar_reviews.keys())}")
         
-        # Store report data in session for saving
-        session['current_report_data'] = {
-            'report_data': report_data,
-            'overall_stats': overall_stats,
-            'risk_counts': risk_counts,
-            'pillar_reviews': pillar_reviews,
-            'report_version': report_version
-        }
+        # Debug: Check individual pillar question counts
+        pillar_question_totals = {}
+        for pillar_id, pillar_data in report_data['pillars'].items():
+            pillar_question_totals[pillar_id] = len(pillar_data.get('questions', []))
+            print(f"  {pillar_data['name']}: {pillar_question_totals[pillar_id]} questions")
+        
+        total_from_pillars = sum(pillar_question_totals.values())
+        print(f"DEBUG: Total questions from selected pillars: {total_from_pillars}")
+        print(f"DEBUG: Total questions from counter: {overall_stats['total_questions']}")
+        print(f"DEBUG: Selected pillars: {selected_pillars}")
+        print(f"DEBUG: Processed {len(report_data['pillars'])} pillars out of {len(PILLARS)} total pillars")
+        
+        if total_from_pillars != overall_stats['total_questions']:
+            print(f"WARNING: Question count mismatch! Pillar sum: {total_from_pillars}, Counter: {overall_stats['total_questions']}")
+            # Use the pillar sum as it's more accurate
+            overall_stats['total_questions'] = total_from_pillars
+            report_data['summary']['total_questions'] = total_from_pillars
+        
+        # Don't store large report data in session to avoid cookie size limits
+        # The save_report function will regenerate the data when needed
+        print("DEBUG: Report generation completed successfully")
+        
         
         return render_template('generate_report.html', 
                              report_data=report_data,
@@ -861,6 +976,10 @@ def generate_report():
                              report_version=report_version)
         
     except Exception as e:
+        print(f"DEBUG: Exception in generate_report: {str(e)}")
+        print(f"DEBUG: Exception type: {type(e).__name__}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
         flash(f'Error generating report: {str(e)}', 'danger')
         return redirect(url_for('index'))
 
@@ -892,19 +1011,19 @@ def save_report():
         print(f"DEBUG: Session keys: {list(session.keys())}")
         print(f"DEBUG: Has current_report_data: {'current_report_data' in session}")
         
-        # Use stored report data from session, or regenerate if missing
-        if 'current_report_data' not in session:
-            print("DEBUG: No session data found, regenerating report data")
-            flash('Regenerating report data for saving...', 'info')
-            
-            # Regenerate report data (same logic as generate_report)
+        # Always regenerate report data to avoid session size issues
+        print("DEBUG: Regenerating report data for saving...")
+        flash('Generating report data for saving...', 'info')
+        
+        # Use a simplified approach - just call the report generation logic
+        try:
+            # Get the report data by calling the same logic as generate_report
+            # but without rendering the template
             wa_client = get_wellarchitected_client()
-            
-            # Get workload details
             workload_response = wa_client.get_workload(WorkloadId=workload_id)
             workload = workload_response.get('Workload', {})
             
-            # Generate report data
+            # Initialize basic report structure
             report_data = {
                 'workload': workload,
                 'pillars': {},
@@ -919,54 +1038,23 @@ def save_report():
                 }
             }
             
-            # Process all pillars
+            # Get basic pillar data for saving
             for pillar_id, pillar_name in PILLARS.items():
                 try:
                     answers = get_all_pillar_answers(wa_client, workload_id, pillar_id)
-                    detailed_answers = []
-                    
-                    for answer in answers:
-                        try:
-                            detail_response = wa_client.get_answer(
-                                WorkloadId=workload_id,
-                                LensAlias='wellarchitected',
-                                QuestionId=answer['QuestionId']
-                            )
-                            detailed_answer = detail_response.get('Answer', {})
-                            detailed_answers.append(detailed_answer)
-                            
-                            # Update summary counts
-                            report_data['summary']['total_questions'] += 1
-                            
-                            if detailed_answer.get('SelectedChoices'):
-                                report_data['summary']['answered_questions'] += 1
-                            
-                            risk = detailed_answer.get('Risk', 'UNANSWERED')
-                            if risk == 'HIGH':
-                                report_data['summary']['high_risks'] += 1
-                            elif risk == 'MEDIUM':
-                                report_data['summary']['medium_risks'] += 1
-                            elif risk == 'LOW':
-                                report_data['summary']['low_risks'] += 1
-                            elif risk == 'NONE':
-                                report_data['summary']['no_risks'] += 1
-                                
-                        except Exception as e:
-                            print(f"Error getting answer details: {e}")
-                            continue
-                    
                     report_data['pillars'][pillar_id] = {
                         'name': pillar_name,
-                        'questions': detailed_answers
+                        'question_count': len(answers)
                     }
-                    
+                    report_data['summary']['total_questions'] += len(answers)
                 except Exception as e:
                     print(f"Error processing pillar {pillar_id}: {e}")
                     continue
-        else:
-            print("DEBUG: Using session data for saving")
-            stored_data = session['current_report_data']
-            report_data = stored_data['report_data']
+            
+        except Exception as e:
+            print(f"Error generating report data for saving: {e}")
+            flash('Error generating report data', 'error')
+            return redirect(url_for('generate_report'))
         
         # Save report using ReportManager
         report_id = report_manager.save_report(

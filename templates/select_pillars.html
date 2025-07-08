@@ -178,7 +178,16 @@
         </div>
     </div>
     <div class="card-body">
-        <p class="lead">Select the pillars you want to include in your Well-Architected review.</p>
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle"></i>
+            <strong>Select Pillars:</strong> Choose which Well-Architected pillars to include in your review and report. 
+            Only selected pillars will appear in the generated report.
+            {% if selected_pillars %}
+            <br><strong>Currently selected:</strong> {{ selected_pillars|length }} pillar(s)
+            {% else %}
+            <br><strong>Tip:</strong> Select at least one pillar to begin your review.
+            {% endif %}
+        </div>
 
         <form method="post" action="/start_review" id="pillar-form">
             <div class="row">
@@ -199,7 +208,7 @@
 
                             <div class="card-body">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="pillars" value="{{ pillar_id }}" id="pillar-{{ pillar_id }}" checked>
+                                    <input class="form-check-input" type="checkbox" name="pillars" value="{{ pillar_id }}" id="pillar-{{ pillar_id }}"{% if pillar_id in selected_pillars %} checked{% endif %}>
                                     <label class="form-check-label" for="pillar-{{ pillar_id }}">
                                         <h5 class="card-title">{{ pillar }}</h5>
                                     </label>
