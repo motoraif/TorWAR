@@ -1,0 +1,437 @@
+/* TorWAR Dark Mode Styles */
+/* Author: Mohamed Toraif */
+
+:root {
+    /* Light mode colors (default) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --card-bg: #ffffff;
+    --navbar-bg: #343a40;
+    --navbar-text: #ffffff;
+    --alert-success-bg: #d1e7dd;
+    --alert-success-text: #0f5132;
+    --alert-warning-bg: #fff3cd;
+    --alert-warning-text: #664d03;
+    --alert-info-bg: #d1ecf1;
+    --alert-info-text: #055160;
+    --btn-outline-border: #6c757d;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --jumbotron-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode colors */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #404040;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --card-bg: #2d2d2d;
+    --navbar-bg: #000000;
+    --navbar-text: #ffffff;
+    --alert-success-bg: #1e3a2e;
+    --alert-success-text: #75dd88;
+    --alert-warning-bg: #3d3017;
+    --alert-warning-text: #ffda6a;
+    --alert-info-bg: #1a2e35;
+    --alert-info-text: #6dd5ed;
+    --btn-outline-border: #6c757d;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --jumbotron-overlay: rgba(255, 255, 255, 0.1);
+}
+
+/* Apply theme colors */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.card-body {
+    color: var(--text-primary);
+}
+
+.card-title {
+    color: var(--text-primary);
+}
+
+.card-text {
+    color: var(--text-secondary);
+}
+
+/* Alerts */
+.alert-success {
+    background-color: var(--alert-success-bg);
+    border-color: var(--alert-success-bg);
+    color: var(--alert-success-text);
+}
+
+.alert-warning {
+    background-color: var(--alert-warning-bg);
+    border-color: var(--alert-warning-bg);
+    color: var(--alert-warning-text);
+}
+
+.alert-info {
+    background-color: var(--alert-info-bg);
+    border-color: var(--alert-info-bg);
+    color: var(--alert-info-text);
+}
+
+/* Navigation */
+.navbar-dark {
+    background-color: var(--navbar-bg) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--navbar-text);
+}
+
+.navbar-dark .navbar-brand {
+    color: var(--navbar-text);
+}
+
+/* Dark mode toggle button */
+#darkModeToggle {
+    border: none;
+    background: none;
+    color: var(--navbar-text);
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    text-decoration: none !important;
+}
+
+#darkModeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--navbar-text);
+    transform: scale(1.1);
+    text-decoration: none !important;
+}
+
+#darkModeToggle:focus {
+    outline: 2px solid var(--torwar-primary);
+    outline-offset: 2px;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+#darkModeToggle:active {
+    transform: scale(0.95);
+}
+
+/* Ensure button stays properly styled in both themes */
+[data-theme="dark"] #darkModeToggle {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] #darkModeToggle:hover {
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] #darkModeToggle {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="light"] #darkModeToggle:hover {
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Jumbotron/Hero section */
+.jumbotron {
+    position: relative;
+}
+
+.jumbotron::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--jumbotron-overlay);
+    border-radius: inherit;
+}
+
+.jumbotron > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Buttons */
+.btn-outline-primary {
+    border-color: var(--torwar-primary);
+    color: var(--torwar-primary);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: var(--torwar-primary);
+    color: white;
+}
+
+.btn-outline-secondary {
+    border-color: var(--btn-outline-border);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: var(--btn-outline-border);
+    color: white;
+}
+
+.btn-outline-success {
+    border-color: var(--torwar-success);
+    color: var(--torwar-success);
+}
+
+[data-theme="dark"] .btn-outline-success:hover {
+    background-color: var(--torwar-success);
+    color: white;
+}
+
+.btn-outline-info {
+    border-color: var(--torwar-info);
+    color: var(--torwar-info);
+}
+
+[data-theme="dark"] .btn-outline-info:hover {
+    background-color: var(--torwar-info);
+    color: white;
+}
+
+/* Badges */
+.badge {
+    color: white;
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+/* Borders */
+.border {
+    border-color: var(--border-color) !important;
+}
+
+/* Shadows */
+.card:hover {
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Footer */
+.bg-dark {
+    background-color: var(--navbar-bg) !important;
+}
+
+/* Forms */
+[data-theme="dark"] .form-control {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus {
+    background-color: var(--bg-secondary);
+    border-color: var(--torwar-primary);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+[data-theme="dark"] .form-select {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--bg-secondary);
+    border-color: var(--torwar-primary);
+    color: var(--text-primary);
+}
+
+/* Tables */
+[data-theme="dark"] .table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td,
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: var(--bg-secondary);
+}
+
+/* Modals */
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+/* Dropdowns */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-top-color: var(--border-color);
+}
+
+/* Code blocks */
+[data-theme="dark"] pre {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] code {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Progress bars */
+[data-theme="dark"] .progress {
+    background-color: var(--bg-secondary);
+}
+
+/* List groups */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Pagination */
+[data-theme="dark"] .page-link {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .page-link:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .page-item.active .page-link {
+    background-color: var(--torwar-primary);
+    border-color: var(--torwar-primary);
+}
+
+/* Tooltips */
+[data-theme="dark"] .tooltip .tooltip-inner {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Smooth transitions for theme switching */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Preserve specific colors that shouldn't change */
+.text-primary {
+    color: var(--torwar-primary) !important;
+}
+
+.text-success {
+    color: var(--torwar-success) !important;
+}
+
+.text-info {
+    color: var(--torwar-info) !important;
+}
+
+.text-warning {
+    color: var(--torwar-warning) !important;
+}
+
+.text-danger {
+    color: var(--torwar-danger) !important;
+}
+
+/* Dark mode specific improvements */
+[data-theme="dark"] .jumbotron {
+    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+/* Icon colors in dark mode */
+[data-theme="dark"] .fas,
+[data-theme="dark"] .far,
+[data-theme="dark"] .fab,
+[data-theme="dark"] .bi {
+    color: inherit;
+}
+
+/* Status indicators */
+[data-theme="dark"] .status-indicator.connected {
+    background-color: rgba(117, 221, 136, 0.2);
+    border-color: rgba(117, 221, 136, 0.3);
+}
+
+[data-theme="dark"] .status-indicator.disconnected {
+    background-color: rgba(255, 218, 106, 0.2);
+    border-color: rgba(255, 218, 106, 0.3);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    [data-theme="dark"] {
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --border-color: #666666;
+    }
+}

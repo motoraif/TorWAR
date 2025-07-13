@@ -321,20 +321,40 @@ Simplified Homepage Template
 <style>
 .jumbotron {
     background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    transition: background 0.3s ease;
+}
+
+[data-theme="dark"] .jumbotron {
+    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
 }
 
 .card {
-    transition: transform 0.2s ease-in-out;
-    border: 1px solid #dee2e6;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid var(--border-color, #dee2e6);
+    background-color: var(--card-bg, #ffffff);
 }
 
 .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px var(--shadow-color, rgba(0,0,0,0.1));
 }
 
 .btn-group .btn {
     margin: 0 0.25rem;
+}
+
+/* Dark mode specific improvements */
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .badge {
+    color: white;
+}
+
+/* Ensure icons maintain proper colors */
+.fas, .far, .fab, .bi {
+    transition: color 0.3s ease;
 }
 </style>
 {% endblock %}

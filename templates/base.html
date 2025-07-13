@@ -22,6 +22,9 @@ Base Template for TorWAR Application
     <!-- Custom TorWAR CSS -->
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     
+    <!-- Dark Mode CSS -->
+    <link href="{{ url_for('static', filename='dark-mode.css') }}" rel="stylesheet">
+    
     {% block extra_head %}{% endblock %}
     
     <style>
@@ -158,7 +161,7 @@ Base Template for TorWAR Application
                     {% endif %}
                 </ul>
                 
-                <!-- Account Info -->
+                <!-- Account Info and Dark Mode Toggle -->
                 <ul class="navbar-nav ms-auto">
                     {% if is_connected %}
                     <li class="nav-item">
@@ -170,6 +173,13 @@ Base Template for TorWAR Application
                         </span>
                     </li>
                     {% endif %}
+                    
+                    <!-- Dark Mode Toggle -->
+                    <li class="nav-item d-flex align-items-center">
+                        <button class="btn btn-link nav-link p-2" id="darkModeToggle" title="Toggle Dark Mode">
+                            <i class="fas fa-moon" id="darkModeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -213,6 +223,8 @@ Base Template for TorWAR Application
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom TorWAR JavaScript -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <!-- Dark Mode JavaScript -->
+    <script src="{{ url_for('static', filename='dark-mode.js') }}"></script>
     
     <!-- Auto-dismiss alerts -->
     <script>
