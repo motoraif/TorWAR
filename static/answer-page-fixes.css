@@ -1,0 +1,300 @@
+/* TorWAR Answer Page Dark Mode Fixes */
+/* Author: Mohamed Toraif */
+
+/* Fix answer page form elements */
+[data-theme="dark"] .answer-page .form-check {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.75rem 0;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .answer-page .form-check:hover {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--torwar-primary);
+}
+
+[data-theme="dark"] .answer-page .form-check-label {
+    color: var(--text-primary) !important;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 500;
+}
+
+/* Fix selected answer choices */
+[data-theme="dark"] .answer-page .form-check input:checked + label {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-weight: 600;
+}
+
+/* Fix radio buttons and checkboxes styling */
+[data-theme="dark"] .answer-page .form-check-input {
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    margin-right: 0.75rem;
+    transform: scale(1.2);
+}
+
+[data-theme="dark"] .answer-page .form-check-input:checked {
+    background-color: #4caf50;
+    border-color: #2e7d32;
+}
+
+[data-theme="dark"] .answer-page .form-check-input:focus {
+    border-color: var(--torwar-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Fix question text and descriptions */
+[data-theme="dark"] .question-text,
+[data-theme="dark"] .question-description,
+[data-theme="dark"] .question-help {
+    color: var(--text-primary) !important;
+    background-color: transparent;
+}
+
+[data-theme="dark"] .question-title {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+/* Fix answer choice descriptions */
+[data-theme="dark"] .choice-description,
+[data-theme="dark"] .answer-description,
+[data-theme="dark"] .option-description {
+    color: var(--text-secondary) !important;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Fix answer containers */
+[data-theme="dark"] .answer-container,
+[data-theme="dark"] .choice-container,
+[data-theme="dark"] .option-container {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+/* Fix selected answer containers */
+[data-theme="dark"] .answer-container.selected,
+[data-theme="dark"] .choice-container.selected,
+[data-theme="dark"] .option-container.selected {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    border-left: 4px solid #2e7d32 !important;
+}
+
+[data-theme="dark"] .answer-container.selected *,
+[data-theme="dark"] .choice-container.selected *,
+[data-theme="dark"] .option-container.selected * {
+    color: #000000 !important;
+}
+
+/* Fix review page elements */
+[data-theme="dark"] .review-container,
+[data-theme="dark"] .pillar-review-container {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin: 1rem 0;
+}
+
+/* Fix pillar navigation */
+[data-theme="dark"] .pillar-nav,
+[data-theme="dark"] .pillar-navigation {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+[data-theme="dark"] .pillar-nav a,
+[data-theme="dark"] .pillar-navigation a {
+    color: var(--torwar-primary) !important;
+    text-decoration: none;
+}
+
+[data-theme="dark"] .pillar-nav a:hover,
+[data-theme="dark"] .pillar-navigation a:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Fix progress indicators */
+[data-theme="dark"] .progress-container {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+[data-theme="dark"] .progress {
+    background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .progress-bar {
+    background-color: var(--torwar-primary) !important;
+}
+
+/* Fix question navigation buttons */
+[data-theme="dark"] .question-nav-buttons .btn {
+    margin: 0.25rem;
+}
+
+[data-theme="dark"] .question-nav-buttons .btn-outline-primary {
+    border-color: var(--torwar-primary);
+    color: var(--torwar-primary);
+}
+
+[data-theme="dark"] .question-nav-buttons .btn-outline-primary:hover {
+    background-color: var(--torwar-primary);
+    color: white;
+}
+
+/* Fix help text and tooltips */
+[data-theme="dark"] .help-text,
+[data-theme="dark"] .form-text,
+[data-theme="dark"] .small {
+    color: var(--text-muted) !important;
+}
+
+/* Fix alert messages */
+[data-theme="dark"] .alert {
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: var(--alert-info-bg);
+    color: var(--alert-info-text);
+    border-color: var(--torwar-info);
+}
+
+[data-theme="dark"] .alert-warning {
+    background-color: var(--alert-warning-bg);
+    color: var(--alert-warning-text);
+    border-color: var(--torwar-warning);
+}
+
+[data-theme="dark"] .alert-success {
+    background-color: var(--alert-success-bg);
+    color: var(--alert-success-text);
+    border-color: var(--torwar-success);
+}
+
+/* Fix form validation states */
+[data-theme="dark"] .is-valid {
+    border-color: #4caf50 !important;
+}
+
+[data-theme="dark"] .is-invalid {
+    border-color: #f44336 !important;
+}
+
+[data-theme="dark"] .valid-feedback {
+    color: #4caf50 !important;
+}
+
+[data-theme="dark"] .invalid-feedback {
+    color: #f44336 !important;
+}
+
+/* Fix dropdown menus */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix modal dialogs */
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+/* Fix tabs */
+[data-theme="dark"] .nav-tabs {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link {
+    color: var(--text-secondary);
+    border-color: transparent;
+}
+
+[data-theme="dark"] .nav-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active {
+    color: var(--text-primary);
+    background-color: var(--card-bg);
+    border-color: var(--border-color) var(--border-color) var(--card-bg);
+}
+
+/* Fix accordion */
+[data-theme="dark"] .accordion-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-button {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-button:not(.collapsed) {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .accordion-body {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    [data-theme="dark"] .answer-page .form-check {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+    }
+    
+    [data-theme="dark"] .review-container,
+    [data-theme="dark"] .pillar-review-container {
+        padding: 1.5rem;
+    }
+}

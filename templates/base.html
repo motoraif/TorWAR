@@ -24,6 +24,40 @@ Base Template for TorWAR Application
     
     <!-- Dark Mode CSS -->
     <link href="{{ url_for('static', filename='dark-mode.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='dark-mode-fixes.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='risk-styling.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='answer-styling.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='answer-page-fixes.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='bootstrap-dark-overrides.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='hints-dark-mode.css') }}" rel="stylesheet">
+    
+    <!-- Complete Dark Mode Override - FINAL -->
+    <link href="{{ url_for('static', filename='complete-dark-override.css') }}" rel="stylesheet">
+    
+    <!-- Navigation Color Fix - Restore TorWAR Branding -->
+    <link href="{{ url_for('static', filename='navigation-fix.css') }}" rel="stylesheet">
+    
+    <!-- Navbar Black Background Fix - ULTIMATE OVERRIDE -->
+    <link href="{{ url_for('static', filename='navbar-black-background-fix.css') }}" rel="stylesheet">
+    
+    <!-- Inline Dark Mode Initialization (Prevent FOUC) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('torwar-dark-mode');
+            const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const theme = savedTheme || systemTheme;
+            
+            // Apply theme immediately
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.classList.add('theme-loading');
+            
+            // Update meta theme-color
+            const metaThemeColor = document.createElement('meta');
+            metaThemeColor.name = 'theme-color';
+            metaThemeColor.content = theme === 'dark' ? '#1a1a1a' : '#ffffff';
+            document.head.appendChild(metaThemeColor);
+        })();
+    </script>
     
     {% block extra_head %}{% endblock %}
     

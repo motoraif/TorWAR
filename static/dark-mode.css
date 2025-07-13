@@ -273,11 +273,43 @@ body {
 /* Tables */
 [data-theme="dark"] .table {
     color: var(--text-primary);
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .table th {
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table td {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background-color: transparent;
 }
 
 [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td,
 [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > th {
     background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > td,
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > th {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* Ensure table row hover effects work in dark mode */
+[data-theme="dark"] .table-hover > tbody > tr:hover > td,
+[data-theme="dark"] .table-hover > tbody > tr:hover > th {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Fix table responsive wrapper */
+[data-theme="dark"] .table-responsive {
+    background-color: var(--card-bg);
 }
 
 /* Modals */
@@ -338,7 +370,68 @@ body {
     color: var(--text-primary);
 }
 
-/* Pagination */
+/* Report-specific styling */
+[data-theme="dark"] .recommendation-text,
+[data-theme="dark"] .pillar-recommendation,
+[data-theme="dark"] .improvement-plan,
+[data-theme="dark"] .question-description,
+[data-theme="dark"] .answer-choice {
+    color: var(--text-primary) !important;
+    background-color: transparent;
+}
+
+[data-theme="dark"] .recommendation-section {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .pillar-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .pillar-section h3,
+[data-theme="dark"] .pillar-section h4,
+[data-theme="dark"] .pillar-section h5 {
+    color: var(--text-primary);
+}
+
+/* Fix any remaining text visibility issues */
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+[data-theme="dark"] li,
+[data-theme="dark"] td,
+[data-theme="dark"] th {
+    color: inherit;
+}
+
+/* Ensure all text in cards is visible */
+[data-theme="dark"] .card p,
+[data-theme="dark"] .card span,
+[data-theme="dark"] .card div:not(.card-header):not(.card-footer),
+[data-theme="dark"] .card li {
+    color: var(--text-primary);
+}
+
+/* Fix workload list items */
+[data-theme="dark"] .workload-item,
+[data-theme="dark"] .workload-name,
+[data-theme="dark"] .workload-description,
+[data-theme="dark"] .workload-details {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any Bootstrap overrides */
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
 [data-theme="dark"] .page-link {
     background-color: var(--card-bg);
     border-color: var(--border-color);
@@ -434,4 +527,36 @@ body {
         --text-secondary: #cccccc;
         --border-color: #666666;
     }
+}
+
+/* Prevent flash of unstyled content (FOUC) */
+html:not([data-theme]) {
+    visibility: hidden;
+}
+
+html[data-theme] {
+    visibility: visible;
+}
+
+/* Disable transitions during initial load to prevent FOUC */
+.theme-loading,
+.theme-loading * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Re-enable transitions after loading */
+html:not(.theme-loading) * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Force immediate theme application */
+html[data-theme="dark"] {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="light"] {
+    background-color: #ffffff !important;
+    color: #212529 !important;
 }

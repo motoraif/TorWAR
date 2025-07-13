@@ -31,14 +31,20 @@ class DarkModeManager {
             return;
         }
 
-        // Set initial theme
-        this.setInitialTheme();
+        // Set initial theme (theme was already applied in IIFE above)
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        this.updateToggleIcon(currentTheme);
         
         // Setup event listeners
         this.setupEventListeners();
         
         // Listen for system theme changes
         this.setupSystemThemeListener();
+        
+        // Remove loading class to enable transitions
+        setTimeout(() => {
+            document.documentElement.classList.remove('theme-loading');
+        }, 100);
         
         console.log('Dark mode manager initialized');
     }
@@ -281,45 +287,5 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Add CSS for smooth transitions and toggle button
-const style = document.createElement('style');
-style.textContent = `
-    #darkModeToggle {
-        transition: all 0.3s ease;
-    }
-    
-    #darkModeToggle:hover {
-        transform: scale(1.1);
-    }
-    
-    .sr-only {
-        position: absolute !important;
-        width: 1px !important;
-        height: 1px !important;
-        padding: 0 !important;
-        margin: -1px !important;
-        overflow: hidden !important;
-        clip: rect(0,0,0,0) !important;
-        white-space: nowrap !important;
-        border: 0 !important;
-    }
-    
-    /* Prevent flash of unstyled content */
-    html:not([data-theme]) {
-        visibility: hidden;
-    }
-    
-    html[data-theme] {
-        visibility: visible;
-    }
-`;
-document.head.appendChild(style);
-
-// Prevent flash of unstyled content by setting initial theme immediately
-(function() {
-    const savedTheme = localStorage.getItem('torwar-dark-mode');
-    const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const theme = savedTheme || systemTheme;
-    
-    document.documentElement.setAttribute('data-theme', theme);
-})();
+// Remove the duplicate IIFE since we now have inline initialization
+// The theme is already set by the inline script in base.html
