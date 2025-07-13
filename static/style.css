@@ -1,0 +1,349 @@
+/* TorWAR Enhanced Styles with Dark Mode Support */
+/* Author: Mohamed Toraif */
+
+:root {
+    --torwar-primary: #007bff;
+    --torwar-secondary: #6c757d;
+    --torwar-success: #28a745;
+    --torwar-info: #17a2b8;
+    --torwar-warning: #ffc107;
+    --torwar-danger: #dc3545;
+    --torwar-light: #f8f9fa;
+    --torwar-dark: #343a40;
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
+    
+    --border-radius: 8px;
+    --transition: all 0.2s ease;
+}
+
+/* Global Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Enhanced Button Styles */
+.btn-torwar {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-torwar-primary {
+    background-color: var(--torwar-primary);
+    border-color: var(--torwar-primary);
+    color: white;
+}
+
+.btn-torwar-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: white;
+}
+
+.btn-torwar-success {
+    background-color: var(--torwar-success);
+    border-color: var(--torwar-success);
+    color: white;
+}
+
+.btn-torwar-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+    color: white;
+}
+
+.btn-torwar-info {
+    background-color: var(--torwar-info);
+    border-color: var(--torwar-info);
+    color: white;
+}
+
+.btn-torwar-info:hover {
+    background-color: #138496;
+    border-color: #138496;
+    color: white;
+}
+
+/* Card Enhancements */
+.card-torwar {
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    background-color: var(--card-bg, #ffffff);
+}
+
+.card-torwar:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-torwar-primary {
+    border-top: 3px solid var(--torwar-primary);
+}
+
+.card-torwar-success {
+    border-top: 3px solid var(--torwar-success);
+}
+
+.card-torwar-info {
+    border-top: 3px solid var(--torwar-info);
+}
+
+.card-torwar-warning {
+    border-top: 3px solid var(--torwar-warning);
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.status-indicator.connected {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--torwar-success);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.status-indicator.disconnected {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--torwar-warning);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+/* Icon Enhancements */
+.icon-large {
+    font-size: 3rem;
+}
+
+.icon-medium {
+    font-size: 2rem;
+}
+
+.icon-small {
+    font-size: 1.25rem;
+}
+
+/* Utility Classes */
+.text-gradient-primary {
+    color: var(--torwar-primary);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--torwar-primary) 0%, #0056b3 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, var(--torwar-success) 0%, #218838 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, var(--torwar-info) 0%, #138496 100%);
+}
+
+/* Simple hover effects */
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Focus States for Accessibility */
+.btn-torwar:focus,
+.card-torwar:focus {
+    outline: 2px solid var(--torwar-primary);
+    outline-offset: 2px;
+}
+
+/* Dark Mode Toggle Button Styles */
+#darkModeToggle {
+    border: none !important;
+    background: none !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    padding: 0.5rem !important;
+    border-radius: 50% !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    margin: 0 !important;
+}
+
+#darkModeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    transform: scale(1.1) !important;
+}
+
+#darkModeToggle:focus {
+    outline: 2px solid var(--torwar-primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+}
+
+#darkModeToggle:active {
+    transform: scale(0.95) !important;
+}
+
+#darkModeToggle i {
+    font-size: 1.1rem !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* Ensure proper alignment in navbar */
+.navbar-nav .nav-item.d-flex {
+    align-items: center !important;
+}
+
+/* Dark mode button in mobile view */
+@media (max-width: 991.98px) {
+    #darkModeToggle {
+        width: 35px !important;
+        height: 35px !important;
+        margin: 0.25rem 0 !important;
+    }
+    
+    #darkModeToggle i {
+        font-size: 1rem !important;
+    }
+}
+
+/* Theme transition improvements - only when not loading */
+html:not(.theme-loading) * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Disable transitions during theme loading */
+.theme-loading * {
+    transition: none !important;
+}
+
+/* Preserve button and link colors */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger {
+    transition: all 0.2s ease;
+}
+
+/* Jumbotron improvements for both themes */
+.jumbotron {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dark mode specific card improvements */
+[data-theme="dark"] .card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .btn-torwar {
+        font-size: 0.875rem;
+    }
+    
+    .icon-large {
+        font-size: 2rem;
+    }
+    
+    .card-torwar {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-torwar {
+        font-size: 0.8rem;
+    }
+    
+    .icon-large {
+        font-size: 1.5rem;
+    }
+    
+    #darkModeToggle {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    #darkModeToggle i {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        border-width: 2px;
+    }
+    
+    .btn {
+        border-width: 2px;
+    }
+    
+    #darkModeToggle:focus {
+        outline-width: 3px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    #darkModeToggle:hover {
+        transform: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .card-torwar {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .btn-torwar {
+        background: transparent !important;
+        color: #000 !important;
+        border: 1px solid #000 !important;
+    }
+    
+    #darkModeToggle {
+        display: none !important;
+    }
+    
+    [data-theme="dark"] {
+        background: white !important;
+        color: black !important;
+    }
+    
+    [data-theme="dark"] .card {
+        background: white !important;
+        color: black !important;
+    }
+}

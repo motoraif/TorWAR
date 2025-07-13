@@ -1,0 +1,346 @@
+/* TorWAR Navigation Color Fix for Dark Mode */
+/* Author: Mohamed Toraif */
+/* Maintains proper navigation branding colors */
+
+/* Main navigation bar - restore TorWAR branding */
+[data-theme="dark"] .navbar {
+    background-color: var(--torwar-primary) !important;
+    border-color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .navbar-brand {
+    color: white !important;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .navbar-brand:hover {
+    color: #f8f9fa !important;
+}
+
+/* Navigation links */
+[data-theme="dark"] .navbar-nav .nav-link {
+    color: white !important;
+    font-weight: 500;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .navbar-nav .nav-link:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.375rem;
+}
+
+[data-theme="dark"] .navbar-nav .nav-link.active {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 0.375rem;
+}
+
+/* Navigation list items - make transparent */
+[data-theme="dark"] .navbar-nav .nav-item {
+    background-color: transparent !important;
+}
+
+/* Dropdown menus in navigation - transparent to match navbar */
+[data-theme="dark"] .navbar .dropdown-menu {
+    background-color: var(--torwar-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .navbar .dropdown-item {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .navbar .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .navbar .dropdown-item.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+/* Account and region info in navigation */
+[data-theme="dark"] .navbar .account-info,
+[data-theme="dark"] .navbar .region-info {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+/* Navigation text elements */
+[data-theme="dark"] .navbar span,
+[data-theme="dark"] .navbar div,
+[data-theme="dark"] .navbar p {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+/* Navigation toggle button for mobile */
+[data-theme="dark"] .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Dark mode toggle button in navigation */
+[data-theme="dark"] #darkModeToggle {
+    color: white !important;
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+}
+
+[data-theme="dark"] #darkModeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Navigation search form if present */
+[data-theme="dark"] .navbar .form-control {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] .navbar .form-control:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
+}
+
+[data-theme="dark"] .navbar .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Navigation buttons */
+[data-theme="dark"] .navbar .btn-outline-light {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .navbar .btn-outline-light:hover {
+    background-color: white !important;
+    color: var(--torwar-primary) !important;
+    border-color: white !important;
+}
+
+/* User menu/profile dropdown in navigation */
+[data-theme="dark"] .navbar .user-menu {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .navbar .user-menu:hover {
+    color: #f8f9fa !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix for collapsed navigation menu items */
+[data-theme="dark"] .navbar-collapse .navbar-nav .nav-item,
+[data-theme="dark"] .navbar-collapse .navbar-nav .nav-link {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+/* Override any black backgrounds in navigation */
+[data-theme="dark"] .navbar *[style*="background-color: black"],
+[data-theme="dark"] .navbar *[style*="background-color: #000"],
+[data-theme="dark"] .navbar *[style*="background-color: #000000"],
+[data-theme="dark"] .navbar *[style*="background: black"],
+[data-theme="dark"] .navbar *[style*="background: #000"],
+[data-theme="dark"] .navbar *[style*="background: #000000"] {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+/* Breadcrumb navigation - keep consistent with main nav */
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: var(--torwar-primary) !important;
+    text-decoration: none;
+}
+
+[data-theme="dark"] .breadcrumb-item a:hover {
+    color: var(--text-primary) !important;
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--text-secondary) !important;
+}
+
+/* Side navigation if present */
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .side-nav {
+    background-color: var(--bg-secondary) !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .sidebar .nav-link,
+[data-theme="dark"] .side-nav .nav-link {
+    color: var(--text-primary) !important;
+    border-radius: 0.375rem;
+    margin: 0.125rem 0.5rem;
+}
+
+[data-theme="dark"] .sidebar .nav-link:hover,
+[data-theme="dark"] .side-nav .nav-link:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .sidebar .nav-link.active,
+[data-theme="dark"] .side-nav .nav-link.active {
+    background-color: var(--torwar-primary) !important;
+    color: white !important;
+}
+
+/* Tab navigation */
+[data-theme="dark"] .nav-tabs {
+    border-bottom: 2px solid var(--border-color) !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .nav-tabs .nav-link {
+    color: var(--text-secondary) !important;
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+[data-theme="dark"] .nav-tabs .nav-link:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) var(--border-color) transparent !important;
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active {
+    color: var(--text-primary) !important;
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) var(--border-color) var(--card-bg) !important;
+}
+
+/* Pills navigation */
+[data-theme="dark"] .nav-pills .nav-link {
+    color: var(--text-secondary) !important;
+    background-color: transparent !important;
+    border-radius: 0.375rem;
+}
+
+[data-theme="dark"] .nav-pills .nav-link:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .nav-pills .nav-link.active {
+    background-color: var(--torwar-primary) !important;
+    color: white !important;
+}
+
+/* Pagination navigation */
+[data-theme="dark"] .pagination {
+    margin-bottom: 0;
+}
+
+[data-theme="dark"] .page-link {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .page-link:hover {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .page-item.active .page-link {
+    background-color: var(--torwar-primary) !important;
+    color: white !important;
+    border-color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .page-item.disabled .page-link {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Footer navigation if present */
+[data-theme="dark"] .footer {
+    background-color: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .footer a {
+    color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .footer a:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Responsive navigation adjustments */
+@media (max-width: 991.98px) {
+    [data-theme="dark"] .navbar-collapse {
+        background-color: var(--torwar-primary) !important;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+        padding: 1rem;
+    }
+    
+    [data-theme="dark"] .navbar-nav .nav-link {
+        padding: 0.5rem 1rem !important;
+        margin: 0.125rem 0 !important;
+        border-radius: 0.375rem;
+        background-color: transparent !important;
+    }
+    
+    [data-theme="dark"] .navbar-nav .nav-item {
+        background-color: transparent !important;
+    }
+}
+
+/* Ensure navigation icons are visible */
+[data-theme="dark"] .navbar .fas,
+[data-theme="dark"] .navbar .far,
+[data-theme="dark"] .navbar .fab,
+[data-theme="dark"] .navbar .bi {
+    color: white !important;
+}
+
+[data-theme="dark"] .nav-tabs .fas,
+[data-theme="dark"] .nav-tabs .far,
+[data-theme="dark"] .nav-tabs .fab,
+[data-theme="dark"] .nav-tabs .bi {
+    color: inherit !important;
+}
+
+/* Navigation loading states */
+[data-theme="dark"] .navbar .spinner-border,
+[data-theme="dark"] .navbar .spinner-grow {
+    color: white !important;
+    width: 1rem;
+    height: 1rem;
+}

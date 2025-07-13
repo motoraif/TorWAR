@@ -38,6 +38,15 @@ from report_manager import ReportManager
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
+# Debug control - only print DEBUG messages if explicitly enabled
+DEBUG_ENABLED = os.environ.get('DEBUG_REPORTS', 'false').lower() == 'true'
+
+def debug_print(message):
+    """Print debug message only if DEBUG_REPORTS environment variable is true."""
+    if DEBUG_ENABLED:
+        print(f"DEBUG: {message}")
+    # In production, this does nothing, improving performance
+
 def is_question_answered(question_data):
     """
     Determine if a question is answered based on SelectedChoices.
@@ -713,35 +722,36 @@ def save_answer():
 @app.route('/report')  # Add alias for common URL pattern
 def generate_report():
     """Generate a comprehensive Well-Architected report."""
-    print("DEBUG: Starting generate_report function")
+    if DEBUG_ENABLED:
+        print("DEBUG: Starting report generation")
     
     if 'aws_region' not in session:
-        print("DEBUG: No AWS region in session")
+        debug_print("No AWS region in session")
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
     if 'workload_id' not in session:
-        print("DEBUG: No workload_id in session")
+        debug_print("No workload_id in session")
         flash('Please select a workload first', 'warning')
         return redirect(url_for('list_workloads'))
     
     try:
         workload_id = session['workload_id']
-        print(f"DEBUG: Processing workload_id: {workload_id}")
+        debug_print(f"Processing workload: {workload_id}")
         
         wa_client = get_wellarchitected_client()
         if not wa_client:
-            print("DEBUG: Failed to get Well-Architected client")
+            debug_print("Failed to get Well-Architected client")
             flash('Unable to connect to AWS Well-Architected service', 'error')
             return redirect(url_for('index'))
         
-        print("DEBUG: Got Well-Architected client successfully")
+        debug_print("Got Well-Architected client successfully")
         
         # Get workload details
-        print("DEBUG: Getting workload details...")
+        debug_print("Getting workload details")
         workload_response = wa_client.get_workload(WorkloadId=workload_id)
         workload = workload_response.get('Workload', {})
-        print(f"DEBUG: Got workload: {workload.get('WorkloadName', 'Unknown')}")
+        debug_print(f"Processing workload: {workload.get('WorkloadName', 'Unknown')}")
         
         # Initialize data structures
         report_data = {
@@ -777,7 +787,7 @@ def generate_report():
         
         # Get selected pillars from session, default to all if none selected
         selected_pillars = session.get('selected_pillars', list(PILLARS.keys()))
-        print(f"DEBUG: Selected pillars for report: {selected_pillars}")
+        debug_print(f"Processing {len(selected_pillars)} pillars: {selected_pillars}")
         
         # Initialize pillar reviews
         pillar_reviews = {}
@@ -785,11 +795,11 @@ def generate_report():
         # Only process selected pillars
         for pillar_id in selected_pillars:
             if pillar_id not in PILLARS:
-                print(f"WARNING: Unknown pillar ID {pillar_id}, skipping")
+                debug_print(f"Unknown pillar ID {pillar_id}, skipping")
                 continue
                 
             pillar_name = PILLARS[pillar_id]
-            print(f"DEBUG: Processing pillar: {pillar_id} - {pillar_name}")
+            debug_print(f"Processing pillar: {pillar_id} - {pillar_name}")
             
             try:
                 # Get answers for this pillar using pagination
@@ -827,7 +837,7 @@ def generate_report():
                         question_id = detailed_answer.get('QuestionId', 'Unknown')
                         
                         # Debug logging
-                        print(f"DEBUG: Question {question_id}")
+                        debug_print(f"Question {question_id}")
                         print(f"  - Selected Choices: {selected_choices}")
                         print(f"  - Available Choices: {len(choices)}")
                         
@@ -844,7 +854,7 @@ def generate_report():
                         question_id = detailed_answer.get('QuestionId', 'Unknown')
                         risk = detailed_answer.get('Risk')
                         selected_choices = detailed_answer.get('SelectedChoices', [])
-                        print(f"DEBUG: Question {question_id} - Risk: {risk}, Choices: {len(selected_choices)}")
+                        debug_print(f"Question {question_id} - Risk: {risk}, Choices: {len(selected_choices)}")
                         
                         # Use standardized logic for determining if a question is answered
                         is_answered = is_question_answered(detailed_answer)
@@ -853,10 +863,10 @@ def generate_report():
                             report_data['summary']['answered_questions'] += 1
                             overall_stats['answered_questions'] += 1
                             pillar_stats['answered_questions'] += 1
-                            print(f"DEBUG: Question {question_id} marked as ANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
+                            debug_print(f"Question {question_id} marked as ANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
                         else:
-                            print(f"DEBUG: Question {question_id} marked as UNANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
-                            print(f"DEBUG: Question {question_id} - SelectedChoices type: {type(detailed_answer.get('SelectedChoices'))}, value: {repr(detailed_answer.get('SelectedChoices'))}")
+                            debug_print(f"Question {question_id} marked as UNANSWERED - Choices: {detailed_answer.get('SelectedChoices', [])}")
+                            debug_print(f"Question {question_id} - SelectedChoices type: {type(detailed_answer.get('SelectedChoices'))}, value: {repr(detailed_answer.get('SelectedChoices'))}")
                         
                         if not detailed_answer.get('IsApplicable', True):
                             overall_stats['not_applicable_questions'] += 1

@@ -18,6 +18,7 @@ def register_auth_routes(app):
     """Register AWS authentication routes with the Flask app."""
     
     @app.route('/aws-login')
+    @app.route('/aws_login')  # Add alias for consistency
     def aws_login():
         """AWS authentication page."""
         auth = get_aws_authenticator()
@@ -130,6 +131,7 @@ def register_auth_routes(app):
         return jsonify({'profiles': profile_info})
     
     @app.route('/aws-logout')
+    @app.route('/aws_logout')  # Add alias for consistency
     def aws_logout():
         """Logout from AWS."""
         # Get authenticator and clear it
