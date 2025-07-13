@@ -1,78 +1,108 @@
 <!--
 TorWAR - AWS Well-Architected Review Tool
 Author: Mohamed Toraif
-Homepage Template
+Simplified Homepage Template
 -->
 {% extends "base.html" %}
 
 {% block title %}Home - TorWAR{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-    <h1 class="display-4">TorWAR - AWS Well-Architected Review Tool</h1>
-    <p class="lead">Streamlined AWS Well-Architected Framework reviews with enhanced report management</p>
-    <hr class="my-4">
-    
-    {% if is_connected %}
-        <div class="alert alert-success">
-            <div class="row">
-                <div class="col-md-8">
-                    <strong><i class="bi bi-check-circle"></i> Connected to AWS</strong>
-                    <br>
-                    <small>
-                        Account: {{ aws_account_id }} | 
-                        Region: {{ aws_region }} | 
-                        Profile: {{ session.get('aws_profile', 'default') }}
-                    </small>
-                </div>
-                <div class="col-md-4 text-end">
-                    <a href="{{ url_for('aws_status') }}" class="btn btn-outline-success btn-sm">
-                        <i class="bi bi-info-circle"></i> View Details
-                    </a>
-                </div>
+<!-- Hero Section -->
+<div class="jumbotron bg-primary text-white p-4 rounded mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-shield-alt me-3"></i>TorWAR
+                </h1>
+                <p class="lead mb-3">AWS Well-Architected Review Tool</p>
+                <p class="mb-0">Streamlined AWS Well-Architected Framework reviews with enhanced report management and comparison tools.</p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-columns fa-4x mb-2"></i>
+                <h4>6 Pillars</h4>
+                <p>Complete Coverage</p>
             </div>
         </div>
-        
-        {% if workload_id %}
-            <div class="alert alert-info">
-                <strong><i class="bi bi-briefcase"></i> Selected Workload:</strong> {{ workload_name }} ({{ workload_id }})
-            </div>
-        {% endif %}
-    {% else %}
-        <div class="alert alert-warning">
-            <div class="row">
-                <div class="col-md-8">
-                    <strong><i class="bi bi-exclamation-triangle"></i> Not connected to AWS</strong>
-                    <br>
-                    <small>Please authenticate with AWS to start using TorWAR</small>
-                </div>
-                <div class="col-md-4 text-end">
-                    <a href="{{ url_for('aws_login') }}" class="btn btn-warning">
-                        <i class="bi bi-shield-lock"></i> AWS Login
-                    </a>
-                </div>
-            </div>
-        </div>
-    {% endif %}
+    </div>
 </div>
 
+<!-- Connection Status -->
+{% if is_connected %}
+    <div class="alert alert-success">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Connected to AWS</strong>
+                </h5>
+                <div class="mb-2">
+                    <span class="badge bg-success me-2">
+                        <i class="fas fa-user me-1"></i>{{ aws_account_id }}
+                    </span>
+                    <span class="badge bg-info me-2">
+                        <i class="fas fa-globe me-1"></i>{{ aws_region }}
+                    </span>
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-cog me-1"></i>{{ session.get('aws_profile', 'default') }}
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('aws_status') }}" class="btn btn-outline-success">
+                    <i class="fas fa-info-circle me-1"></i>View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if workload_id %}
+        <div class="alert alert-info">
+            <h5 class="mb-1">
+                <i class="fas fa-briefcase me-2"></i>
+                <strong>Selected Workload:</strong> {{ workload_name }}
+            </h5>
+            <small class="text-muted">ID: {{ workload_id }}</small>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="alert alert-warning">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Not connected to AWS</strong>
+                </h5>
+                <p class="mb-0">Please authenticate with AWS to start using TorWAR</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('aws_login') }}" class="btn btn-warning">
+                    <i class="fas fa-shield-alt me-1"></i>AWS Login
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <!-- Main Dashboard -->
-<div class="row">
+<div class="row mt-4">
     {% if is_connected %}
         <!-- Workload Management -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-diagram-3 text-primary"></i> Workload Management
-                    </h5>
-                    <p class="card-text">Manage your AWS workloads and select one for review.</p>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-sitemap fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Workload Management</h5>
+                    <p class="card-text">Manage your AWS workloads and select one for comprehensive review.</p>
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
-                            <i class="bi bi-list"></i> List Workloads
+                            <i class="fas fa-list me-2"></i>List Workloads
                         </a>
                         <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
-                            <i class="bi bi-plus-circle"></i> Create Workload
+                            <i class="fas fa-plus-circle me-2"></i>Create Workload
                         </a>
                     </div>
                 </div>
@@ -81,60 +111,69 @@ Homepage Template
 
         {% if workload_id %}
         <!-- Review Process -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-shield-check text-success"></i> Well-Architected Review
-                    </h5>
-                    <p class="card-text">Conduct comprehensive reviews across all pillars.</p>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-clipboard-check fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Well-Architected Review</h5>
+                    <p class="card-text">Conduct comprehensive reviews across all six pillars of the framework.</p>
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('select_pillars') }}" class="btn btn-success">
-                            <i class="bi bi-play-circle"></i> Start Review
+                            <i class="fas fa-play-circle me-2"></i>Start Review
                         </a>
-                        <small class="text-muted">Current: {{ workload_name }}</small>
+                        <small class="text-muted mt-2">Current: {{ workload_name }}</small>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Enhanced Reports -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-file-earmark-text text-info"></i> Enhanced Reports
-                    </h5>
-                    <p class="card-text">Generate, save, and compare Well-Architected reports.</p>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-chart-line fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Enhanced Reports</h5>
+                    <p class="card-text">Generate, save, and compare Well-Architected reports with advanced analytics.</p>
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('generate_report') }}" class="btn btn-info">
-                            <i class="bi bi-file-plus"></i> Generate Report
+                            <i class="fas fa-file-alt me-2"></i>Generate Report
                         </a>
-                        <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info">
-                            <i class="bi bi-folder"></i> Saved Reports
-                        </a>
-                        <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left-right"></i> Compare Reports
-                        </a>
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="fas fa-folder me-1"></i>Saved
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="fas fa-balance-scale me-1"></i>Compare
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% else %}
         <!-- No Workload Selected -->
-        <div class="col-md-8">
+        <div class="col-lg-8 col-md-12 mb-4">
             <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">
-                        <i class="bi bi-arrow-right text-warning"></i> Next Steps
-                    </h5>
-                    <p class="card-text">Select or create a workload to begin your Well-Architected review.</p>
-                    <div class="d-flex justify-content-center gap-3">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-arrow-right fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Next Steps</h5>
+                    <p class="card-text mb-4">Select or create a workload to begin your Well-Architected review journey.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
-                            <i class="bi bi-list"></i> Select Existing Workload
+                            <i class="fas fa-search me-2"></i>Select Existing Workload
                         </a>
                         <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
-                            <i class="bi bi-plus-circle"></i> Create New Workload
+                            <i class="fas fa-plus-circle me-2"></i>Create New Workload
                         </a>
                     </div>
                 </div>
@@ -145,13 +184,14 @@ Homepage Template
         <!-- Not Connected -->
         <div class="col-12">
             <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">
-                        <i class="bi bi-cloud-arrow-up text-primary"></i> Get Started with TorWAR
-                    </h5>
-                    <p class="card-text">Connect to your AWS account to begin conducting Well-Architected reviews.</p>
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-cloud fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Get Started with TorWAR</h5>
+                    <p class="card-text mb-4">Connect to your AWS account to begin conducting Well-Architected reviews and unlock powerful insights.</p>
                     <a href="{{ url_for('aws_login') }}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-shield-lock"></i> Connect to AWS
+                        <i class="fas fa-shield-alt me-2"></i>Connect to AWS
                     </a>
                 </div>
             </div>
@@ -161,67 +201,77 @@ Homepage Template
 
 <!-- Features Overview -->
 <div class="row mt-5">
-    <div class="col-12">
-        <h3><i class="bi bi-star"></i> TorWAR Features</h3>
+    <div class="col-12 text-center mb-4">
+        <h3>
+            <i class="fas fa-star text-warning me-2"></i>TorWAR Features
+        </h3>
         <p class="text-muted">Streamlined for enhanced report management and comparison</p>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
-        <div class="card border-primary">
-            <div class="card-body">
-                <h6 class="card-title text-primary">
-                    <i class="bi bi-shield-check"></i> Comprehensive Reviews
-                </h6>
-                <p class="card-text small">
-                    Conduct thorough Well-Architected reviews across all six pillars with guided questionnaires.
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-shield-check fa-2x text-primary"></i>
+                </div>
+                <h6 class="card-title">Comprehensive Reviews</h6>
+                <p class="card-text small text-muted">
+                    Conduct thorough Well-Architected reviews across all six pillars with guided questionnaires and best practices.
                 </p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-success">
-            <div class="card-body">
-                <h6 class="card-title text-success">
-                    <i class="bi bi-file-earmark-text"></i> Advanced Report Management
-                </h6>
-                <p class="card-text small">
-                    Save reports with custom names, notes, and version tracking for better organization.
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-file-chart-line fa-2x text-success"></i>
+                </div>
+                <h6 class="card-title">Advanced Report Management</h6>
+                <p class="card-text small text-muted">
+                    Save reports with custom names, notes, and version tracking for better organization and historical analysis.
                 </p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-info">
-            <div class="card-body">
-                <h6 class="card-title text-info">
-                    <i class="bi bi-arrow-left-right"></i> Report Comparison
-                </h6>
-                <p class="card-text small">
-                    Compare different report versions to track improvements and identify changes over time.
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-balance-scale fa-2x text-info"></i>
+                </div>
+                <h6 class="card-title">Report Comparison</h6>
+                <p class="card-text small text-muted">
+                    Compare different report versions to track improvements and identify changes over time with detailed analytics.
                 </p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Stats (if connected and workload selected) -->
+<!-- Quick Actions (if connected and workload selected) -->
 {% if is_connected and workload_id %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6><i class="bi bi-graph-up"></i> Quick Actions</h6>
-                <div class="btn-group" role="group">
-                    <a href="{{ url_for('select_pillars') }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-play-circle"></i> Continue Review
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt text-warning me-2"></i>Quick Actions
+                </h6>
+                <small class="text-muted">Jump to common tasks</small>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group flex-wrap" role="group">
+                    <a href="{{ url_for('select_pillars') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-play me-1"></i>Continue Review
                     </a>
-                    <a href="{{ url_for('generate_report') }}" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-file-plus"></i> Generate Report
+                    <a href="{{ url_for('generate_report') }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-alt me-1"></i>Generate Report
                     </a>
-                    <a href="{{ url_for('saved_reports') }}" class="btn btn-sm btn-outline-info">
-                        <i class="bi bi-folder"></i> View Saved Reports
+                    <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-folder me-1"></i>View Reports
                     </a>
                 </div>
             </div>
@@ -230,13 +280,47 @@ Homepage Template
 </div>
 {% endif %}
 
+<!-- Statistics Dashboard (if connected) -->
+{% if is_connected %}
+<div class="row mt-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">6</h3>
+                <small class="text-muted">Pillars Available</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ '1' if workload_id else '0' }}</h3>
+                <small class="text-muted">Active Workloads</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">∞</h3>
+                <small class="text-muted">Reports Possible</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">24/7</h3>
+                <small class="text-muted">Available</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <style>
 .jumbotron {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3rem 2rem;
-    border-radius: 0.5rem;
-    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
 }
 
 .card {
@@ -252,28 +336,5 @@ Homepage Template
 .btn-group .btn {
     margin: 0 0.25rem;
 }
-
-.feature-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-}
 </style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add smooth animations to cards
-    const cards = document.querySelectorAll('.card');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            card.style.transition = 'all 0.5s ease-out';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-});
-</script>
 {% endblock %}
