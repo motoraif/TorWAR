@@ -22,23 +22,8 @@ Base Template for TorWAR Application
     <!-- Custom TorWAR CSS -->
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     
-    <!-- Dark Mode CSS -->
-    <link href="{{ url_for('static', filename='dark-mode.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='dark-mode-fixes.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='risk-styling.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='answer-styling.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='answer-page-fixes.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='bootstrap-dark-overrides.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='hints-dark-mode.css') }}" rel="stylesheet">
-    
-    <!-- Complete Dark Mode Override - FINAL -->
-    <link href="{{ url_for('static', filename='complete-dark-override.css') }}" rel="stylesheet">
-    
-    <!-- Navigation Color Fix - Restore TorWAR Branding -->
-    <link href="{{ url_for('static', filename='navigation-fix.css') }}" rel="stylesheet">
-    
-    <!-- Navbar Black Background Fix - ULTIMATE OVERRIDE -->
-    <link href="{{ url_for('static', filename='navbar-black-background-fix.css') }}" rel="stylesheet">
+    <!-- Consolidated Dark Mode CSS - ALL DARK MODE FIXES IN ONE FILE -->
+    <link href="{{ url_for('static', filename='consolidated-dark-mode.css') }}" rel="stylesheet">
     
     <!-- Inline Dark Mode Initialization (Prevent FOUC) -->
     <script>
@@ -178,6 +163,13 @@ Base Template for TorWAR Application
                             <li><a class="dropdown-item" href="{{ url_for('saved_reports') }}">Saved Reports</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('compare_reports') }}">Compare Reports</a></li>
                         </ul>
+                    </li>
+
+                    <!-- Trusted Advisor Recommendations -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('recommendations') }}">
+                            <i class="fas fa-lightbulb"></i> Recommendations
+                        </a>
                     </li>
                     {% endif %}
 

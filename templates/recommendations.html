@@ -1,0 +1,327 @@
+<!--
+TorWAR - AWS Trusted Advisor Recommendations
+Author: Mohamed Toraif
+-->
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor Recommendations - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.recommendation-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-left: 4px solid #6c757d;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.recommendation-card.status-error {
+    border-left-color: #dc3545;
+}
+
+.recommendation-card.status-warning {
+    border-left-color: #ffc107;
+}
+
+.recommendation-card.status-ok {
+    border-left-color: #28a745;
+}
+
+.recommendation-card.status-not_available {
+    border-left-color: #6c757d;
+}
+
+.category-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.resource-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-icon {
+    font-size: 1.25rem;
+}
+
+.category-section {
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .stats-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.refresh-btn {
+    transition: transform 0.2s ease;
+}
+
+.refresh-btn:hover {
+    transform: rotate(180deg);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-lightbulb text-warning me-3"></i>
+                        Trusted Advisor Recommendations
+                    </h2>
+                    <p class="text-muted mb-0">AWS recommendations for optimization and best practices</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt refresh-btn me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <!-- Error State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Trusted Advisor Not Available
+                        </h5>
+                        <p class="mb-0">{{ error }}</p>
+                        <small class="text-muted">
+                            Trusted Advisor requires a Business or Enterprise support plan. 
+                            <a href="https://aws.amazon.com/support/" target="_blank" class="alert-link">Learn more</a>
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="https://aws.amazon.com/support/" target="_blank" class="btn btn-warning">
+                            <i class="fas fa-external-link-alt me-2"></i>AWS Support Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Statistics Overview -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total }}</h3>
+                    <small class="text-muted">Total Checks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.high_priority }}</h3>
+                    <small class="text-muted">High Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.medium_priority }}</h3>
+                    <small class="text-muted">Medium Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-server fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total_resources }}</h3>
+                    <small class="text-muted">Flagged Resources</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Category Tabs -->
+    {% if categories %}
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="categoryTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                        <i class="fas fa-list me-2"></i>All ({{ recommendations|length }})
+                    </button>
+                </li>
+                {% for category_id, category_recommendations in categories.items() %}
+                {% if category_recommendations %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="{{ category_id }}-tab" data-bs-toggle="tab" data-bs-target="#{{ category_id }}" type="button" role="tab">
+                        {% if category_info[category_id] %}
+                            <i class="{{ category_info[category_id].icon }} me-2"></i>
+                            {{ category_info[category_id].name }}
+                        {% else %}
+                            <i class="fas fa-folder me-2"></i>
+                            {{ category_id|title }}
+                        {% endif %}
+                        ({{ category_recommendations|length }})
+                    </button>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-4" id="categoryTabContent">
+        <!-- All Recommendations -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            {% if recommendations %}
+                {% for recommendation in recommendations %}
+                    {% include 'recommendation_card.html' %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5>No recommendations found</h5>
+                    <p class="text-muted">All checks are currently passing or not available.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Category-specific tabs -->
+        {% for category_id, category_recommendations in categories.items() %}
+        {% if category_recommendations %}
+        <div class="tab-pane fade" id="{{ category_id }}" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-12">
+                    {% if category_info[category_id] %}
+                    <div class="alert alert-{{ category_info[category_id].color }} alert-dismissible">
+                        <h6 class="mb-2">
+                            <i class="{{ category_info[category_id].icon }} me-2"></i>
+                            {{ category_info[category_id].name }}
+                        </h6>
+                        <p class="mb-0">{{ category_info[category_id].description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% for recommendation in category_recommendations %}
+                {% include 'recommendation_card.html' %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- Last Updated -->
+    {% if last_updated %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="text-center text-muted">
+                <small>
+                    <i class="fas fa-clock me-1"></i>
+                    Last updated: {{ last_updated }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-refresh functionality
+let autoRefreshInterval;
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+        location.reload();
+    }, 300000); // Refresh every 5 minutes
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRefresh();
+});
+
+// Stop auto-refresh when page is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        stopAutoRefresh();
+    } else {
+        startAutoRefresh();
+    }
+});
+
+// Refresh specific check
+function refreshCheck(checkId) {
+    fetch(`/recommendations/refresh/${checkId}`)
+        .then(response => {
+            if (response.ok) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-success border-0';
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-check me-2"></i>Check refresh initiated
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing check:', error);
+        });
+}
+</script>
+{% endblock %}

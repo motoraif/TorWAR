@@ -1,0 +1,199 @@
+<!--
+TorWAR - Trusted Advisor Recommendation Card
+Author: Mohamed Toraif
+-->
+<div class="card recommendation-card status-{{ recommendation.status }} mb-3">
+    <div class="card-body">
+        <div class="row align-items-start">
+            <div class="col-md-8">
+                <div class="d-flex align-items-start mb-2">
+                    <div class="me-3">
+                        {% if recommendation.status == 'error' %}
+                            <i class="fas fa-exclamation-circle status-icon text-danger"></i>
+                        {% elif recommendation.status == 'warning' %}
+                            <i class="fas fa-exclamation-triangle status-icon text-warning"></i>
+                        {% elif recommendation.status == 'ok' %}
+                            <i class="fas fa-check-circle status-icon text-success"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle status-icon text-muted"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="card-title mb-1">{{ recommendation.name }}</h6>
+                        <p class="card-text text-muted small mb-2">{{ recommendation.description }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-2">
+                    {% if recommendation.category and category_info[recommendation.category] %}
+                        <span class="badge bg-{{ category_info[recommendation.category].color }} category-badge">
+                            <i class="{{ category_info[recommendation.category].icon }} me-1"></i>
+                            {{ category_info[recommendation.category].name }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary category-badge">
+                            {{ recommendation.category|title }}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    {% if recommendation.status == 'error' %}
+                        <span class="badge bg-danger">High Priority</span>
+                    {% elif recommendation.status == 'warning' %}
+                        <span class="badge bg-warning text-dark">Medium Priority</span>
+                    {% elif recommendation.status == 'ok' %}
+                        <span class="badge bg-success">Passing</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Available</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Summary -->
+        {% if recommendation.resources_summary %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="bg-light rounded p-3">
+                    <h6 class="mb-2">
+                        <i class="fas fa-server me-2"></i>Resource Summary
+                    </h6>
+                    <div class="row">
+                        {% if recommendation.resources_summary.resourcesProcessed %}
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="text-center">
+                                <div class="resource-count text-info">{{ recommendation.resources_summary.resourcesProcessed }}</div>
+                                <small class="text-muted">Processed</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if recommendation.resources_summary.resourcesFlagged %}
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="text-center">
+                                <div class="resource-count text-warning">{{ recommendation.resources_summary.resourcesFlagged }}</div>
+                                <small class="text-muted">Flagged</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if recommendation.resources_summary.resourcesIgnored %}
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="text-center">
+                                <div class="resource-count text-secondary">{{ recommendation.resources_summary.resourcesIgnored }}</div>
+                                <small class="text-muted">Ignored</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if recommendation.resources_summary.resourcesSuppressed %}
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="text-center">
+                                <div class="resource-count text-muted">{{ recommendation.resources_summary.resourcesSuppressed }}</div>
+                                <small class="text-muted">Suppressed</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Flagged Resources -->
+        {% if recommendation.flagged_resources and recommendation.flagged_resources|length > 0 %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">
+                        <i class="fas fa-flag me-2 text-warning"></i>
+                        Flagged Resources ({{ recommendation.flagged_resources|length }})
+                    </h6>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#resources-{{ recommendation.id }}" aria-expanded="false">
+                        <i class="fas fa-chevron-down me-1"></i>View Details
+                    </button>
+                </div>
+                
+                <div class="collapse" id="resources-{{ recommendation.id }}">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Resource ID</th>
+                                    <th>Region</th>
+                                    <th>Status</th>
+                                    {% if recommendation.flagged_resources[0].metadata %}
+                                    <th>Details</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for resource in recommendation.flagged_resources[:10] %}
+                                <tr>
+                                    <td>
+                                        <code class="small">{{ resource.resourceId or 'N/A' }}</code>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ resource.region or 'Global' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if resource.status == 'error' %}
+                                            <span class="badge bg-danger">Error</span>
+                                        {% elif resource.status == 'warning' %}
+                                            <span class="badge bg-warning text-dark">Warning</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ resource.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    {% if resource.metadata %}
+                                    <td>
+                                        <small class="text-muted">
+                                            {% for item in resource.metadata[:3] %}
+                                                {{ item }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                            {% if resource.metadata|length > 3 %}...{% endif %}
+                                        </small>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                                {% if recommendation.flagged_resources|length > 10 %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">
+                                        <small>... and {{ recommendation.flagged_resources|length - 10 }} more resources</small>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if recommendation.timestamp %}
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Last checked: {{ recommendation.timestamp }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshCheck('{{ recommendation.id }}')">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+                        {% if recommendation.flagged_resources and recommendation.flagged_resources|length > 0 %}
+                        <a href="https://console.aws.amazon.com/support/home#/case/create" target="_blank" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-external-link-alt me-1"></i>AWS Console
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

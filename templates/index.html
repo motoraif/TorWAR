@@ -158,6 +158,57 @@ Simplified Homepage Template
                 </div>
             </div>
         </div>
+
+        <!-- Trusted Advisor Recommendations -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-lightbulb fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Trusted Advisor</h5>
+                    <p class="card-text">AWS recommendations for cost optimization, performance, security, and more.</p>
+                    
+                    {% if trusted_advisor.available %}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="bg-danger text-white rounded p-2">
+                                    <div class="fw-bold">{{ trusted_advisor.high_priority_count or 0 }}</div>
+                                    <small>High Priority</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-warning text-dark rounded p-2">
+                                    <div class="fw-bold">{{ trusted_advisor.medium_priority_count or 0 }}</div>
+                                    <small>Medium Priority</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <a href="{{ url_for('recommendations') }}" class="btn btn-warning">
+                                <i class="fas fa-lightbulb me-2"></i>View Recommendations
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% if trusted_advisor.error %}
+                                    {{ trusted_advisor.error }}
+                                {% else %}
+                                    Requires Business or Enterprise support plan
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="d-grid">
+                            <a href="{{ url_for('recommendations') }}" class="btn btn-outline-warning">
+                                <i class="fas fa-lightbulb me-2"></i>Check Availability
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% else %}
         <!-- No Workload Selected -->
         <div class="col-lg-8 col-md-12 mb-4">
