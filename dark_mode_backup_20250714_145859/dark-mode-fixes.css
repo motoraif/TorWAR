@@ -1,0 +1,1359 @@
+/* TorWAR Dark Mode Specific Fixes */
+/* Author: Mohamed Toraif */
+
+/* Fix workload table visibility issues */
+[data-theme="dark"] .workload-table tbody tr {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .workload-table tbody tr:nth-child(odd) {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .workload-table tbody tr:nth-child(even) {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .workload-table tbody tr td {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .workload-table thead th {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary) !important;
+    border-color: var(--border-color);
+}
+
+/* Fix workload item cards */
+[data-theme="dark"] .workload-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .workload-item .workload-name {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .workload-item .workload-description {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .workload-item .workload-meta {
+    color: var(--text-muted) !important;
+}
+
+/* Fix report page pillar recommendations */
+[data-theme="dark"] .pillar-recommendations {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+[data-theme="dark"] .pillar-recommendations h4,
+[data-theme="dark"] .pillar-recommendations h5,
+[data-theme="dark"] .pillar-recommendations h6 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pillar-recommendations p,
+[data-theme="dark"] .pillar-recommendations li,
+[data-theme="dark"] .pillar-recommendations span {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .recommendation-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+}
+
+[data-theme="dark"] .improvement-plan {
+    background-color: var(--bg-secondary);
+    border-left: 4px solid var(--torwar-info);
+    color: var(--text-primary) !important;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+[data-theme="dark"] .improvement-plan h5 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .improvement-plan p,
+[data-theme="dark"] .improvement-plan li {
+    color: var(--text-primary) !important;
+}
+
+/* Fix question and answer visibility */
+[data-theme="dark"] .question-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .question-description {
+    color: var(--text-secondary) !important;
+}
+
+/* Answer choices - improved contrast */
+[data-theme="dark"] .answer-choice {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .answer-choice:hover {
+    background-color: var(--bg-tertiary);
+    border-color: var(--torwar-primary);
+}
+
+/* Selected answer choices - high contrast styling */
+[data-theme="dark"] .selected-choice,
+[data-theme="dark"] .answer-choice.selected,
+[data-theme="dark"] .choice-selected {
+    background-color: #4caf50 !important; /* Green background for selected */
+    color: #000000 !important; /* Black text for maximum contrast */
+    border: 2px solid #2e7d32 !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+[data-theme="dark"] .selected-choice:hover,
+[data-theme="dark"] .answer-choice.selected:hover {
+    background-color: #66bb6a !important;
+    color: #000000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+/* Alternative selected styling with blue theme */
+[data-theme="dark"] .selected-choice.primary,
+[data-theme="dark"] .answer-choice.selected.primary {
+    background-color: #2196f3 !important; /* Blue background */
+    color: #ffffff !important; /* White text for blue background */
+    border: 2px solid #1976d2 !important;
+}
+
+/* Checkbox and radio button styling for answers */
+[data-theme="dark"] .answer-choice input[type="checkbox"],
+[data-theme="dark"] .answer-choice input[type="radio"] {
+    margin-right: 0.75rem;
+    transform: scale(1.2);
+    accent-color: #4caf50;
+}
+
+[data-theme="dark"] .answer-choice input[type="checkbox"]:checked,
+[data-theme="dark"] .answer-choice input[type="radio"]:checked {
+    accent-color: #2e7d32;
+}
+
+/* Answer choice labels */
+[data-theme="dark"] .answer-choice label {
+    color: inherit !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+[data-theme="dark"] .selected-choice label {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* Multiple choice indicators */
+[data-theme="dark"] .choice-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 3px;
+    margin-right: 0.75rem;
+    position: relative;
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .selected-choice .choice-indicator {
+    background-color: #2e7d32;
+    border-color: #2e7d32;
+}
+
+[data-theme="dark"] .selected-choice .choice-indicator::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Answer choice text styling */
+[data-theme="dark"] .choice-text {
+    flex: 1;
+    color: inherit;
+    line-height: 1.4;
+}
+
+[data-theme="dark"] .selected-choice .choice-text {
+    color: #000000 !important;
+}
+
+/* Answer section containers */
+[data-theme="dark"] .answers-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+[data-theme="dark"] .answers-section h5,
+[data-theme="dark"] .answers-section h6 {
+    color: var(--text-primary) !important;
+    margin-bottom: 1rem;
+}
+
+/* Question navigation buttons */
+[data-theme="dark"] .question-nav .btn {
+    margin: 0.25rem;
+}
+
+[data-theme="dark"] .question-nav .btn.answered {
+    background-color: #4caf50 !important;
+    color: #000000 !important;
+    border-color: #2e7d32;
+}
+
+[data-theme="dark"] .question-nav .btn.current {
+    background-color: var(--torwar-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--torwar-primary);
+}
+
+/* Selected answers section styling - match risk containers */
+[data-theme="dark"] .selected-answers,
+[data-theme="dark"] .selected-answers-section,
+[data-theme="dark"] .answers-selected,
+[data-theme="dark"] .selected-choices-container,
+[data-theme="dark"] .selected-choices-section {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    border-left: 4px solid #2e7d32 !important;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 0.75rem 0;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* All text elements within selected sections */
+[data-theme="dark"] .selected-answers *,
+[data-theme="dark"] .selected-answers-section *,
+[data-theme="dark"] .answers-selected *,
+[data-theme="dark"] .selected-choices-container *,
+[data-theme="dark"] .selected-choices-section * {
+    color: #000000 !important;
+}
+
+/* Headers in selected sections */
+[data-theme="dark"] .selected-answers h1,
+[data-theme="dark"] .selected-answers h2,
+[data-theme="dark"] .selected-answers h3,
+[data-theme="dark"] .selected-answers h4,
+[data-theme="dark"] .selected-answers h5,
+[data-theme="dark"] .selected-answers h6,
+[data-theme="dark"] .selected-answers-section h1,
+[data-theme="dark"] .selected-answers-section h2,
+[data-theme="dark"] .selected-answers-section h3,
+[data-theme="dark"] .selected-answers-section h4,
+[data-theme="dark"] .selected-answers-section h5,
+[data-theme="dark"] .selected-answers-section h6 {
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+/* Paragraphs and text in selected sections */
+[data-theme="dark"] .selected-answers p,
+[data-theme="dark"] .selected-answers span,
+[data-theme="dark"] .selected-answers div,
+[data-theme="dark"] .selected-answers li,
+[data-theme="dark"] .selected-answers-section p,
+[data-theme="dark"] .selected-answers-section span,
+[data-theme="dark"] .selected-answers-section div,
+[data-theme="dark"] .selected-answers-section li {
+    color: #000000 !important;
+}
+
+/* Links in selected sections */
+[data-theme="dark"] .selected-answers a,
+[data-theme="dark"] .selected-answers-section a {
+    color: #1976d2 !important;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .selected-answers a:hover,
+[data-theme="dark"] .selected-answers-section a:hover {
+    color: #0d47a1 !important;
+    text-decoration: underline;
+}
+
+/* Buttons in selected sections */
+[data-theme="dark"] .selected-answers .btn,
+[data-theme="dark"] .selected-answers-section .btn {
+    background-color: #2e7d32 !important;
+    color: #ffffff !important;
+    border-color: #1b5e20 !important;
+}
+
+[data-theme="dark"] .selected-answers .btn:hover,
+[data-theme="dark"] .selected-answers-section .btn:hover {
+    background-color: #1b5e20 !important;
+    color: #ffffff !important;
+}
+
+/* Badges in selected sections */
+[data-theme="dark"] .selected-answers .badge,
+[data-theme="dark"] .selected-answers-section .badge {
+    background-color: #2e7d32 !important;
+    color: #ffffff !important;
+}
+
+/* Lists in selected sections */
+[data-theme="dark"] .selected-answers ul,
+[data-theme="dark"] .selected-answers ol,
+[data-theme="dark"] .selected-answers-section ul,
+[data-theme="dark"] .selected-answers-section ol {
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .selected-answers ul li,
+[data-theme="dark"] .selected-answers ol li,
+[data-theme="dark"] .selected-answers-section ul li,
+[data-theme="dark"] .selected-answers-section ol li {
+    color: #000000 !important;
+    margin-bottom: 0.25rem;
+}
+
+/* Code blocks in selected sections */
+[data-theme="dark"] .selected-answers pre,
+[data-theme="dark"] .selected-answers code,
+[data-theme="dark"] .selected-answers-section pre,
+[data-theme="dark"] .selected-answers-section code {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    color: #000000 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Tables in selected sections */
+[data-theme="dark"] .selected-answers table,
+[data-theme="dark"] .selected-answers-section table {
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .selected-answers table th,
+[data-theme="dark"] .selected-answers table td,
+[data-theme="dark"] .selected-answers-section table th,
+[data-theme="dark"] .selected-answers-section table td {
+    color: #000000 !important;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Form elements in selected sections */
+[data-theme="dark"] .selected-answers input,
+[data-theme="dark"] .selected-answers textarea,
+[data-theme="dark"] .selected-answers select,
+[data-theme="dark"] .selected-answers-section input,
+[data-theme="dark"] .selected-answers-section textarea,
+[data-theme="dark"] .selected-answers-section select {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #000000 !important;
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Hover effects for selected sections */
+[data-theme="dark"] .selected-answers:hover,
+[data-theme="dark"] .selected-answers-section:hover {
+    background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+/* Additional common class names for selected answers sections */
+[data-theme="dark"] .answer-summary,
+[data-theme="dark"] .selected-summary,
+[data-theme="dark"] .choice-summary,
+[data-theme="dark"] .answer-selection-summary,
+[data-theme="dark"] .selected-options,
+[data-theme="dark"] .chosen-answers,
+[data-theme="dark"] .answer-review,
+[data-theme="dark"] .selection-review {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    border-left: 4px solid #2e7d32 !important;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 0.75rem 0;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* All text in these sections should be black */
+[data-theme="dark"] .answer-summary *,
+[data-theme="dark"] .selected-summary *,
+[data-theme="dark"] .choice-summary *,
+[data-theme="dark"] .answer-selection-summary *,
+[data-theme="dark"] .selected-options *,
+[data-theme="dark"] .chosen-answers *,
+[data-theme="dark"] .answer-review *,
+[data-theme="dark"] .selection-review * {
+    color: #000000 !important;
+}
+
+/* Bootstrap alert variants for selected answers */
+[data-theme="dark"] .alert.selected-answers,
+[data-theme="dark"] .alert.answer-selected,
+[data-theme="dark"] .alert.choice-selected {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    border-left: 4px solid #2e7d32 !important;
+}
+
+[data-theme="dark"] .alert.selected-answers *,
+[data-theme="dark"] .alert.answer-selected *,
+[data-theme="dark"] .alert.choice-selected * {
+    color: #000000 !important;
+}
+
+/* Card variants for selected answers */
+[data-theme="dark"] .card.selected-answers,
+[data-theme="dark"] .card.answer-selected,
+[data-theme="dark"] .card.choice-selected {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    border-left: 4px solid #2e7d32 !important;
+}
+
+[data-theme="dark"] .card.selected-answers .card-body,
+[data-theme="dark"] .card.answer-selected .card-body,
+[data-theme="dark"] .card.choice-selected .card-body {
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .card.selected-answers .card-header,
+[data-theme="dark"] .card.answer-selected .card-header,
+[data-theme="dark"] .card.choice-selected .card-header {
+    background-color: rgba(46, 125, 50, 0.2) !important;
+    color: #000000 !important;
+    border-bottom-color: #2e7d32 !important;
+}
+
+[data-theme="dark"] .card.selected-answers .card-footer,
+[data-theme="dark"] .card.answer-selected .card-footer,
+[data-theme="dark"] .card.choice-selected .card-footer {
+    background-color: rgba(46, 125, 50, 0.2) !important;
+    color: #000000 !important;
+    border-top-color: #2e7d32 !important;
+}
+
+/* Panel/accordion variants */
+[data-theme="dark"] .panel.selected-answers,
+[data-theme="dark"] .accordion-item.selected-answers {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+}
+
+[data-theme="dark"] .panel.selected-answers *,
+[data-theme="dark"] .accordion-item.selected-answers * {
+    color: #000000 !important;
+}
+
+/* Form controls in dark mode - restored */
+[data-theme="dark"] .form-check-input {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+    background-color: #4caf50;
+    border-color: #2e7d32;
+}
+
+[data-theme="dark"] .form-check-label {
+    color: var(--text-primary);
+}
+
+/* Override any remaining white text in selected sections */
+[data-theme="dark"] .selected-answers .text-white,
+[data-theme="dark"] .selected-answers-section .text-white,
+[data-theme="dark"] .answer-summary .text-white,
+[data-theme="dark"] .selected-summary .text-white {
+    color: #000000 !important;
+}
+
+/* Ensure icons in selected sections are visible */
+[data-theme="dark"] .selected-answers .fas,
+[data-theme="dark"] .selected-answers .far,
+[data-theme="dark"] .selected-answers .fab,
+[data-theme="dark"] .selected-answers .bi,
+[data-theme="dark"] .selected-answers-section .fas,
+[data-theme="dark"] .selected-answers-section .far,
+[data-theme="dark"] .selected-answers-section .fab,
+[data-theme="dark"] .selected-answers-section .bi {
+    color: #000000 !important;
+}
+
+/* Fix hints section on review/pillar pages */
+[data-theme="dark"] .hints-section,
+[data-theme="dark"] .hint-container,
+[data-theme="dark"] .hints-box,
+[data-theme="dark"] .question-hints,
+[data-theme="dark"] .pillar-hints,
+[data-theme="dark"] .help-section,
+[data-theme="dark"] .guidance-section {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.75rem 0;
+}
+
+/* Hints header styling */
+[data-theme="dark"] .hints-section h1,
+[data-theme="dark"] .hints-section h2,
+[data-theme="dark"] .hints-section h3,
+[data-theme="dark"] .hints-section h4,
+[data-theme="dark"] .hints-section h5,
+[data-theme="dark"] .hints-section h6,
+[data-theme="dark"] .hint-container h1,
+[data-theme="dark"] .hint-container h2,
+[data-theme="dark"] .hint-container h3,
+[data-theme="dark"] .hint-container h4,
+[data-theme="dark"] .hint-container h5,
+[data-theme="dark"] .hint-container h6 {
+    color: var(--text-primary) !important;
+    margin-bottom: 0.75rem;
+}
+
+/* Hints content text */
+[data-theme="dark"] .hints-section p,
+[data-theme="dark"] .hints-section span,
+[data-theme="dark"] .hints-section div,
+[data-theme="dark"] .hints-section li,
+[data-theme="dark"] .hint-container p,
+[data-theme="dark"] .hint-container span,
+[data-theme="dark"] .hint-container div,
+[data-theme="dark"] .hint-container li,
+[data-theme="dark"] .help-section p,
+[data-theme="dark"] .help-section span,
+[data-theme="dark"] .help-section div,
+[data-theme="dark"] .help-section li {
+    color: var(--text-primary) !important;
+}
+
+/* Hints lists */
+[data-theme="dark"] .hints-section ul,
+[data-theme="dark"] .hints-section ol,
+[data-theme="dark"] .hint-container ul,
+[data-theme="dark"] .hint-container ol {
+    color: var(--text-primary) !important;
+    padding-left: 1.5rem;
+}
+
+[data-theme="dark"] .hints-section ul li,
+[data-theme="dark"] .hints-section ol li,
+[data-theme="dark"] .hint-container ul li,
+[data-theme="dark"] .hint-container ol li {
+    color: var(--text-primary) !important;
+    margin-bottom: 0.5rem;
+}
+
+/* Hints with icons */
+[data-theme="dark"] .hint-icon,
+[data-theme="dark"] .hints-icon {
+    color: var(--torwar-info) !important;
+    margin-right: 0.5rem;
+}
+
+/* Collapsible hints */
+[data-theme="dark"] .hints-toggle,
+[data-theme="dark"] .hint-toggle {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .hints-toggle:hover,
+[data-theme="dark"] .hint-toggle:hover {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Hint cards */
+[data-theme="dark"] .hint-card {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Specific hint types */
+[data-theme="dark"] .hint-info,
+[data-theme="dark"] .hint-tip {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    border-left: 4px solid var(--torwar-info);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hint-warning {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border-left: 4px solid var(--torwar-warning);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hint-success {
+    background-color: rgba(76, 175, 80, 0.1) !important;
+    border-left: 4px solid var(--torwar-success);
+    color: var(--text-primary) !important;
+}
+
+/* Hint links */
+[data-theme="dark"] .hints-section a,
+[data-theme="dark"] .hint-container a,
+[data-theme="dark"] .help-section a {
+    color: var(--torwar-primary) !important;
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .hints-section a:hover,
+[data-theme="dark"] .hint-container a:hover,
+[data-theme="dark"] .help-section a:hover {
+    color: var(--text-primary) !important;
+    text-decoration: none;
+}
+
+/* Bootstrap alert hints */
+[data-theme="dark"] .alert.hint,
+[data-theme="dark"] .alert.hints {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .alert.hint.alert-info,
+[data-theme="dark"] .alert.hints.alert-info {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    border-color: var(--torwar-info);
+    color: var(--text-primary) !important;
+}
+
+/* Common hint class names that might be used */
+[data-theme="dark"] .help-text,
+[data-theme="dark"] .guidance-text,
+[data-theme="dark"] .instruction-text,
+[data-theme="dark"] .tip-text,
+[data-theme="dark"] .hint-text {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border-color);
+}
+
+/* Fix any remaining question answers in report page - gray background with white text issue */
+[data-theme="dark"] .question-answer,
+[data-theme="dark"] .answer-text,
+[data-theme="dark"] .answer-content,
+[data-theme="dark"] .question-response,
+[data-theme="dark"] .selected-answer-text {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+/* Fix specific answer containers in reports */
+[data-theme="dark"] .answer-container,
+[data-theme="dark"] .answer-box,
+[data-theme="dark"] .response-container,
+[data-theme="dark"] .choice-container {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+/* Fix Bootstrap gray backgrounds */
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-secondary {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix muted text that might be too light */
+[data-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Fix answer choices in review pages */
+[data-theme="dark"] .choice-item,
+[data-theme="dark"] .answer-option,
+[data-theme="dark"] .response-option {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border-radius: 0.375rem;
+}
+
+/* Fix selected choices in review pages */
+[data-theme="dark"] .choice-item.selected,
+[data-theme="dark"] .answer-option.selected,
+[data-theme="dark"] .response-option.selected {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    font-weight: 600;
+}
+
+/* Fix question containers in review pages */
+[data-theme="dark"] .question-block,
+[data-theme="dark"] .question-section,
+[data-theme="dark"] .review-question {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+/* Fix question titles and descriptions */
+[data-theme="dark"] .question-block h3,
+[data-theme="dark"] .question-block h4,
+[data-theme="dark"] .question-block h5,
+[data-theme="dark"] .question-section h3,
+[data-theme="dark"] .question-section h4,
+[data-theme="dark"] .question-section h5,
+[data-theme="dark"] .review-question h3,
+[data-theme="dark"] .review-question h4,
+[data-theme="dark"] .review-question h5 {
+    color: var(--text-primary) !important;
+}
+
+/* Fix answer form elements */
+[data-theme="dark"] .answer-form .form-check,
+[data-theme="dark"] .question-form .form-check {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+}
+
+[data-theme="dark"] .answer-form .form-check-label,
+[data-theme="dark"] .question-form .form-check-label {
+    color: var(--text-primary) !important;
+}
+
+/* Fix radio buttons and checkboxes */
+[data-theme="dark"] .form-check-input[type="radio"],
+[data-theme="dark"] .form-check-input[type="checkbox"] {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-check-input[type="radio"]:checked,
+[data-theme="dark"] .form-check-input[type="checkbox"]:checked {
+    background-color: #4caf50;
+    border-color: #2e7d32;
+}
+
+/* Fix pillar review sections */
+[data-theme="dark"] .pillar-review,
+[data-theme="dark"] .pillar-section,
+[data-theme="dark"] .pillar-content {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+/* Fix any remaining gray text issues */
+[data-theme="dark"] .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Fix specific report page elements */
+[data-theme="dark"] .report-section,
+[data-theme="dark"] .report-content,
+[data-theme="dark"] .report-answers {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix answer lists in reports */
+[data-theme="dark"] .answer-list,
+[data-theme="dark"] .response-list,
+[data-theme="dark"] .choice-list {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+[data-theme="dark"] .answer-list li,
+[data-theme="dark"] .response-list li,
+[data-theme="dark"] .choice-list li {
+    color: var(--text-primary) !important;
+    padding: 0.25rem 0;
+}
+
+/* Fix navigation and breadcrumbs */
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+}
+
+/* Fix question answers in report page - gray background with white text issue */
+[data-theme="dark"] .question-answer,
+[data-theme="dark"] .answer-text,
+[data-theme="dark"] .answer-content,
+[data-theme="dark"] .question-response,
+[data-theme="dark"] .selected-answer-text {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+/* Fix specific answer containers in reports */
+[data-theme="dark"] .answer-container,
+[data-theme="dark"] .answer-box,
+[data-theme="dark"] .response-container,
+[data-theme="dark"] .choice-container {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+/* Fix Bootstrap gray backgrounds */
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-secondary {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix muted text that might be too light */
+[data-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Fix answer choices in review pages */
+[data-theme="dark"] .choice-item,
+[data-theme="dark"] .answer-option,
+[data-theme="dark"] .response-option {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border-radius: 0.375rem;
+}
+
+/* Fix selected choices in review pages */
+[data-theme="dark"] .choice-item.selected,
+[data-theme="dark"] .answer-option.selected,
+[data-theme="dark"] .response-option.selected {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+    color: #000000 !important;
+    border: 2px solid #2e7d32 !important;
+    font-weight: 600;
+}
+
+/* Fix question containers in review pages */
+[data-theme="dark"] .question-block,
+[data-theme="dark"] .question-section,
+[data-theme="dark"] .review-question {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+/* Fix question titles and descriptions */
+[data-theme="dark"] .question-block h3,
+[data-theme="dark"] .question-block h4,
+[data-theme="dark"] .question-block h5,
+[data-theme="dark"] .question-section h3,
+[data-theme="dark"] .question-section h4,
+[data-theme="dark"] .question-section h5,
+[data-theme="dark"] .review-question h3,
+[data-theme="dark"] .review-question h4,
+[data-theme="dark"] .review-question h5 {
+    color: var(--text-primary) !important;
+}
+
+/* Fix answer form elements */
+[data-theme="dark"] .answer-form .form-check,
+[data-theme="dark"] .question-form .form-check {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+}
+
+[data-theme="dark"] .answer-form .form-check-label,
+[data-theme="dark"] .question-form .form-check-label {
+    color: var(--text-primary) !important;
+}
+
+/* Fix radio buttons and checkboxes */
+[data-theme="dark"] .form-check-input[type="radio"],
+[data-theme="dark"] .form-check-input[type="checkbox"] {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-check-input[type="radio"]:checked,
+[data-theme="dark"] .form-check-input[type="checkbox"]:checked {
+    background-color: #4caf50;
+    border-color: #2e7d32;
+}
+
+/* Fix pillar review sections */
+[data-theme="dark"] .pillar-review,
+[data-theme="dark"] .pillar-section,
+[data-theme="dark"] .pillar-content {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+/* Fix any remaining gray text issues */
+[data-theme="dark"] .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Fix specific report page elements */
+[data-theme="dark"] .report-section,
+[data-theme="dark"] .report-content,
+[data-theme="dark"] .report-answers {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix answer lists in reports */
+[data-theme="dark"] .answer-list,
+[data-theme="dark"] .response-list,
+[data-theme="dark"] .choice-list {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+[data-theme="dark"] .answer-list li,
+[data-theme="dark"] .response-list li,
+[data-theme="dark"] .choice-list li {
+    color: var(--text-primary) !important;
+    padding: 0.25rem 0;
+}
+
+/* Fix navigation and breadcrumbs */
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: var(--torwar-primary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any remaining Bootstrap overrides */
+[data-theme="dark"] .text-body {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-black {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .border {
+    border-color: var(--border-color) !important;
+}
+
+/* Fix list group items */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .list-group-item:first-child {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .list-group-item:last-child {
+    border-bottom-color: var(--border-color);
+}
+
+/* Fix any remaining table issues */
+[data-theme="dark"] table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] table th,
+[data-theme="dark"] table td {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table > :not(caption) > * > * {
+    color: var(--text-primary);
+}
+
+/* Fix striped table rows specifically */
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(2n+1) > * {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(2n) > * {
+    background-color: var(--card-bg);
+    color: var(--text-primary) !important;
+}
+
+/* Ensure hover effects work */
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix any pre and code elements */
+[data-theme="dark"] pre,
+[data-theme="dark"] code {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Fix small text elements */
+[data-theme="dark"] small,
+[data-theme="dark"] .small {
+    color: var(--text-muted) !important;
+}
+
+/* Fix strong and bold text */
+[data-theme="dark"] strong,
+[data-theme="dark"] b {
+    color: var(--text-primary) !important;
+}
+
+/* Fix risk containers for better contrast in dark mode */
+[data-theme="dark"] .risk-container,
+[data-theme="dark"] .risk-badge,
+[data-theme="dark"] .alert-danger,
+[data-theme="dark"] .alert-warning,
+[data-theme="dark"] .alert-success,
+[data-theme="dark"] .alert-info {
+    color: #000000 !important; /* Black text for better contrast */
+    font-weight: 600; /* Slightly bolder for better readability */
+}
+
+/* High Risk - Keep red background but with black text */
+[data-theme="dark"] .risk-high,
+[data-theme="dark"] .bg-danger,
+[data-theme="dark"] .alert-danger {
+    background-color: #ff6b6b !important; /* Lighter red for better contrast */
+    color: #000000 !important;
+    border: 1px solid #ff5252;
+}
+
+/* Medium Risk - Use orange/amber with black text */
+[data-theme="dark"] .risk-medium,
+[data-theme="dark"] .bg-warning,
+[data-theme="dark"] .alert-warning {
+    background-color: #ffb74d !important; /* Light orange for better contrast */
+    color: #000000 !important;
+    border: 1px solid #ff9800;
+}
+
+/* Low Risk - Use light green with black text */
+[data-theme="dark"] .risk-low,
+[data-theme="dark"] .bg-success,
+[data-theme="dark"] .alert-success {
+    background-color: #81c784 !important; /* Light green for better contrast */
+    color: #000000 !important;
+    border: 1px solid #4caf50;
+}
+
+/* No Risk/Info - Use light blue with black text */
+[data-theme="dark"] .risk-none,
+[data-theme="dark"] .risk-info,
+[data-theme="dark"] .bg-info,
+[data-theme="dark"] .alert-info {
+    background-color: #64b5f6 !important; /* Light blue for better contrast */
+    color: #000000 !important;
+    border: 1px solid #2196f3;
+}
+
+/* Risk statistics cards */
+[data-theme="dark"] .risk-stats .card {
+    border: 2px solid var(--border-color);
+}
+
+[data-theme="dark"] .risk-stats .card.risk-high {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8a80 100%);
+    color: #000000 !important;
+    border-color: #ff5252;
+}
+
+[data-theme="dark"] .risk-stats .card.risk-medium {
+    background: linear-gradient(135deg, #ffb74d 0%, #ffcc02 100%);
+    color: #000000 !important;
+    border-color: #ff9800;
+}
+
+[data-theme="dark"] .risk-stats .card.risk-low {
+    background: linear-gradient(135deg, #81c784 0%, #a5d6a7 100%);
+    color: #000000 !important;
+    border-color: #4caf50;
+}
+
+[data-theme="dark"] .risk-stats .card.risk-none {
+    background: linear-gradient(135deg, #64b5f6 0%, #90caf9 100%);
+    color: #000000 !important;
+    border-color: #2196f3;
+}
+
+/* Risk badges in tables and lists */
+[data-theme="dark"] .badge.bg-danger {
+    background-color: #ff6b6b !important;
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+    background-color: #ffb74d !important;
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .badge.bg-success {
+    background-color: #81c784 !important;
+    color: #000000 !important;
+}
+
+[data-theme="dark"] .badge.bg-info {
+    background-color: #64b5f6 !important;
+    color: #000000 !important;
+}
+
+/* Risk count numbers - make them bold and clear */
+[data-theme="dark"] .risk-count,
+[data-theme="dark"] .risk-number {
+    color: #000000 !important;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+/* Risk labels */
+[data-theme="dark"] .risk-label {
+    color: #000000 !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Progress bars for risk levels */
+[data-theme="dark"] .progress-bar.bg-danger {
+    background-color: #ff6b6b !important;
+}
+
+[data-theme="dark"] .progress-bar.bg-warning {
+    background-color: #ffb74d !important;
+}
+
+[data-theme="dark"] .progress-bar.bg-success {
+    background-color: #81c784 !important;
+}
+
+[data-theme="dark"] .progress-bar.bg-info {
+    background-color: #64b5f6 !important;
+}
+
+/* Hover effects for risk containers */
+[data-theme="dark"] .risk-container:hover,
+[data-theme="dark"] .risk-stats .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Risk summary section */
+[data-theme="dark"] .risk-summary {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .risk-summary h4,
+[data-theme="dark"] .risk-summary h5 {
+    color: var(--text-primary);
+}
+
+/* Risk distribution chart labels */
+[data-theme="dark"] .risk-chart-label {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+/* Enhanced risk container design for modern look */
+[data-theme="dark"] .risk-container-modern {
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin: 0.75rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .risk-container-modern.risk-high {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8a80 100%);
+    color: #000000 !important;
+    border-left: 5px solid #d32f2f;
+}
+
+[data-theme="dark"] .risk-container-modern.risk-medium {
+    background: linear-gradient(135deg, #ffb74d 0%, #ffcc02 100%);
+    color: #000000 !important;
+    border-left: 5px solid #f57c00;
+}
+
+[data-theme="dark"] .risk-container-modern.risk-low {
+    background: linear-gradient(135deg, #81c784 0%, #a5d6a7 100%);
+    color: #000000 !important;
+    border-left: 5px solid #388e3c;
+}
+
+[data-theme="dark"] .risk-container-modern.risk-none {
+    background: linear-gradient(135deg, #64b5f6 0%, #90caf9 100%);
+    color: #000000 !important;
+    border-left: 5px solid #1976d2;
+}
+
+/* Risk icons for better visual identification */
+[data-theme="dark"] .risk-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    vertical-align: middle;
+}
+
+[data-theme="dark"] .risk-high .risk-icon {
+    color: #d32f2f;
+}
+
+[data-theme="dark"] .risk-medium .risk-icon {
+    color: #f57c00;
+}
+
+[data-theme="dark"] .risk-low .risk-icon {
+    color: #388e3c;
+}
+
+[data-theme="dark"] .risk-none .risk-icon {
+    color: #1976d2;
+}
+
+/* Risk summary cards with better spacing */
+[data-theme="dark"] .risk-summary-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .risk-summary-card h5 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Risk percentage indicators */
+[data-theme="dark"] .risk-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #000000 !important;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    margin-left: 0.5rem;
+}
+
+/* Fix any remaining visibility issues */
+[data-theme="dark"] * {
+    color: inherit;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] .container,
+[data-theme="dark"] .row,
+[data-theme="dark"] .col {
+    color: var(--text-primary);
+}
