@@ -33,6 +33,12 @@ from botocore.exceptions import ClientError
 from aws_helper import get_wellarchitected_client, test_aws_connection
 from aws_auth_routes import register_auth_routes
 from report_manager import ReportManager
+from trusted_advisor_helper import (
+    get_all_trusted_advisor_recommendations,
+    get_trusted_advisor_summary,
+    get_trusted_advisor_check_categories,
+    refresh_trusted_advisor_check
+)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -155,8 +161,49 @@ def inject_globals():
 
 @app.route('/')
 def index():
-    """Home page with dashboard."""
-    return render_template('index.html')
+    """Home page with dashboard including Trusted Advisor overview."""
+    if DEBUG_ENABLED:
+        print("DEBUG: Accessing main dashboard")
+    
+    # Check if user is authenticated with AWS
+    aws_connected = 'aws_region' in session
+    
+    context = {
+        'aws_connected': aws_connected,
+        'aws_region': session.get('aws_region', 'Not connected'),
+        'account_id': session.get('account_id', 'Not connected')
+    }
+    
+    if aws_connected:
+        try:
+            # Get Well-Architected workloads count
+            wa_client = get_wellarchitected_client()
+            if wa_client:
+                workloads_response = wa_client.list_workloads(MaxResults=50)
+                context['workload_count'] = len(workloads_response.get('WorkloadSummaries', []))
+            else:
+                context['workload_count'] = 0
+            
+            # Get Trusted Advisor summary
+            ta_summary = get_trusted_advisor_summary()
+            context['trusted_advisor'] = ta_summary
+            
+            if DEBUG_ENABLED:
+                print(f"DEBUG: Trusted Advisor available: {ta_summary.get('available', False)}")
+                if ta_summary.get('available'):
+                    print(f"DEBUG: TA High Priority: {ta_summary.get('high_priority_count', 0)}")
+                    print(f"DEBUG: TA Medium Priority: {ta_summary.get('medium_priority_count', 0)}")
+            
+        except Exception as e:
+            if DEBUG_ENABLED:
+                print(f"DEBUG: Error getting dashboard data: {e}")
+            context['workload_count'] = 0
+            context['trusted_advisor'] = {'available': False, 'error': str(e)}
+    else:
+        context['workload_count'] = 0
+        context['trusted_advisor'] = {'available': False, 'error': 'Not connected to AWS'}
+    
+    return render_template('index.html', **context)
 
 @app.route('/aws-status')
 def aws_status():
@@ -1296,6 +1343,237 @@ def compare_reports_result():
 def get_wa_client():
     """Get a Well-Architected client using session info."""
     return get_wellarchitected_client()
+
+@app.route('/simple-auth', methods=['GET', 'POST'])
+def simple_auth():
+    """Simple authentication route for debugging."""
+    if request.method == 'GET':
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Simple Auth - TorWAR</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Simple AWS Authentication</h4>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="/simple-auth">
+                                    <div class="mb-3">
+                                        <label class="form-label">Profile:</label>
+                                        <input type="text" class="form-control" name="profile_name" value="beyon-marketplace" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Region:</label>
+                                        <input type="text" class="form-control" name="region" value="me-south-1" readonly>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Authenticate Now
+                                    </button>
+                                </form>
+                                <div class="mt-3">
+                                    <a href="/aws_login" class="btn btn-outline-secondary">Back to Main Login</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        '''
+    
+    # Handle POST request
+    try:
+        from aws_auth import get_aws_authenticator
+        
+        auth = get_aws_authenticator()
+        profile_name = request.form.get('profile_name', 'beyon-marketplace')
+        region = request.form.get('region', 'me-south-1')
+        
+        print(f"Simple auth: Profile={profile_name}, Region={region}")
+        
+        # Authenticate
+        success, message = auth.authenticate_with_profile(profile_name, region)
+        
+        if success:
+            # Store in session
+            session_info = auth.get_session_info()
+            session['aws_authenticated'] = True
+            session['aws_account_id'] = session_info['account_id']
+            session['aws_region'] = session_info['region']
+            session['aws_profile'] = profile_name
+            session['aws_user_info'] = session_info['user_info']
+            session['aws_auth_time'] = session_info['auth_time']
+            
+            flash(f'Successfully authenticated: {message}', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash(f'Authentication failed: {message}', 'error')
+            return redirect(url_for('simple_auth'))
+            
+    except Exception as e:
+        print(f"Simple auth error: {e}")
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('simple_auth'))
+
+@app.route('/test-auth')
+def test_auth():
+    """Simple test page for authentication debugging."""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test Auth</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h2>Test Authentication Form</h2>
+            <form method="POST" action="/aws-authenticate" id="testForm">
+                <div class="mb-3">
+                    <label for="profile_name" class="form-label">Profile:</label>
+                    <select class="form-select" name="profile_name" id="profile_name">
+                        <option value="beyon-marketplace" selected>beyon-marketplace</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="region" class="form-label">Region:</label>
+                    <select class="form-select" name="region" id="region">
+                        <option value="me-south-1" selected>me-south-1</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Test Submit</button>
+            </form>
+            
+            <div class="mt-4">
+                <button onclick="testSubmit()" class="btn btn-secondary">Test via JavaScript</button>
+            </div>
+            
+            <div id="debug" class="mt-4"></div>
+        </div>
+        
+        <script>
+        function testSubmit() {
+            const form = document.getElementById('testForm');
+            const debug = document.getElementById('debug');
+            
+            debug.innerHTML = '<h5>Debug Info:</h5>';
+            debug.innerHTML += '<p>Form action: ' + form.action + '</p>';
+            debug.innerHTML += '<p>Form method: ' + form.method + '</p>';
+            
+            const formData = new FormData(form);
+            debug.innerHTML += '<h6>Form Data:</h6>';
+            for (let [key, value] of formData.entries()) {
+                debug.innerHTML += '<p>' + key + ': ' + value + '</p>';
+            }
+            
+            // Submit the form
+            form.submit();
+        }
+        
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            console.log('Form submitted!');
+            document.getElementById('debug').innerHTML = '<p class="text-success">Form submitted successfully!</p>';
+        });
+        </script>
+    </body>
+    </html>
+    '''
+
+@app.route('/recommendations')
+def recommendations():
+    """Display Trusted Advisor recommendations page."""
+    if DEBUG_ENABLED:
+        print("DEBUG: Accessing Trusted Advisor recommendations page")
+    
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        # Get all recommendations
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        if 'error' in recommendations_data:
+            flash(f'Trusted Advisor Error: {recommendations_data["error"]}', 'warning')
+            return render_template('recommendations.html', 
+                                 recommendations=[], 
+                                 categories={},
+                                 error=recommendations_data['error'])
+        
+        recommendations = recommendations_data.get('recommendations', [])
+        categories = recommendations_data.get('categories', {})
+        
+        # Get category information
+        category_info = get_trusted_advisor_check_categories()
+        
+        # Calculate statistics
+        stats = {
+            'total': len(recommendations),
+            'high_priority': len([r for r in recommendations if r.get('status') == 'error']),
+            'medium_priority': len([r for r in recommendations if r.get('status') == 'warning']),
+            'low_priority': len([r for r in recommendations if r.get('status') == 'ok']),
+            'total_resources': sum(r.get('resource_count', 0) for r in recommendations)
+        }
+        
+        if DEBUG_ENABLED:
+            print(f"DEBUG: Found {len(recommendations)} Trusted Advisor recommendations")
+        
+        return render_template('recommendations.html',
+                             recommendations=recommendations,
+                             categories=categories,
+                             category_info=category_info,
+                             stats=stats,
+                             last_updated=recommendations_data.get('last_updated'))
+    
+    except Exception as e:
+        if DEBUG_ENABLED:
+            print(f"DEBUG: Error in recommendations route: {e}")
+        flash(f'Error retrieving Trusted Advisor recommendations: {str(e)}', 'error')
+        return render_template('recommendations.html', 
+                             recommendations=[], 
+                             categories={},
+                             error=str(e))
+
+@app.route('/recommendations/refresh/<check_id>')
+def refresh_recommendation(check_id):
+    """Refresh a specific Trusted Advisor check."""
+    if DEBUG_ENABLED:
+        print(f"DEBUG: Refreshing Trusted Advisor check: {check_id}")
+    
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        success = refresh_trusted_advisor_check(check_id)
+        if success:
+            flash('Trusted Advisor check refresh initiated. Results will be updated shortly.', 'success')
+        else:
+            flash('Failed to refresh Trusted Advisor check. Please try again.', 'error')
+    except Exception as e:
+        flash(f'Error refreshing check: {str(e)}', 'error')
+    
+    return redirect(url_for('recommendations'))
+
+@app.route('/api/trusted-advisor/summary')
+def api_trusted_advisor_summary():
+    """API endpoint for Trusted Advisor summary data."""
+    if 'aws_region' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        summary = get_trusted_advisor_summary()
+        return jsonify(summary)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Get configuration from environment variables

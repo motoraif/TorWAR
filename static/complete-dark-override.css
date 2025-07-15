@@ -2,8 +2,8 @@
 /* Author: Mohamed Toraif */
 /* Forces ALL backgrounds to dark and ALL text to white for complete consistency */
 
-/* Universal dark mode application */
-[data-theme="dark"] * {
+/* Universal dark mode application - exclude form inputs */
+[data-theme="dark"] *:not(input):not(select):not(textarea):not(.form-check-input):not(.form-control):not(.form-select) {
     background-color: var(--bg-primary) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
@@ -164,6 +164,34 @@
     background-color: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
+}
+
+/* Fix checkboxes and radio buttons visibility */
+[data-theme="dark"] .form-check-input {
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-check-input:checked {
+    background-color: var(--torwar-primary) !important;
+    border-color: var(--torwar-primary) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .form-check-input:focus {
+    border-color: var(--torwar-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25) !important;
+}
+
+[data-theme="dark"] .form-check-input[type="checkbox"] {
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-check-input[type="radio"] {
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
 }
 
 [data-theme="dark"] .form-control:focus,
