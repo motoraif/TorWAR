@@ -7,6 +7,7 @@
 
 # Testing directory (contains all test files and documentation)
 testing/
+test-files/
 
 # Documentation files (markdown files) - except essential ones
 *.md
