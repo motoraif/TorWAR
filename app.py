@@ -184,9 +184,12 @@ def index():
             else:
                 context['workload_count'] = 0
             
-            # Get Trusted Advisor summary
+            # Get Trusted Advisor summary - just the summary, not all recommendations
             ta_summary = get_trusted_advisor_summary()
             context['trusted_advisor'] = ta_summary
+            
+            # Don't load all recommendations on the homepage
+            # They will be loaded when the user navigates to the recommendations page
             
             if DEBUG_ENABLED:
                 print(f"DEBUG: Trusted Advisor available: {ta_summary.get('available', False)}")
@@ -1367,7 +1370,7 @@ def simple_auth():
                                 <form method="POST" action="/simple-auth">
                                     <div class="mb-3">
                                         <label class="form-label">Profile:</label>
-                                        <input type="text" class="form-control" name="profile_name" value="beyon-marketplace" readonly>
+                                        <input type="text" class="form-control" name="profile_name" value="beyon-money-payer" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Region:</label>

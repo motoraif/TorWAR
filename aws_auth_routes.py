@@ -72,9 +72,9 @@ def register_auth_routes(app):
         profile_name = request.form.get('profile_name', 'default')
         region = request.form.get('region', 'me-south-1')
         
-        # Use beyon-marketplace as default if default is selected
+        # Use beyon-money-payer as default if default is selected
         if profile_name == 'default':
-            profile_name = 'beyon-marketplace'
+            profile_name = 'beyon-money-payer'
         
         try:
             # Authenticate with profile

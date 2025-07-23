@@ -9,101 +9,202 @@ Report Generation Template
 
 {% block extra_css %}
 <style>
+    /* Risk colors with improved contrast */
     .risk-high { color: #dc3545; font-weight: bold; }
     .risk-medium { color: #fd7e14; font-weight: bold; }
     .risk-low { color: #ffc107; font-weight: bold; }
     .risk-none { color: #198754; font-weight: bold; }
     .risk-na { color: #6c757d; }
     
+    /* Enhanced card styling */
     .pillar-card {
-        margin-bottom: 1.5rem;
-        border: 1px solid #dee2e6;
-    }
-    
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 1.5rem;
         margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
+    .pillar-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .pillar-card .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px 10px 0 0;
+        padding: 1rem;
+    }
+    
+    /* Modern stats card with gradient */
+    .stats-card {
+        background: linear-gradient(135deg, #4158D0 0%, #C850C0 50%, #FFCC70 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* Improved stat items */
     .stat-item {
         text-align: center;
+        padding: 0.5rem;
+        transition: transform 0.2s ease;
+    }
+    
+    .stat-item:hover {
+        transform: scale(1.05);
     }
     
     .stat-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: bold;
         display: block;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
     }
     
     .stat-label {
-        font-size: 0.9rem;
+        font-size: 1rem;
         opacity: 0.9;
+        font-weight: 500;
     }
     
+    /* Enhanced question items */
     .question-item {
         border-left: 4px solid #dee2e6;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
         background-color: #f8f9fa;
-        border-radius: 0 5px 5px 0;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+    
+    .question-item:hover {
+        transform: translateX(3px);
     }
     
     .question-item.risk-high {
         border-left-color: #dc3545;
-        background-color: #f8d7da;
+        background-color: rgba(220, 53, 69, 0.1);
     }
     
     .question-item.risk-medium {
         border-left-color: #fd7e14;
-        background-color: #fff3cd;
+        background-color: rgba(253, 126, 20, 0.1);
     }
     
     .question-item.risk-low {
         border-left-color: #ffc107;
-        background-color: #fff3cd;
+        background-color: rgba(255, 193, 7, 0.1);
     }
     
     .question-item.risk-none {
         border-left-color: #198754;
-        background-color: #d1e7dd;
+        background-color: rgba(25, 135, 84, 0.1);
     }
     
+    /* Improved selected choices display */
     .selected-choices {
-        background-color: #e9ecef;
-        padding: 0.5rem;
-        border-radius: 5px;
-        margin: 0.5rem 0;
+        background-color: #f1f3f5;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin: 0.75rem 0;
+        border: 1px solid #e9ecef;
     }
     
     .selected-choices ul {
         margin-bottom: 0;
-        padding-left: 1.2rem;
+        padding-left: 1.5rem;
     }
     
     .selected-choices li {
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
     }
     
+    /* Enhanced recommendation items */
     .recommendation-item {
         background-color: #f8f9fa;
         border-left: 4px solid #007bff;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 0 5px 5px 0;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+    
+    .recommendation-item:hover {
+        background-color: #f1f8ff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
     .recommendation-title {
         font-weight: bold;
         color: #007bff;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
     }
     
+    /* Print optimization */
     .print-section {
         page-break-inside: avoid;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
+    }
+    
+    /* Action buttons */
+    .report-actions {
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        background: rgba(255,255,255,0.9);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        backdrop-filter: blur(5px);
+    }
+    
+    /* Dark mode compatibility */
+    [data-theme="dark"] .stats-card {
+        background: linear-gradient(135deg, #2c3e50 0%, #4a569d 50%, #2c3e50 100%);
+    }
+    
+    [data-theme="dark"] .pillar-card .card-header {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+    
+    [data-theme="dark"] .question-item {
+        background-color: #2d3748;
+    }
+    
+    [data-theme="dark"] .question-item.risk-high {
+        background-color: rgba(220, 53, 69, 0.2);
+    }
+    
+    [data-theme="dark"] .question-item.risk-medium {
+        background-color: rgba(253, 126, 20, 0.2);
+    }
+    
+    [data-theme="dark"] .question-item.risk-low {
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+    
+    [data-theme="dark"] .question-item.risk-none {
+        background-color: rgba(25, 135, 84, 0.2);
+    }
+    
+    [data-theme="dark"] .selected-choices {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .recommendation-item {
+        background-color: #2d3748;
+    }
+    
+    [data-theme="dark"] .recommendation-item:hover {
+        background-color: #2c3e50;
     }
     
     @media print {
@@ -257,21 +358,58 @@ Report Generation Template
     <!-- Header Section -->
     <div class="row no-print">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1><i class="bi bi-file-earmark-text"></i> Well-Architected Report</h1>
-                    <p class="text-muted">{{ workload.WorkloadName }} - Generated on <span id="report-date-header"></span></p>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i> Well-Architected Report</h1>
+                            <p class="text-muted mb-0">{{ workload.WorkloadName }} - Generated on <span id="report-date-header"></span></p>
+                        </div>
+                        <div class="report-actions">
+                            <button onclick="window.print()" class="btn btn-primary me-2">
+                                <i class="bi bi-printer me-1"></i> Print Report
+                            </button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#saveReportModal">
+                                <i class="bi bi-save me-1"></i> Save Report
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" id="toggleFullscreen">
+                                <i class="bi bi-arrows-fullscreen"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <button onclick="window.print()" class="btn btn-primary me-2">
-                        <i class="bi bi-printer"></i> Print Report
-                    </button>
-                    <form method="POST" action="{{ url_for('save_report') }}" style="display: inline;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Report Modal -->
+    <div class="modal fade" id="saveReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('save_report') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-save me-2"></i>Save Report</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="custom_name" class="form-label">Report Name</label>
+                            <input type="text" class="form-control" id="custom_name" name="custom_name" 
+                                placeholder="e.g., Q3 2025 Review" value="{{ workload.WorkloadName }} - {{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="user_notes" name="user_notes" rows="3" 
+                                placeholder="Add any notes about this report version..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-save"></i> Save Report
+                            <i class="bi bi-save me-1"></i> Save Report
                         </button>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -279,23 +417,30 @@ Report Generation Template
     <!-- Executive Summary -->
     <div class="print-section">
         <div class="stats-card">
-            <h3 class="text-center mb-4"><i class="bi bi-graph-up"></i> Executive Summary</h3>
-            <div class="row">
-                <div class="col-md-3 stat-item">
-                    <span class="stat-number">{{ report_data.summary.total_questions }}</span>
-                    <span class="stat-label">Total Questions</span>
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h3 class="mb-3"><i class="bi bi-graph-up me-2"></i> Executive Summary</h3>
+                    <p class="mb-0">Overall assessment of your AWS workload based on the Well-Architected Framework</p>
                 </div>
-                <div class="col-md-3 stat-item">
-                    <span class="stat-number">{{ report_data.summary.answered_questions }}</span>
-                    <span class="stat-label">Answered</span>
-                </div>
-                <div class="col-md-3 stat-item">
-                    <span class="stat-number">{{ ((report_data.summary.answered_questions / report_data.summary.total_questions) * 100) | round(1) if report_data.summary.total_questions > 0 else 0 }}%</span>
-                    <span class="stat-label">Completion</span>
-                </div>
-                <div class="col-md-3 stat-item">
-                    <span class="stat-number">{{ report_data.summary.high_risks + report_data.summary.medium_risks }}</span>
-                    <span class="stat-label">Issues Found</span>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-3 stat-item">
+                            <span class="stat-number">{{ report_data.summary.total_questions }}</span>
+                            <span class="stat-label">Total Questions</span>
+                        </div>
+                        <div class="col-md-3 stat-item">
+                            <span class="stat-number">{{ report_data.summary.answered_questions }}</span>
+                            <span class="stat-label">Answered</span>
+                        </div>
+                        <div class="col-md-3 stat-item">
+                            <span class="stat-number">{{ ((report_data.summary.answered_questions / report_data.summary.total_questions) * 100) | round(1) if report_data.summary.total_questions > 0 else 0 }}%</span>
+                            <span class="stat-label">Completion</span>
+                        </div>
+                        <div class="col-md-3 stat-item">
+                            <span class="stat-number">{{ report_data.summary.high_risks + report_data.summary.medium_risks }}</span>
+                            <span class="stat-label">Issues Found</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -304,37 +449,69 @@ Report Generation Template
     <!-- Risk Overview -->
     <div class="print-section">
         <div class="card">
-            <div class="card-header">
-                <h4><i class="bi bi-shield-exclamation"></i> Risk Overview</h4>
+            <div class="card-header bg-light">
+                <h4><i class="bi bi-shield-exclamation me-2"></i> Risk Overview</h4>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3 text-center">
-                        <div class="risk-high">
-                            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem;"></i>
-                            <div class="stat-number">{{ report_data.summary.high_risks }}</div>
-                            <div class="stat-label">High Risk</div>
+                        <div class="card h-100 border-danger">
+                            <div class="card-body">
+                                <div class="risk-high">
+                                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.5rem;"></i>
+                                    <div class="stat-number">{{ report_data.summary.high_risks }}</div>
+                                    <div class="stat-label">High Risk</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                        style="width: {{ (report_data.summary.high_risks / report_data.summary.total_questions * 100) if report_data.summary.total_questions > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3 text-center">
-                        <div class="risk-medium">
-                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
-                            <div class="stat-number">{{ report_data.summary.medium_risks }}</div>
-                            <div class="stat-label">Medium Risk</div>
+                        <div class="card h-100 border-warning">
+                            <div class="card-body">
+                                <div class="risk-medium">
+                                    <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
+                                    <div class="stat-number">{{ report_data.summary.medium_risks }}</div>
+                                    <div class="stat-label">Medium Risk</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                        style="width: {{ (report_data.summary.medium_risks / report_data.summary.total_questions * 100) if report_data.summary.total_questions > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3 text-center">
-                        <div class="risk-low">
-                            <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
-                            <div class="stat-number">{{ report_data.summary.low_risks }}</div>
-                            <div class="stat-label">Low Risk</div>
+                        <div class="card h-100 border-warning">
+                            <div class="card-body">
+                                <div class="risk-low">
+                                    <i class="bi bi-info-circle" style="font-size: 2.5rem;"></i>
+                                    <div class="stat-number">{{ report_data.summary.low_risks }}</div>
+                                    <div class="stat-label">Low Risk</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="opacity: 0.5;
+                                        width: {{ (report_data.summary.low_risks / report_data.summary.total_questions * 100) if report_data.summary.total_questions > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3 text-center">
-                        <div class="risk-none">
-                            <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
-                            <div class="stat-number">{{ report_data.summary.no_risks }}</div>
-                            <div class="stat-label">No Risk</div>
+                        <div class="card h-100 border-success">
+                            <div class="card-body">
+                                <div class="risk-none">
+                                    <i class="bi bi-check-circle-fill" style="font-size: 2.5rem;"></i>
+                                    <div class="stat-number">{{ report_data.summary.no_risks }}</div>
+                                    <div class="stat-label">No Risk</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                        style="width: {{ (report_data.summary.no_risks / report_data.summary.total_questions * 100) if report_data.summary.total_questions > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -345,20 +522,76 @@ Report Generation Template
     <!-- Workload Information -->
     <div class="print-section">
         <div class="card">
-            <div class="card-header">
-                <h4><i class="bi bi-info-circle"></i> Workload Information</h4>
+            <div class="card-header bg-light">
+                <h4><i class="bi bi-info-circle me-2"></i> Workload Information</h4>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Name:</strong> {{ workload.WorkloadName }}</p>
-                        <p><strong>Description:</strong> {{ workload.Description or 'No description provided' }}</p>
-                        <p><strong>Environment:</strong> {{ workload.Environment or 'Not specified' }}</p>
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%"><i class="bi bi-tag me-2"></i>Name:</th>
+                                    <td>{{ workload.WorkloadName }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="bi bi-file-text me-2"></i>Description:</th>
+                                    <td>{{ workload.Description or 'No description provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="bi bi-gear me-2"></i>Environment:</th>
+                                    <td>
+                                        {% if workload.Environment == 'PRODUCTION' %}
+                                            <span class="badge bg-danger">{{ workload.Environment }}</span>
+                                        {% elif workload.Environment == 'PREPRODUCTION' %}
+                                            <span class="badge bg-warning text-dark">{{ workload.Environment }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ workload.Environment or 'Not specified' }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Owner:</strong> {{ workload.Owner or 'Not specified' }}</p>
-                        <p><strong>Industry:</strong> {{ workload.Industry or 'Not specified' }}</p>
-                        <p><strong>Industry Type:</strong> {{ workload.IndustryType or 'Not specified' }}</p>
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%"><i class="bi bi-person me-2"></i>Owner:</th>
+                                    <td>{{ workload.Owner or 'Not specified' }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="bi bi-building me-2"></i>Industry:</th>
+                                    <td>{{ workload.Industry or 'Not specified' }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="bi bi-briefcase me-2"></i>Industry Type:</th>
+                                    <td>{{ workload.IndustryType or 'Not specified' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- AWS Account Information -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong><i class="bi bi-cloud me-2"></i>AWS Account:</strong> 
+                                    {{ aws_account_id }}{% if aws_account_alias %} ({{ aws_account_alias }}){% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong><i class="bi bi-geo-alt me-2"></i>Region:</strong> 
+                                    {{ aws_region|upper }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong><i class="bi bi-calendar-check me-2"></i>Review Date:</strong> 
+                                    <span id="review-date"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -553,7 +786,7 @@ Report Generation Template
 </div>
 
 <script>
-// Simple date formatting
+// Enhanced date formatting
 document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     const options = { 
@@ -561,29 +794,97 @@ document.addEventListener('DOMContentLoaded', function() {
         month: 'long', 
         day: 'numeric', 
         hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
+        minute: '2-digit'
     };
     const formattedDate = now.toLocaleDateString('en-US', options);
     
-    // Update report date
-    const dateElement = document.getElementById('report-date');
-    if (dateElement) {
-        dateElement.textContent = formattedDate;
-    }
-    
-    // Update header date
-    const headerDateElement = document.getElementById('report-date-header');
-    if (headerDateElement) {
-        headerDateElement.textContent = formattedDate;
-    }
+    // Update all date elements
+    const dateElements = document.querySelectorAll('#report-date, #report-date-header, #review-date');
+    dateElements.forEach(function(el) {
+        if (el) {
+            el.textContent = formattedDate;
+        }
+    });
     
     // Update any other date references
-    const dateElements = document.querySelectorAll('p');
-    dateElements.forEach(function(el) {
+    const paragraphs = document.querySelectorAll('p');
+    paragraphs.forEach(function(el) {
         if (el.textContent.includes('Generated on') && el.textContent.includes('moment()')) {
             el.innerHTML = el.innerHTML.replace(/Generated on.*/, 'Generated on ' + formattedDate);
         }
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Fullscreen toggle functionality
+    const toggleFullscreenBtn = document.getElementById('toggleFullscreen');
+    if (toggleFullscreenBtn) {
+        toggleFullscreenBtn.addEventListener('click', function() {
+            const mainContent = document.getElementById('main-content');
+            
+            if (!document.fullscreenElement) {
+                if (mainContent.requestFullscreen) {
+                    mainContent.requestFullscreen();
+                } else if (mainContent.mozRequestFullScreen) { /* Firefox */
+                    mainContent.mozRequestFullScreen();
+                } else if (mainContent.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    mainContent.webkitRequestFullscreen();
+                } else if (mainContent.msRequestFullscreen) { /* IE/Edge */
+                    mainContent.msRequestFullscreen();
+                }
+                toggleFullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                toggleFullscreenBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+            }
+        });
+    }
+    
+    // Handle fullscreen change events
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    
+    function handleFullscreenChange() {
+        const toggleFullscreenBtn = document.getElementById('toggleFullscreen');
+        if (toggleFullscreenBtn) {
+            if (document.fullscreenElement) {
+                toggleFullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+            } else {
+                toggleFullscreenBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+            }
+        }
+    }
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
     });
 });
 </script>

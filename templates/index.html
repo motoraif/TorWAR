@@ -109,57 +109,7 @@ Simplified Homepage Template
             </div>
         </div>
 
-        {% if workload_id %}
-        <!-- Review Process -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-clipboard-check fa-3x text-success"></i>
-                    </div>
-                    <h5 class="card-title">Well-Architected Review</h5>
-                    <p class="card-text">Conduct comprehensive reviews across all six pillars of the framework.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('select_pillars') }}" class="btn btn-success">
-                            <i class="fas fa-play-circle me-2"></i>Start Review
-                        </a>
-                        <small class="text-muted mt-2">Current: {{ workload_name }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Enhanced Reports -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-chart-line fa-3x text-info"></i>
-                    </div>
-                    <h5 class="card-title">Enhanced Reports</h5>
-                    <p class="card-text">Generate, save, and compare Well-Architected reports with advanced analytics.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('generate_report') }}" class="btn btn-info">
-                            <i class="fas fa-file-alt me-2"></i>Generate Report
-                        </a>
-                        <div class="row g-2 mt-1">
-                            <div class="col-6">
-                                <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info btn-sm w-100">
-                                    <i class="fas fa-folder me-1"></i>Saved
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-secondary btn-sm w-100">
-                                    <i class="fas fa-balance-scale me-1"></i>Compare
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trusted Advisor Recommendations -->
+        <!-- Trusted Advisor Recommendations - Always show when connected -->
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
@@ -209,27 +159,67 @@ Simplified Homepage Template
                 </div>
             </div>
         </div>
-        {% else %}
-        <!-- No Workload Selected -->
-        <div class="col-lg-8 col-md-12 mb-4">
+        
+        <!-- Reports - Always show when connected -->
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-body text-center py-5">
+                <div class="card-body text-center">
                     <div class="mb-3">
-                        <i class="fas fa-arrow-right fa-3x text-warning"></i>
+                        <i class="fas fa-chart-line fa-3x text-info"></i>
                     </div>
-                    <h5 class="card-title">Next Steps</h5>
-                    <p class="card-text mb-4">Select or create a workload to begin your Well-Architected review journey.</p>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>Select Existing Workload
+                    <h5 class="card-title">Reports</h5>
+                    <p class="card-text">View and compare saved Well-Architected reports.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('saved_reports') }}" class="btn btn-info">
+                            <i class="fas fa-folder me-2"></i>Saved Reports
                         </a>
-                        <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-plus-circle me-2"></i>Create New Workload
+                        <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-info">
+                            <i class="fas fa-balance-scale me-2"></i>Compare Reports
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+
+        {% if workload_id %}
+        <!-- Review Process -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-clipboard-check fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Well-Architected Review</h5>
+                    <p class="card-text">Conduct comprehensive reviews across all six pillars of the framework.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('select_pillars') }}" class="btn btn-success">
+                            <i class="fas fa-play-circle me-2"></i>Start Review
+                        </a>
+                        <small class="text-muted mt-2">Current: {{ workload_name }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Report Card -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-file-alt fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Generate Report</h5>
+                    <p class="card-text">Generate a comprehensive Well-Architected report for your workload.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('generate_report') }}" class="btn btn-success">
+                            <i class="fas fa-file-alt me-2"></i>Generate Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- No additional cards when no workload is selected -->
         {% endif %}
     {% else %}
         <!-- Not Connected -->
