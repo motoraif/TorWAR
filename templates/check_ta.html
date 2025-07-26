@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor API Test - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="fas fa-vial me-2"></i>Trusted Advisor API Test
+    </h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        This page tests various Trusted Advisor API calls to diagnose integration issues.
+    </div>
+    
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Test Results Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Test</th>
+                                    <th>Status</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test_name, test_result in results.items() %}
+                                <tr>
+                                    <td>{{ test_name }}</td>
+                                    <td>
+                                        {% if test_result.status == 'success' %}
+                                            <span class="badge bg-success">Success</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Error</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ test_result.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% for test_name, test_result in results.items() %}
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header {% if test_result.status == 'success' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h5 class="mb-0">{{ test_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Status: {{ test_result.status }}</h6>
+                    <p>{{ test_result.message }}</p>
+                    
+                    {% if test_result.status == 'error' and test_result.error_code is defined %}
+                    <div class="alert alert-danger">
+                        <h6>Error Code: {{ test_result.error_code }}</h6>
+                        <p>{{ test_result.error_message }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if test_result.status == 'success' and test_result.data is defined %}
+                    <div class="mt-3">
+                        <h6>Response Data:</h6>
+                        <div class="bg-light p-3 rounded">
+                            <pre class="mb-0"><code>{{ test_result.data | tojson(indent=2) }}</code></pre>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">AWS Session Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>Region</th>
+                                    <td>{{ session.get('aws_region', 'Not set') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Profile</th>
+                                    <td>{{ session.get('aws_profile', 'Not set') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Account ID</th>
+                                    <td>{{ session.get('aws_account_id', 'Not set') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Account Alias</th>
+                                    <td>{{ session.get('aws_account_alias', 'Not set') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <a href="{{ url_for('check_ta') }}" class="btn btn-primary">
+                    <i class="fas fa-sync me-2"></i>Run Tests Again
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add syntax highlighting for JSON
+    document.addEventListener('DOMContentLoaded', function() {
+        const codeBlocks = document.querySelectorAll('pre code');
+        codeBlocks.forEach(block => {
+            // Simple JSON formatting
+            const text = block.textContent;
+            block.innerHTML = text
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                    let cls = 'text-primary'; // number
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'text-danger'; // key
+                        } else {
+                            cls = 'text-success'; // string
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'text-warning'; // boolean
+                    } else if (/null/.test(match)) {
+                        cls = 'text-secondary'; // null
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                });
+        });
+    });
+</script>
+{% endblock %}

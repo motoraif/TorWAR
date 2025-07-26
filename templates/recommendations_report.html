@@ -1,0 +1,398 @@
+<!--
+TorWAR - Trusted Advisor Recommendations Report
+Author: Mohamed Toraif
+-->
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor Report - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.report-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+}
+
+[data-theme="dark"] .summary-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.priority-section {
+    margin-bottom: 3rem;
+}
+
+.recommendation-item {
+    background: white;
+    border-left: 4px solid #6c757d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.recommendation-item.high-priority {
+    border-left-color: #dc3545;
+}
+
+.recommendation-item.medium-priority {
+    border-left-color: #ffc107;
+}
+
+[data-theme="dark"] .recommendation-item {
+    background: var(--bg-secondary);
+}
+
+.category-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.print-optimized {
+    font-size: 12px;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .report-header {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .recommendation-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .priority-section {
+        break-inside: avoid;
+    }
+}
+
+.resource-summary {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+[data-theme="dark"] .resource-summary {
+    background: var(--bg-tertiary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Report Header -->
+    <div class="report-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-shield-alt me-3"></i>
+                    AWS Trusted Advisor Report
+                </h1>
+                <p class="mb-1">Comprehensive security and optimization recommendations</p>
+                <small>Account: {{ account_info.account_id }} | Region: {{ account_info.region }} | Generated: {{ generated_at }}</small>
+            </div>
+            <div class="col-md-4 text-end no-print">
+                <button class="btn btn-light me-2" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-chart-pie me-2"></i>Executive Summary
+            </h2>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card summary-card text-center">
+                <div class="card-body">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-clipboard-list fa-3x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ summary_stats.total_recommendations }}</h3>
+                    <small class="text-muted">Total Recommendations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card summary-card text-center">
+                <div class="card-body">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-exclamation-circle fa-3x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ summary_stats.high_priority_count }}</h3>
+                    <small class="text-muted">High Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card summary-card text-center">
+                <div class="card-body">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ summary_stats.medium_priority_count }}</h3>
+                    <small class="text-muted">Medium Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card summary-card text-center">
+                <div class="card-body">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-check-circle fa-3x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ summary_stats.passing_count }}</h3>
+                    <small class="text-muted">Passing</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3">
+                <i class="fas fa-layer-group me-2"></i>Category Breakdown
+            </h3>
+            <div class="category-breakdown">
+                {% for category_id, stats in summary_stats.categories.items() %}
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if category_info[category_id] %}
+                            <i class="{{ category_info[category_id].icon }} text-{{ category_info[category_id].color }} me-2"></i>
+                            <h6 class="mb-0">{{ category_info[category_id].name }}</h6>
+                            {% else %}
+                            <i class="fas fa-folder me-2"></i>
+                            <h6 class="mb-0">{{ category_id|title }}</h6>
+                            {% endif %}
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="text-danger fw-bold">{{ stats.high }}</div>
+                                <small class="text-muted">High</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-warning fw-bold">{{ stats.medium }}</div>
+                                <small class="text-muted">Medium</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-success fw-bold">{{ stats.passing }}</div>
+                                <small class="text-muted">Passing</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- High Priority Recommendations -->
+    {% if high_priority %}
+    <div class="priority-section">
+        <div class="row mb-3">
+            <div class="col-12">
+                <h2 class="text-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    High Priority Recommendations ({{ high_priority|length }})
+                </h2>
+                <p class="text-muted">These recommendations require immediate attention to address critical security or operational issues.</p>
+            </div>
+        </div>
+        
+        {% for recommendation in high_priority %}
+        <div class="recommendation-item high-priority">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-start mb-2">
+                        <div class="me-3">
+                            <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ recommendation.name }}</h5>
+                            <p class="text-muted mb-2">{{ recommendation.description }}</p>
+                            
+                            {% if recommendation.aws_services %}
+                            <div class="mb-2">
+                                <small class="text-muted me-2">AWS Services:</small>
+                                {% for service in recommendation.aws_services %}
+                                <span class="badge bg-light text-dark me-1">{{ service }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-end">
+                        {% if recommendation.category and category_info[recommendation.category] %}
+                        <span class="badge bg-{{ category_info[recommendation.category].color }} mb-2">
+                            <i class="{{ category_info[recommendation.category].icon }} me-1"></i>
+                            {{ category_info[recommendation.category].name }}
+                        </span>
+                        {% endif %}
+                        <br>
+                        <span class="badge bg-danger">🔴 High Priority</span>
+                    </div>
+                    
+                    {% if recommendation.error_count or recommendation.warning_count or recommendation.ok_count %}
+                    <div class="resource-summary mt-3">
+                        <small class="text-muted d-block mb-1">Affected Resources:</small>
+                        {% if recommendation.error_count > 0 %}
+                        <span class="badge bg-danger me-1">{{ recommendation.error_count }} Error</span>
+                        {% endif %}
+                        {% if recommendation.warning_count > 0 %}
+                        <span class="badge bg-warning text-dark me-1">{{ recommendation.warning_count }} Warning</span>
+                        {% endif %}
+                        {% if recommendation.ok_count > 0 %}
+                        <span class="badge bg-success me-1">{{ recommendation.ok_count }} OK</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Medium Priority Recommendations -->
+    {% if medium_priority %}
+    <div class="priority-section">
+        <div class="row mb-3">
+            <div class="col-12">
+                <h2 class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Medium Priority Recommendations ({{ medium_priority|length }})
+                </h2>
+                <p class="text-muted">These recommendations should be addressed to improve security, performance, or cost optimization.</p>
+            </div>
+        </div>
+        
+        {% for recommendation in medium_priority %}
+        <div class="recommendation-item medium-priority">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-start mb-2">
+                        <div class="me-3">
+                            <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ recommendation.name }}</h5>
+                            <p class="text-muted mb-2">{{ recommendation.description }}</p>
+                            
+                            {% if recommendation.aws_services %}
+                            <div class="mb-2">
+                                <small class="text-muted me-2">AWS Services:</small>
+                                {% for service in recommendation.aws_services %}
+                                <span class="badge bg-light text-dark me-1">{{ service }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-end">
+                        {% if recommendation.category and category_info[recommendation.category] %}
+                        <span class="badge bg-{{ category_info[recommendation.category].color }} mb-2">
+                            <i class="{{ category_info[recommendation.category].icon }} me-1"></i>
+                            {{ category_info[recommendation.category].name }}
+                        </span>
+                        {% endif %}
+                        <br>
+                        <span class="badge bg-warning text-dark">🟡 Medium Priority</span>
+                    </div>
+                    
+                    {% if recommendation.error_count or recommendation.warning_count or recommendation.ok_count %}
+                    <div class="resource-summary mt-3">
+                        <small class="text-muted d-block mb-1">Affected Resources:</small>
+                        {% if recommendation.error_count > 0 %}
+                        <span class="badge bg-danger me-1">{{ recommendation.error_count }} Error</span>
+                        {% endif %}
+                        {% if recommendation.warning_count > 0 %}
+                        <span class="badge bg-warning text-dark me-1">{{ recommendation.warning_count }} Warning</span>
+                        {% endif %}
+                        {% if recommendation.ok_count > 0 %}
+                        <span class="badge bg-success me-1">{{ recommendation.ok_count }} OK</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Report Footer -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6 class="mb-2">Report Summary</h6>
+                    <p class="text-muted mb-0">
+                        This report contains {{ summary_stats.high_priority_count + summary_stats.medium_priority_count }} actionable recommendations 
+                        out of {{ summary_stats.total_recommendations }} total Trusted Advisor findings.
+                        Focus on addressing high priority items first, followed by medium priority recommendations.
+                    </p>
+                    <small class="text-muted">
+                        Generated by TorWAR (AWS Well-Architected Review Tool) on {{ generated_at }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generate report function for the button
+function generateReport() {
+    window.location.href = '{{ url_for("recommendations_report") }}';
+}
+
+// Print optimization
+window.addEventListener('beforeprint', function() {
+    document.body.classList.add('print-optimized');
+});
+
+window.addEventListener('afterprint', function() {
+    document.body.classList.remove('print-optimized');
+});
+</script>
+{% endblock %}

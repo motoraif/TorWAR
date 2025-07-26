@@ -69,6 +69,44 @@ Author: Mohamed Toraif
 .refresh-btn:hover {
     transform: rotate(180deg);
 }
+
+.filter-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .filter-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.aws-services .badge {
+    font-size: 0.7rem;
+    font-weight: normal;
+}
+
+.resource-summary .badge {
+    font-size: 0.7rem;
+}
+
+.recommendation-card[style*="none"] {
+    display: none !important;
+}
+
+.fade-out {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.fade-in {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
 </style>
 {% endblock %}
 
@@ -84,11 +122,77 @@ Author: Mohamed Toraif
                         Trusted Advisor Recommendations
                     </h2>
                     <p class="text-muted mb-0">AWS recommendations for optimization and best practices</p>
+                    <p class="text-muted mb-0">
+                        Total recommendations: <span id="total-count">{{ total_count }}</span>
+                        <small class="ms-3">
+                            <i class="fas fa-sort-amount-down me-1"></i>
+                            Sorted by priority: 
+                            <span class="badge bg-danger me-1">High</span>
+                            <span class="badge bg-warning text-dark me-1">Medium</span>
+                            <span class="badge bg-success">Passing</span>
+                        </small>
+                    </p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                    <button class="btn btn-outline-primary me-2" onclick="location.reload()">
                         <i class="fas fa-sync-alt refresh-btn me-2"></i>Refresh
                     </button>
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label for="pillarFilter" class="form-label">
+                                <i class="fas fa-columns me-2"></i>Filter by Pillar
+                            </label>
+                            <select class="form-select" id="pillarFilter">
+                                <option value="">All Pillars</option>
+                                <option value="security">Security</option>
+                                <option value="cost_optimizing">Cost Optimization</option>
+                                <option value="performance">Performance</option>
+                                <option value="fault_tolerance">Fault Tolerance</option>
+                                <option value="service_limits">Service Limits</option>
+                                <option value="operational_excellence">Operational Excellence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priorityFilter" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Filter by Priority
+                            </label>
+                            <select class="form-select" id="priorityFilter">
+                                <option value="">All Priorities</option>
+                                <option value="error">🔴 High Priority (Error)</option>
+                                <option value="warning">🟡 Medium Priority (Warning)</option>
+                                <option value="ok">🟢 Passing (OK)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="searchFilter" class="form-label">
+                                <i class="fas fa-search me-2"></i>Search
+                            </label>
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Search recommendations...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary me-2" id="clearFilters">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </button>
+                            <div class="ms-auto">
+                                <small class="text-muted">
+                                    Showing: <span id="filtered-count">{{ total_count }}</span> of {{ total_count }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -322,6 +426,196 @@ function refreshCheck(checkId) {
         .catch(error => {
             console.error('Error refreshing check:', error);
         });
+}
+
+// Filtering functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const pillarFilter = document.getElementById('pillarFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const filteredCountSpan = document.getElementById('filtered-count');
+    
+    // Get all recommendation cards
+    const recommendationCards = document.querySelectorAll('.recommendation-card');
+    const totalCount = recommendationCards.length;
+    
+    function applyFilters() {
+        const pillarValue = pillarFilter.value.toLowerCase();
+        const priorityValue = priorityFilter.value.toLowerCase();
+        const searchValue = searchFilter.value.toLowerCase();
+        
+        let visibleCount = 0;
+        const visibleCards = [];
+        
+        recommendationCards.forEach(card => {
+            let shouldShow = true;
+            
+            // Add fade-out effect
+            card.classList.add('fade-out');
+            
+            // Pillar filter
+            if (pillarValue && shouldShow) {
+                const cardPillar = card.getAttribute('data-pillar');
+                shouldShow = cardPillar && cardPillar.toLowerCase() === pillarValue;
+            }
+            
+            // Priority filter
+            if (priorityValue && shouldShow) {
+                const cardStatus = card.getAttribute('data-status');
+                shouldShow = cardStatus && cardStatus.toLowerCase() === priorityValue;
+            }
+            
+            // Search filter
+            if (searchValue && shouldShow) {
+                const cardTitle = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+                const cardText = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
+                const cardServices = card.querySelector('.aws-services')?.textContent.toLowerCase() || '';
+                
+                shouldShow = cardTitle.includes(searchValue) || 
+                           cardText.includes(searchValue) || 
+                           cardServices.includes(searchValue);
+            }
+            
+            if (shouldShow) {
+                visibleCards.push({
+                    card: card,
+                    status: card.getAttribute('data-status') || 'unknown'
+                });
+            }
+        });
+        
+        // Sort visible cards by priority (error -> warning -> ok)
+        const priorityOrder = { 'error': 1, 'warning': 2, 'ok': 3 };
+        visibleCards.sort((a, b) => {
+            const aPriority = priorityOrder[a.status] || 4;
+            const bPriority = priorityOrder[b.status] || 4;
+            return aPriority - bPriority;
+        });
+        
+        // Hide all cards first
+        recommendationCards.forEach(card => {
+            card.style.display = 'none';
+            card.classList.remove('fade-in');
+        });
+        
+        // Show visible cards in priority order with animation
+        setTimeout(() => {
+            visibleCards.forEach((item, index) => {
+                const card = item.card;
+                card.style.display = 'block';
+                card.classList.remove('fade-out');
+                card.classList.add('fade-in');
+                
+                // Reorder cards in DOM to maintain visual priority order
+                const parent = card.parentNode;
+                parent.appendChild(card);
+            });
+            
+            visibleCount = visibleCards.length;
+        }, 50);
+        
+        // Update filtered count after animation
+        setTimeout(() => {
+            filteredCountSpan.textContent = visibleCount;
+            updateTabBadges();
+        }, 100);
+    }
+    
+    function updateTabBadges() {
+        // Update category tabs to show filtered counts
+        const categoryTabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+        
+        categoryTabs.forEach(tab => {
+            const targetId = tab.getAttribute('data-bs-target');
+            if (targetId) {
+                const tabPane = document.querySelector(targetId);
+                if (tabPane) {
+                    const visibleCards = tabPane.querySelectorAll('.recommendation-card:not([style*="none"])');
+                    const badge = tab.querySelector('.badge');
+                    if (badge) {
+                        const count = visibleCards.length;
+                        badge.textContent = count;
+                        
+                        // Update badge color based on count
+                        badge.className = badge.className.replace(/bg-\w+/, count > 0 ? 'bg-primary' : 'bg-secondary');
+                    }
+                }
+            }
+        });
+        
+        // Update "All" tab badge
+        const allTab = document.querySelector('#all-tab .badge');
+        if (allTab) {
+            const visibleCount = document.querySelectorAll('.recommendation-card:not([style*="none"])').length;
+            allTab.textContent = visibleCount;
+            allTab.className = allTab.className.replace(/bg-\w+/, visibleCount > 0 ? 'bg-primary' : 'bg-secondary');
+        }
+    }
+    
+    function clearFilters() {
+        pillarFilter.value = '';
+        priorityFilter.value = '';
+        searchFilter.value = '';
+        
+        // Reset all cards
+        recommendationCards.forEach(card => {
+            card.style.display = 'block';
+            card.classList.remove('fade-out');
+            card.classList.add('fade-in');
+        });
+        
+        filteredCountSpan.textContent = totalCount;
+        updateTabBadges();
+    }
+    
+    // Add event listeners
+    pillarFilter.addEventListener('change', applyFilters);
+    priorityFilter.addEventListener('change', applyFilters);
+    searchFilter.addEventListener('input', debounce(applyFilters, 300));
+    clearFiltersBtn.addEventListener('click', clearFilters);
+    
+    // Debounce function for search input
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Initialize tab badges
+    updateTabBadges();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + F to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchFilter.focus();
+        }
+        
+        // Escape to clear filters
+        if (e.key === 'Escape') {
+            clearFilters();
+        }
+    });
+});
+
+// Generate report function
+function generateReport() {
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    button.disabled = true;
+    
+    // Navigate to report page
+    window.location.href = '/recommendations/report';
 }
 </script>
 {% endblock %}

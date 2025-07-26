@@ -2,7 +2,10 @@
 TorWAR - Trusted Advisor Recommendation Card
 Author: Mohamed Toraif
 -->
-<div class="card recommendation-card status-{{ recommendation.status }} mb-3">
+<div class="card recommendation-card status-{{ recommendation.status }} mb-3" 
+     data-pillar="{{ recommendation.pillar }}" 
+     data-status="{{ recommendation.status }}"
+     data-category="{{ recommendation.category }}">
     <div class="card-body">
         <div class="row align-items-start">
             <div class="col-md-8">
@@ -21,6 +24,32 @@ Author: Mohamed Toraif
                     <div class="flex-grow-1">
                         <h6 class="card-title mb-1">{{ recommendation.name }}</h6>
                         <p class="card-text text-muted small mb-2">{{ recommendation.description }}</p>
+                        
+                        <!-- AWS Services -->
+                        {% if recommendation.aws_services and recommendation.aws_services|length > 0 %}
+                        <div class="aws-services mb-2">
+                            <small class="text-muted me-2">Services:</small>
+                            {% for service in recommendation.aws_services %}
+                                <span class="badge bg-light text-dark me-1">{{ service }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Resource Counts -->
+                        {% if recommendation.error_count or recommendation.warning_count or recommendation.ok_count %}
+                        <div class="resource-summary mb-2">
+                            <small class="text-muted me-2">Resources:</small>
+                            {% if recommendation.error_count > 0 %}
+                                <span class="badge bg-danger me-1">{{ recommendation.error_count }} Error</span>
+                            {% endif %}
+                            {% if recommendation.warning_count > 0 %}
+                                <span class="badge bg-warning text-dark me-1">{{ recommendation.warning_count }} Warning</span>
+                            {% endif %}
+                            {% if recommendation.ok_count > 0 %}
+                                <span class="badge bg-success me-1">{{ recommendation.ok_count }} OK</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -39,11 +68,11 @@ Author: Mohamed Toraif
                 </div>
                 <div class="mb-2">
                     {% if recommendation.status == 'error' %}
-                        <span class="badge bg-danger">High Priority</span>
+                        <span class="badge bg-danger">🔴 High Priority</span>
                     {% elif recommendation.status == 'warning' %}
-                        <span class="badge bg-warning text-dark">Medium Priority</span>
+                        <span class="badge bg-warning text-dark">🟡 Medium Priority</span>
                     {% elif recommendation.status == 'ok' %}
-                        <span class="badge bg-success">Passing</span>
+                        <span class="badge bg-success">🟢 Passing</span>
                     {% else %}
                         <span class="badge bg-secondary">Not Available</span>
                     {% endif %}

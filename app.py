@@ -39,6 +39,7 @@ from trusted_advisor_helper import (
     get_trusted_advisor_check_categories,
     refresh_trusted_advisor_check
 )
+# from check_ta_route import register_check_ta_route  # Module not found
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -162,8 +163,7 @@ def inject_globals():
 @app.route('/')
 def index():
     """Home page with dashboard including Trusted Advisor overview."""
-    if DEBUG_ENABLED:
-        print("DEBUG: Accessing main dashboard")
+    print("DEBUG: Accessing main dashboard")
     
     # Check if user is authenticated with AWS
     aws_connected = 'aws_region' in session
@@ -185,21 +185,25 @@ def index():
                 context['workload_count'] = 0
             
             # Get Trusted Advisor summary - just the summary, not all recommendations
+            print("DEBUG: Getting Trusted Advisor summary...")
             ta_summary = get_trusted_advisor_summary()
+            print(f"DEBUG: TA Summary result: {ta_summary}")
             context['trusted_advisor'] = ta_summary
             
             # Don't load all recommendations on the homepage
             # They will be loaded when the user navigates to the recommendations page
             
-            if DEBUG_ENABLED:
-                print(f"DEBUG: Trusted Advisor available: {ta_summary.get('available', False)}")
-                if ta_summary.get('available'):
-                    print(f"DEBUG: TA High Priority: {ta_summary.get('high_priority_count', 0)}")
-                    print(f"DEBUG: TA Medium Priority: {ta_summary.get('medium_priority_count', 0)}")
+            print(f"DEBUG: Trusted Advisor available: {ta_summary.get('available', False)}")
+            if ta_summary.get('available'):
+                print(f"DEBUG: TA High Priority: {ta_summary.get('high_priority_count', 0)}")
+                print(f"DEBUG: TA Medium Priority: {ta_summary.get('medium_priority_count', 0)}")
+                print(f"DEBUG: TA Total Checks: {ta_summary.get('total_checks', 0)}")
+                print(f"DEBUG: TA Category Counts: {ta_summary.get('category_counts', {})}")
             
         except Exception as e:
-            if DEBUG_ENABLED:
-                print(f"DEBUG: Error getting dashboard data: {e}")
+            print(f"DEBUG: Error getting dashboard data: {e}")
+            import traceback
+            traceback.print_exc()
             context['workload_count'] = 0
             context['trusted_advisor'] = {'available': False, 'error': str(e)}
     else:
@@ -1493,8 +1497,7 @@ def test_auth():
 @app.route('/recommendations')
 def recommendations():
     """Display Trusted Advisor recommendations page."""
-    if DEBUG_ENABLED:
-        print("DEBUG: Accessing Trusted Advisor recommendations page")
+    print("DEBUG: Accessing Trusted Advisor recommendations page")
     
     if 'aws_region' not in session:
         flash('Please connect to AWS first', 'warning')
@@ -1502,9 +1505,12 @@ def recommendations():
     
     try:
         # Get all recommendations
+        print("DEBUG: Getting all Trusted Advisor recommendations...")
         recommendations_data = get_all_trusted_advisor_recommendations()
+        print(f"DEBUG: Recommendations data keys: {recommendations_data.keys()}")
         
         if 'error' in recommendations_data:
+            print(f"DEBUG: Error in recommendations data: {recommendations_data['error']}")
             flash(f'Trusted Advisor Error: {recommendations_data["error"]}', 'warning')
             return render_template('recommendations.html', 
                                  recommendations=[], 
@@ -1514,31 +1520,30 @@ def recommendations():
         recommendations = recommendations_data.get('recommendations', [])
         categories = recommendations_data.get('categories', {})
         
+        print(f"DEBUG: Retrieved {len(recommendations)} total recommendations")
+        for category, recs in categories.items():
+            print(f"DEBUG: {category}: {len(recs)} recommendations")
+            # Print status counts for each category
+            status_counts = {
+                'error': sum(1 for r in recs if r.get('status') == 'error'),
+                'warning': sum(1 for r in recs if r.get('status') == 'warning'),
+                'ok': sum(1 for r in recs if r.get('status') == 'ok')
+            }
+            print(f"DEBUG: {category} status counts: {status_counts}")
+        
         # Get category information
         category_info = get_trusted_advisor_check_categories()
         
-        # Calculate statistics
-        stats = {
-            'total': len(recommendations),
-            'high_priority': len([r for r in recommendations if r.get('status') == 'error']),
-            'medium_priority': len([r for r in recommendations if r.get('status') == 'warning']),
-            'low_priority': len([r for r in recommendations if r.get('status') == 'ok']),
-            'total_resources': sum(r.get('resource_count', 0) for r in recommendations)
-        }
-        
-        if DEBUG_ENABLED:
-            print(f"DEBUG: Found {len(recommendations)} Trusted Advisor recommendations")
-        
-        return render_template('recommendations.html',
-                             recommendations=recommendations,
+        return render_template('recommendations.html', 
+                             recommendations=recommendations, 
                              categories=categories,
                              category_info=category_info,
-                             stats=stats,
-                             last_updated=recommendations_data.get('last_updated'))
-    
+                             total_count=len(recommendations))
+        
     except Exception as e:
-        if DEBUG_ENABLED:
-            print(f"DEBUG: Error in recommendations route: {e}")
+        print(f"DEBUG: Error in recommendations route: {e}")
+        import traceback
+        traceback.print_exc()
         flash(f'Error retrieving Trusted Advisor recommendations: {str(e)}', 'error')
         return render_template('recommendations.html', 
                              recommendations=[], 
@@ -1566,6 +1571,78 @@ def refresh_recommendation(check_id):
     
     return redirect(url_for('recommendations'))
 
+@app.route('/recommendations/report')
+def recommendations_report():
+    """Generate a comprehensive Trusted Advisor recommendations report."""
+    print("DEBUG: Generating Trusted Advisor recommendations report")
+    
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        # Get all recommendations
+        print("DEBUG: Getting all Trusted Advisor recommendations for report...")
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        if 'error' in recommendations_data:
+            flash(f'Trusted Advisor Error: {recommendations_data["error"]}', 'error')
+            return redirect(url_for('recommendations'))
+        
+        recommendations = recommendations_data.get('recommendations', [])
+        categories = recommendations_data.get('categories', {})
+        
+        # Filter for high and medium priority recommendations
+        high_priority = [r for r in recommendations if r.get('status') == 'error']
+        medium_priority = [r for r in recommendations if r.get('status') == 'warning']
+        passing = [r for r in recommendations if r.get('status') == 'ok']
+        
+        # Generate summary statistics
+        summary_stats = {
+            'total_recommendations': len(recommendations),
+            'high_priority_count': len(high_priority),
+            'medium_priority_count': len(medium_priority),
+            'passing_count': len(passing),
+            'categories': {}
+        }
+        
+        # Category breakdown
+        for category, recs in categories.items():
+            category_stats = {
+                'total': len(recs),
+                'high': len([r for r in recs if r.get('status') == 'error']),
+                'medium': len([r for r in recs if r.get('status') == 'warning']),
+                'passing': len([r for r in recs if r.get('status') == 'ok'])
+            }
+            summary_stats['categories'][category] = category_stats
+        
+        # Get category information
+        category_info = get_trusted_advisor_check_categories()
+        
+        # Get account information
+        account_info = {
+            'account_id': session.get('account_id', 'Unknown'),
+            'region': session.get('aws_region', 'Unknown'),
+            'profile': session.get('aws_profile', 'Unknown')
+        }
+        
+        print(f"DEBUG: Report generated - {len(high_priority)} high, {len(medium_priority)} medium priority recommendations")
+        
+        return render_template('recommendations_report.html',
+                             summary_stats=summary_stats,
+                             high_priority=high_priority,
+                             medium_priority=medium_priority,
+                             category_info=category_info,
+                             account_info=account_info,
+                             generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'))
+        
+    except Exception as e:
+        print(f"DEBUG: Error generating report: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error generating report: {str(e)}', 'error')
+        return redirect(url_for('recommendations'))
+
 @app.route('/api/trusted-advisor/summary')
 def api_trusted_advisor_summary():
     """API endpoint for Trusted Advisor summary data."""
@@ -1588,5 +1665,8 @@ if __name__ == '__main__':
     print(f"🐛 Debug mode: {debug_mode}")
     print(f"📁 Data directory: /app/data")
     print(f"📝 Log directory: /app/logs")
+    
+    # Register the check-ta route
+    # register_check_ta_route(app)  # Module not found
     
     app.run(host=host, port=port, debug=debug_mode)

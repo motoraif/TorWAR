@@ -1,0 +1,2253 @@
+recommendationSummaries:
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/fe4870c1-1597-487a-896e-00799e90a08f
+  awsServices:
+  - config
+  checkArn: arn:aws:trustedadvisor:::check/Hs4Ma3G196
+  id: fe4870c1-1597-487a-896e-00799e90a08f
+  lastUpdatedAt: '2025-07-24T07:53:36.894000+00:00'
+  name: AWS Config should be enabled
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 1
+    okCount: 0
+    warningCount: 0
+  source: security_hub
+  status: error
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/da0c9ef5-83d4-4e60-0760-2fcad67b8f1e
+  awsServices:
+  - accessanalyzer
+  checkArn: arn:aws:trustedadvisor:::check/07602fcad6
+  id: da0c9ef5-83d4-4e60-0760-2fcad67b8f1e
+  lastUpdatedAt: '2025-07-23T08:53:36.894000+00:00'
+  name: IAM Access Analyzer - external access
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 19
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: error
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/37552f20-9aef-4c85-8d5d-96fb0c943350
+  awsServices:
+  - cloudtrail
+  checkArn: arn:aws:trustedadvisor:::check/c25hn9x03v
+  id: 37552f20-9aef-4c85-8d5d-96fb0c943350
+  lastUpdatedAt: '2025-07-23T08:53:36.894000+00:00'
+  name: AWS CloudTrail Management Events Logging
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 19
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: error
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/408741cb-1000-4638-b33d-0f514f67606f
+  awsServices:
+  - elasticloadbalancingv2
+  checkArn: arn:aws:trustedadvisor:::check/8wIqYSt25K
+  id: 408741cb-1000-4638-b33d-0f514f67606f
+  lastUpdatedAt: '2025-07-14T09:15:33.820000+00:00'
+  name: ELB Network Load Balancers
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/a0144c21-bd28-455f-807f-a04e8e5c4aa5
+  checkArn: arn:aws:trustedadvisor:::check/Cmsvnj8vf1
+  id: a0144c21-bd28-455f-807f-a04e8e5c4aa5
+  lastUpdatedAt: '2025-07-16T10:44:44.641000+00:00'
+  name: Amazon MSK brokers hosting too many partitions
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/cda5fb7d-74ec-461d-8577-5ee801a05f98
+  awsServices:
+  - s3
+  checkArn: arn:aws:trustedadvisor:::check/796d6f3D83
+  id: cda5fb7d-74ec-461d-8577-5ee801a05f98
+  lastUpdatedAt: '2025-07-22T11:12:53.905000+00:00'
+  name: CloudFront Content Delivery Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2e5ef841-3142-444d-b79d-95e1a5e588d7
+  awsServices:
+  - autoscaling
+  checkArn: arn:aws:trustedadvisor:::check/CLOG40CDO8
+  id: 2e5ef841-3142-444d-b79d-95e1a5e588d7
+  lastUpdatedAt: '2025-07-14T09:15:43.620000+00:00'
+  name: Auto Scaling Group Health Check
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/87ddb889-0b3a-4500-b4a0-3a39dd62fdda
+  awsServices:
+  - cloudformation
+  checkArn: arn:aws:trustedadvisor:::check/gW7HH0l7J9
+  id: 87ddb889-0b3a-4500-b4a0-3a39dd62fdda
+  lastUpdatedAt: '2025-07-18T00:55:28.953000+00:00'
+  name: CloudFormation Stacks
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/88042705-d9d5-43c8-9525-0eb69b2cb6f1
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/iH7PP0l7J9
+  id: 88042705-d9d5-43c8-9525-0eb69b2cb6f1
+  lastUpdatedAt: '2025-07-20T06:03:23.516000+00:00'
+  name: EC2 Reserved Instance Leases
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/61fa3df7-b698-431c-a9d9-2f911408f8b2
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/1e93e4c0b5
+  id: 61fa3df7-b698-431c-a9d9-2f911408f8b2
+  lastUpdatedAt: '2025-07-16T15:04:41.969000+00:00'
+  name: Amazon EC2 Reserved Instance Lease Expiration
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2e1d5610-91f8-4464-8b1d-3779037f99c8
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/ru4xfcdfMr
+  id: 2e1d5610-91f8-4464-8b1d-3779037f99c8
+  lastUpdatedAt: '2025-07-20T23:36:12.331000+00:00'
+  name: Route 53 Max Health Checks
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f3052a55-a442-47ce-9479-c7171f2f7319
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/dx3xfcdfMr
+  id: f3052a55-a442-47ce-9479-c7171f2f7319
+  lastUpdatedAt: '2025-07-16T15:21:01.553000+00:00'
+  name: Route 53 Hosted Zones
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/56cfbeb7-a57f-4166-9835-4abb0a6ba87f
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/jEECYg2YVU
+  id: 56cfbeb7-a57f-4166-9835-4abb0a6ba87f
+  lastUpdatedAt: '2025-07-14T09:15:39.443000+00:00'
+  name: RDS DB Parameter Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2f7873e2-9633-4360-aac3-72fde728437a
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/7fuccf1Mx7
+  id: 2f7873e2-9633-4360-aac3-72fde728437a
+  lastUpdatedAt: '2025-07-22T10:58:13.911000+00:00'
+  name: RDS Cluster Roles
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/892dffb8-6637-4d9b-87bb-6c2fa1c836a2
+  awsServices:
+  - elasticloadbalancing
+  checkArn: arn:aws:trustedadvisor:::check/iK7OO0l7J9
+  id: 892dffb8-6637-4d9b-87bb-6c2fa1c836a2
+  lastUpdatedAt: '2025-07-18T10:19:09.258000+00:00'
+  name: ELB Classic Load Balancers
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/957ec675-b692-46ac-8ee3-8fed196cca03
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/Ti39halfu8
+  id: 957ec675-b692-46ac-8ee3-8fed196cca03
+  lastUpdatedAt: '2025-07-22T11:08:28.898000+00:00'
+  name: Amazon RDS Idle DB Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/57256e79-a175-4b7e-9c2b-8467fff4fd9e
+  awsServices:
+  - ses
+  checkArn: arn:aws:trustedadvisor:::check/hJ7NN0l7J9
+  id: 57256e79-a175-4b7e-9c2b-8467fff4fd9e
+  lastUpdatedAt: '2025-07-21T02:32:46.782000+00:00'
+  name: SES Daily Sending Quota
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 19
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/ce41ec91-b813-4f11-afc2-e81ec89311e3
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/jEhCtdJKOY
+  id: ce41ec91-b813-4f11-afc2-e81ec89311e3
+  lastUpdatedAt: '2025-07-19T13:32:43.113000+00:00'
+  name: RDS Subnets per Subnet Group
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f789c36d-5ffd-49b8-9bfa-906ab947808f
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/12Fnkpl8Y5
+  id: f789c36d-5ffd-49b8-9bfa-906ab947808f
+  lastUpdatedAt: '2025-07-24T07:53:36.894000+00:00'
+  name: Exposed Access Keys
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2c711e91-c6b0-4c11-bea8-679c3f93abec
+  checkArn: arn:aws:trustedadvisor:::check/Cmsvnj8db1
+  id: 2c711e91-c6b0-4c11-bea8-679c3f93abec
+  lastUpdatedAt: '2025-07-14T09:15:31.829000+00:00'
+  name: Amazon RDS ReplicaLag
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/83cdb424-d7d4-4134-8481-7aec033141ad
+  awsServices:
+  - cloudfront
+  checkArn: arn:aws:trustedadvisor:::check/N415c450f2
+  id: 83cdb424-d7d4-4134-8481-7aec033141ad
+  lastUpdatedAt: '2025-07-16T20:54:11.231000+00:00'
+  name: CloudFront Header Forwarding and Cache Hit Ratio
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/3b64662c-db53-426b-9561-40e586037fda
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/dBkuNCvqn5
+  id: 3b64662c-db53-426b-9561-40e586037fda
+  lastUpdatedAt: '2025-07-17T11:57:35.979000+00:00'
+  name: RDS Max Auths per Security Group
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/d8987fd9-51f0-4104-876c-a6875ebc43b4
+  awsServices:
+  - elasticloadbalancingv2
+  checkArn: arn:aws:trustedadvisor:::check/EM8b3yLRTr
+  id: d8987fd9-51f0-4104-876c-a6875ebc43b4
+  lastUpdatedAt: '2025-07-16T07:45:49.362000+00:00'
+  name: ELB Application Load Balancers
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/fdf36d2a-c753-4c41-8088-a6f597d28e61
+  awsServices:
+  - elasticloadbalancing
+  checkArn: arn:aws:trustedadvisor:::check/a2sEc6ILx
+  id: fdf36d2a-c753-4c41-8088-a6f597d28e61
+  lastUpdatedAt: '2025-07-20T03:43:45.643000+00:00'
+  name: ELB Listener Security
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/dfcd94be-3c0d-40c6-9323-7847cd0fe88d
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/Cb877eB72b
+  id: dfcd94be-3c0d-40c6-9323-7847cd0fe88d
+  lastUpdatedAt: '2025-07-15T12:35:47.310000+00:00'
+  name: Amazon Route 53 Deleted Health Checks
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/76b57bc6-44b8-4626-8c02-8116149a0b7d
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/pYW8UkYz2w
+  id: 76b57bc6-44b8-4626-8c02-8116149a0b7d
+  lastUpdatedAt: '2025-07-16T02:43:56.427000+00:00'
+  name: RDS Read Replicas per Master
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/27d439ab-d635-4791-9f35-e42ad14223fd
+  checkArn: arn:aws:trustedadvisor:::check/Cmsvnj8db2
+  id: 27d439ab-d635-4791-9f35-e42ad14223fd
+  lastUpdatedAt: '2025-07-14T09:15:34.532000+00:00'
+  name: Amazon RDS FreeStorageSpace
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/73442451-0b06-4cd9-9c24-9c3713c222f4
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/gH5CC0e3J9
+  id: 73442451-0b06-4cd9-9c24-9c3713c222f4
+  lastUpdatedAt: '2025-07-15T19:02:01.703000+00:00'
+  name: EBS Cold HDD (sc1) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/74b2716c-ab28-4283-acf2-e8ce398c553c
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/oQ7TT0l7J9
+  id: 74b2716c-ab28-4283-acf2-e8ce398c553c
+  lastUpdatedAt: '2025-07-18T08:55:25.424000+00:00'
+  name: IAM Roles
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/0edf585d-1719-4e2e-a5f1-d9dbe3701c52
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/HCP4007jGY
+  id: 0edf585d-1719-4e2e-a5f1-d9dbe3701c52
+  lastUpdatedAt: '2025-07-14T09:15:34.399000+00:00'
+  name: Security Groups - Specific Ports Unrestricted
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/900586b9-8ed7-4030-97cb-b6faf820d979
+  awsServices:
+  - autoscaling
+  checkArn: arn:aws:trustedadvisor:::check/fW7HH0l7J9
+  id: 900586b9-8ed7-4030-97cb-b6faf820d979
+  lastUpdatedAt: '2025-07-14T20:54:19.031000+00:00'
+  name: Auto Scaling Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 19
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/7cb79011-b9e3-43f2-8701-851b21071dc9
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/gI7MM0l7J9
+  id: 7cb79011-b9e3-43f2-8701-851b21071dc9
+  lastUpdatedAt: '2025-07-22T00:00:33.668000+00:00'
+  name: EBS Provisioned IOPS SSD (io1) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/fc8fc1d7-6dab-4941-99e7-06f387818fbb
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/dV84wpqRUs
+  id: fc8fc1d7-6dab-4941-99e7-06f387818fbb
+  lastUpdatedAt: '2025-07-14T09:15:40.794000+00:00'
+  name: RDS DB Manual Snapshots
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/c327ce5d-769c-4474-a00c-5b2143356e63
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/C056F80cR3
+  id: c327ce5d-769c-4474-a00c-5b2143356e63
+  lastUpdatedAt: '2025-07-21T12:31:45.550000+00:00'
+  name: Amazon Route 53 High TTL Resource Record Sets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/d27ad64c-6edd-4c0f-bc99-7af603fa1658
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/P1jhKWEmLa
+  id: d27ad64c-6edd-4c0f-bc99-7af603fa1658
+  lastUpdatedAt: '2025-07-14T09:15:40.373000+00:00'
+  name: RDS Total Storage Quota
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/6982a926-0b98-4c24-a494-532f0a199b76
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/UUDvOa5r34
+  id: 6982a926-0b98-4c24-a494-532f0a199b76
+  lastUpdatedAt: '2025-07-18T17:33:08.161000+00:00'
+  name: RDS Reserved Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/ffd77e73-37b5-44c9-ac42-1d6855f4769c
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/tV7YY0l7J9
+  id: ffd77e73-37b5-44c9-ac42-1d6855f4769c
+  lastUpdatedAt: '2025-07-19T04:15:52.228000+00:00'
+  name: EBS Provisioned IOPS (SSD) Volume Aggregate IOPS
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/86c014e3-c241-4fe8-8bd8-abf939ebd4e7
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/dH7RR0l6J9
+  id: 86c014e3-c241-4fe8-8bd8-abf939ebd4e7
+  lastUpdatedAt: '2025-07-23T08:27:02.387000+00:00'
+  name: EBS General Purpose SSD (gp2) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/268d6c53-773f-4c18-8c9a-a727f3cc72ca
+  checkArn: arn:aws:trustedadvisor:::check/Chrv231ch1
+  id: 268d6c53-773f-4c18-8c9a-a727f3cc72ca
+  lastUpdatedAt: '2025-07-18T18:04:51.554000+00:00'
+  name: Amazon Route53 Resolver Endpoint Availability Zone Redundancy
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/586ddd6f-319e-428e-89d1-63db97ba4c96
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/dx8afcdfMr
+  id: 586ddd6f-319e-428e-89d1-63db97ba4c96
+  lastUpdatedAt: '2025-07-19T16:21:38.516000+00:00'
+  name: Route 53 Traffic Policy Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/c8091150-971b-4cff-b453-bff3f340d558
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/f2iK5R6Dep
+  id: c8091150-971b-4cff-b453-bff3f340d558
+  lastUpdatedAt: '2025-07-19T20:25:08.684000+00:00'
+  name: Amazon RDS Multi-AZ
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/eced256a-c6d3-4edb-9d8c-cd1f12fb86c2
+  awsServices:
+  - elasticloadbalancing
+  checkArn: arn:aws:trustedadvisor:::check/iqdCTZKCUp
+  id: eced256a-c6d3-4edb-9d8c-cd1f12fb86c2
+  lastUpdatedAt: '2025-07-16T08:47:17.490000+00:00'
+  name: Load Balancer Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/59bcab76-d850-41d1-9c01-d024c8d7d30a
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/dx3xfbjfMr
+  id: 59bcab76-d850-41d1-9c01-d024c8d7d30a
+  lastUpdatedAt: '2025-07-19T04:39:26.823000+00:00'
+  name: Route 53 Traffic Policies
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/b8fd5938-4576-428f-8f65-cccf23441f4b
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/Qch7DwouX1
+  id: b8fd5938-4576-428f-8f65-cccf23441f4b
+  lastUpdatedAt: '2025-07-22T14:19:37.486000+00:00'
+  name: Low Utilization Amazon EC2 Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/1be9244d-6f7f-44ee-98e0-fe42b293d619
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/DqdJqYeRm5
+  id: 1be9244d-6f7f-44ee-98e0-fe42b293d619
+  lastUpdatedAt: '2025-07-21T13:08:05.816000+00:00'
+  name: IAM Access Key Rotation
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/917f2843-a13f-4188-adc4-855672092963
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/nO7SS0l7J9
+  id: 917f2843-a13f-4188-adc4-855672092963
+  lastUpdatedAt: '2025-07-18T15:58:29.701000+00:00'
+  name: IAM Instance Profiles
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/763234f2-7880-41f8-8b1f-d3c4add8faa0
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/0Xc6LMYG8P
+  id: 763234f2-7880-41f8-8b1f-d3c4add8faa0
+  lastUpdatedAt: '2025-07-19T05:31:45.758000+00:00'
+  name: EC2 On-Demand Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/5e3db138-66f5-4e5d-b5f2-df67fcfd16d1
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/opQPADkZvH
+  id: 5e3db138-66f5-4e5d-b5f2-df67fcfd16d1
+  lastUpdatedAt: '2025-07-23T17:08:56.431000+00:00'
+  name: Amazon RDS Backups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/1515101a-0f79-4fad-8c89-842453e3aa30
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/dH7RR0l6J3
+  id: 1515101a-0f79-4fad-8c89-842453e3aa30
+  lastUpdatedAt: '2025-07-14T09:15:37.824000+00:00'
+  name: EBS General Purpose SSD (gp3) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/282a61a0-6f35-4a96-a21b-9c578c4f7eb9
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/xuy7H1avtl
+  id: 282a61a0-6f35-4a96-a21b-9c578c4f7eb9
+  lastUpdatedAt: '2025-07-14T09:15:33.637000+00:00'
+  name: Amazon Aurora DB Instance Accessibility
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/e64367fb-fb08-440f-ac7d-71b966ac1886
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/eI7KK0l7J9
+  id: e64367fb-fb08-440f-ac7d-71b966ac1886
+  lastUpdatedAt: '2025-07-18T04:20:24.535000+00:00'
+  name: EBS Active Snapshots
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/1df7c2a7-6523-4ce6-9ae3-4d7a86c796d9
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/51fC20e7I2
+  id: 1df7c2a7-6523-4ce6-9ae3-4d7a86c796d9
+  lastUpdatedAt: '2025-07-14T09:15:31.580000+00:00'
+  name: Amazon Route 53 Latency Resource Record Sets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/84bf8628-368d-4774-af4e-a72569378373
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/ZRxQlPsb6c
+  id: 84bf8628-368d-4774-af4e-a72569378373
+  lastUpdatedAt: '2025-07-15T10:59:43.490000+00:00'
+  name: High CPU Utilization Amazon EC2 Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/d5fec7b3-ce62-4f9a-8b52-8ddaf15ebe61
+  awsServices:
+  - cloudfront
+  checkArn: arn:aws:trustedadvisor:::check/N420c450f2
+  id: d5fec7b3-ce62-4f9a-8b52-8ddaf15ebe61
+  lastUpdatedAt: '2025-07-20T04:35:08.464000+00:00'
+  name: CloudFront Alternate Domain Names
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/e9153ef0-67d4-4119-8bac-4b0f068b77e4
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/1iG5NDGVre
+  id: e9153ef0-67d4-4119-8bac-4b0f068b77e4
+  lastUpdatedAt: '2025-07-23T10:34:09.677000+00:00'
+  name: Security Groups - Unrestricted Access
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/b78dcc3e-cc5a-486e-b8cb-802ad9e046fd
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/XG0aXHpIEt
+  id: b78dcc3e-cc5a-486e-b8cb-802ad9e046fd
+  lastUpdatedAt: '2025-07-22T08:50:54.433000+00:00'
+  name: RDS DB Instances
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/a6121365-4525-4892-8763-f79fb3086303
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/aW9HH0l8J6
+  id: a6121365-4525-4892-8763-f79fb3086303
+  lastUpdatedAt: '2025-07-19T00:15:03.100000+00:00'
+  name: EC2-Classic Elastic IP Addresses
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/33e8fa32-8e8d-42bf-893d-70aa86a0e770
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/PPkZrjsH2q
+  id: 33e8fa32-8e8d-42bf-893d-70aa86a0e770
+  lastUpdatedAt: '2025-07-20T12:52:52.814000+00:00'
+  name: Amazon EBS Provisioned IOPS (SSD) Volume Attachment Configuration
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f35e240e-2a24-4efe-94ea-06b8f7acf39c
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/gfZAn3W7wl
+  id: f35e240e-2a24-4efe-94ea-06b8f7acf39c
+  lastUpdatedAt: '2025-07-20T11:29:22.185000+00:00'
+  name: RDS DB Security Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/32037ff6-b652-438d-9f21-5df7fc2b199a
+  awsServices:
+  - autoscaling
+  checkArn: arn:aws:trustedadvisor:::check/aW7HH0l7J9
+  id: 32037ff6-b652-438d-9f21-5df7fc2b199a
+  lastUpdatedAt: '2025-07-21T10:40:17.447000+00:00'
+  name: Auto Scaling Launch Configurations
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 19
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/0d009fa7-12d0-48a7-bb8d-c046588ba21a
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/wH7DD0l3J9
+  id: 0d009fa7-12d0-48a7-bb8d-c046588ba21a
+  lastUpdatedAt: '2025-07-14T09:15:32.882000+00:00'
+  name: EBS Throughput Optimized HDD (st1) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/63151f0e-0b76-498e-bb9e-501e293520f6
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/b73EEdD790
+  id: 63151f0e-0b76-498e-bb9e-501e293520f6
+  lastUpdatedAt: '2025-07-23T18:03:05.023000+00:00'
+  name: Amazon Route 53 Failover Resource Record Sets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/d24800e0-49a8-4869-b9ac-c6997275edf9
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/nNauJisYIT
+  id: d24800e0-49a8-4869-b9ac-c6997275edf9
+  lastUpdatedAt: '2025-07-19T12:25:06.599000+00:00'
+  name: Amazon RDS Security Group Access Risk
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/9131c9fd-75c1-447a-abb1-e5fab143ba03
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/cG7HH0l7J9
+  id: 9131c9fd-75c1-447a-abb1-e5fab143ba03
+  lastUpdatedAt: '2025-07-19T07:28:41.497000+00:00'
+  name: EBS Magnetic (standard) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/25c66563-621e-4978-b277-b8227d1a10d9
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/c9D319e7sG
+  id: 25c66563-621e-4978-b277-b8227d1a10d9
+  lastUpdatedAt: '2025-07-16T13:30:22.261000+00:00'
+  name: Amazon Route 53 MX Resource Record Sets and Sender Policy Framework
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/dee384c6-9d94-4284-b89a-08b001499dbd
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/H7IgTzjTYb
+  id: dee384c6-9d94-4284-b89a-08b001499dbd
+  lastUpdatedAt: '2025-07-19T11:19:35.736000+00:00'
+  name: Amazon EBS Snapshots
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/affb963e-eae5-493e-8265-ad0ef2bb87da
+  awsServices:
+  - s3
+  checkArn: arn:aws:trustedadvisor:::check/Pfx0RwqBli
+  id: affb963e-eae5-493e-8265-ad0ef2bb87da
+  lastUpdatedAt: '2025-07-19T04:47:16.871000+00:00'
+  name: Amazon S3 Bucket Permissions
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 4
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/632fc7e9-729b-4bc7-b52f-31dd948f1e68
+  checkArn: arn:aws:trustedadvisor:::check/Cmsvnj8db3
+  id: 632fc7e9-729b-4bc7-b52f-31dd948f1e68
+  lastUpdatedAt: '2025-07-20T07:01:28.488000+00:00'
+  name: Amazon RDS DiskQueueDepth
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f335a57c-a691-4aed-bc21-c8eff195daec
+  awsServices:
+  - dynamodb
+  checkArn: arn:aws:trustedadvisor:::check/c5ftjdfkMr
+  id: f335a57c-a691-4aed-bc21-c8eff195daec
+  lastUpdatedAt: '2025-07-17T11:43:59.206000+00:00'
+  name: DynamoDB Write Capacity
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 19
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f144724d-3ef5-4548-bed9-d0b63465298f
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/3Njm0DJQO9
+  id: f144724d-3ef5-4548-bed9-d0b63465298f
+  lastUpdatedAt: '2025-07-22T11:05:32.727000+00:00'
+  name: RDS Option Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/78cbce25-6682-46f5-ad7a-852a43e2f444
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/gjqMBn6pjz
+  id: 78cbce25-6682-46f5-ad7a-852a43e2f444
+  lastUpdatedAt: '2025-07-16T15:59:22.553000+00:00'
+  name: RDS Clusters
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/dcc2ae1e-00e8-11ef-9055-da5f9b677d4d
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/c2vlfg0f4h
+  id: dcc2ae1e-00e8-11ef-9055-da5f9b677d4d
+  lastUpdatedAt: '2025-07-23T08:53:36.894000+00:00'
+  name: Root User Access Key
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/c1707ec4-b259-440b-8d46-eecc425f798f
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/S45wrEXrLz
+  id: c1707ec4-b259-440b-8d46-eecc425f798f
+  lastUpdatedAt: '2025-07-17T11:25:06.664000+00:00'
+  name: VPN Tunnel Redundancy
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/dcc32e48-00e8-11ef-9055-da5f9b677d4d
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/c2vlfg0p86
+  id: dcc32e48-00e8-11ef-9055-da5f9b677d4d
+  lastUpdatedAt: '2025-07-23T08:53:36.894000+00:00'
+  name: IAM SAML 2.0 Identity Provider
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/57e23f7b-a243-47c6-9c11-5d8c5a49f5fe
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/Bh2xRR2FGH
+  id: 57e23f7b-a243-47c6-9c11-5d8c5a49f5fe
+  lastUpdatedAt: '2025-07-14T09:15:34.381000+00:00'
+  name: Amazon EC2 to EBS Throughput Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2d28bbea-adec-41d0-bc83-c120980958a9
+  awsServices:
+  - cloudfront
+  checkArn: arn:aws:trustedadvisor:::check/N430c450f2
+  id: 2d28bbea-adec-41d0-bc83-c120980958a9
+  lastUpdatedAt: '2025-07-18T05:51:43.843000+00:00'
+  name: CloudFront SSL Certificate on the Origin Server
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/145d3fd4-0d71-4b3e-94ae-493a0df5a177
+  awsServices:
+  - vpc
+  checkArn: arn:aws:trustedadvisor:::check/lN7RR0l7J9
+  id: 145d3fd4-0d71-4b3e-94ae-493a0df5a177
+  lastUpdatedAt: '2025-07-19T17:12:16.847000+00:00'
+  name: EC2-VPC Elastic IP Address
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/d7bee608-7889-49c3-afa4-01648aecf9cb
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/Yw2K9puPzl
+  id: d7bee608-7889-49c3-afa4-01648aecf9cb
+  lastUpdatedAt: '2025-07-15T02:02:04.970000+00:00'
+  name: IAM Password Policy
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/3b397035-ed3e-45e3-a635-dfd87e414c3c
+  awsServices:
+  - autoscaling
+  checkArn: arn:aws:trustedadvisor:::check/8CNsSllI5v
+  id: 3b397035-ed3e-45e3-a635-dfd87e414c3c
+  lastUpdatedAt: '2025-07-21T08:04:27.758000+00:00'
+  name: Auto Scaling Group Resources
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/75c33609-2289-4d26-925c-fff0b2ecaf16
+  awsServices:
+  - elasticloadbalancing
+  checkArn: arn:aws:trustedadvisor:::check/7qGXsKIUw
+  id: 75c33609-2289-4d26-925c-fff0b2ecaf16
+  lastUpdatedAt: '2025-07-19T09:44:35.246000+00:00'
+  name: CLB Connection Draining
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/8564f82e-a13a-49c7-9813-d4cccc53f57f
+  awsServices:
+  - dynamodb
+  checkArn: arn:aws:trustedadvisor:::check/6gtQddfEw6
+  id: 8564f82e-a13a-49c7-9813-d4cccc53f57f
+  lastUpdatedAt: '2025-07-19T07:30:28.108000+00:00'
+  name: DynamoDB Read Capacity
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 19
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/464a3b35-c241-4c61-b182-3d514b16a019
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/gI7MM0l7J2
+  id: 464a3b35-c241-4c61-b182-3d514b16a019
+  lastUpdatedAt: '2025-07-14T09:15:32.400000+00:00'
+  name: EBS Provisioned IOPS SSD (io2) Volume Storage
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/66250a0a-29ee-4979-bf2c-e2ba4877d87d
+  awsServices:
+  - cloudfront
+  checkArn: arn:aws:trustedadvisor:::check/N425c450f2
+  id: 66250a0a-29ee-4979-bf2c-e2ba4877d87d
+  lastUpdatedAt: '2025-07-19T13:40:39.755000+00:00'
+  name: CloudFront Custom SSL Certificates in the IAM Certificate Store
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/9ffa2f45-5981-436f-b152-fe336880cd68
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/7DAFEmoDos
+  id: 9ffa2f45-5981-436f-b152-fe336880cd68
+  lastUpdatedAt: '2025-07-14T09:15:30.011000+00:00'
+  name: MFA on Root Account
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/62f5fa0c-ffc9-45ff-a0b0-994f339092b1
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/pR7UU0l7J9
+  id: 62f5fa0c-ffc9-45ff-a0b0-994f339092b1
+  lastUpdatedAt: '2025-07-19T07:01:53.977000+00:00'
+  name: IAM Policies
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/722e700e-6f53-422a-a72d-53a3635cefb8
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/DAvU99Dc4C
+  id: 722e700e-6f53-422a-a72d-53a3635cefb8
+  lastUpdatedAt: '2025-07-14T09:15:44.839000+00:00'
+  name: Underutilized Amazon EBS Volumes
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/69fde3e8-e287-41f5-afd7-4fbe804d9f8e
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/jtlIMO3qZM
+  id: 69fde3e8-e287-41f5-afd7-4fbe804d9f8e
+  lastUpdatedAt: '2025-07-22T09:34:21.939000+00:00'
+  name: RDS Cluster Parameter Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/9c8cf67c-13a1-452c-b467-c78dcea27d38
+  awsServices:
+  - elasticloadbalancing
+  - elasticloadbalancingv2
+  checkArn: arn:aws:trustedadvisor:::check/hjLMh88uM8
+  id: 9c8cf67c-13a1-452c-b467-c78dcea27d38
+  lastUpdatedAt: '2025-07-20T02:02:11.115000+00:00'
+  name: Idle Load Balancers
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2112a325-8e79-465f-b467-22050ac21931
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/B913Ef6fb4
+  id: 2112a325-8e79-465f-b467-22050ac21931
+  lastUpdatedAt: '2025-07-21T01:40:14.362000+00:00'
+  name: Amazon Route 53 Alias Resource Record Sets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - performance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/9358a2ca-0a59-43b1-8a90-035e6130617c
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/ty3xfcdfMr
+  id: 9358a2ca-0a59-43b1-8a90-035e6130617c
+  lastUpdatedAt: '2025-07-21T03:53:42.723000+00:00'
+  name: Route 53 Reusable Delegation Sets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/546bfa54-b884-4f12-a726-f8f5df6b35f3
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/qS7VV0l7J9
+  id: 546bfa54-b884-4f12-a726-f8f5df6b35f3
+  lastUpdatedAt: '2025-07-14T09:15:33.436000+00:00'
+  name: IAM Users
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/7ba9ee4e-4dca-4946-9af5-4dc28038a7bc
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/keAhfbH5yb
+  id: 7ba9ee4e-4dca-4946-9af5-4dc28038a7bc
+  lastUpdatedAt: '2025-07-15T19:16:51.400000+00:00'
+  name: RDS Event Subscriptions
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2b9ca0ed-80ae-4345-91f6-2ee4340981a5
+  awsServices:
+  - vpc
+  checkArn: arn:aws:trustedadvisor:::check/kM7QQ0l7J9
+  id: 2b9ca0ed-80ae-4345-91f6-2ee4340981a5
+  lastUpdatedAt: '2025-07-14T09:15:33.144000+00:00'
+  name: VPC Internet Gateways
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/ebfdfe58-2697-476a-aeb5-ec5d96f5e05b
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/rT7WW0l7J9
+  id: ebfdfe58-2697-476a-aeb5-ec5d96f5e05b
+  lastUpdatedAt: '2025-07-14T19:53:16.871000+00:00'
+  name: IAM Server Certificates
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/799aadf5-e781-4326-922f-f7b27ef82903
+  awsServices:
+  - elasticloadbalancing
+  - elasticloadbalancingv2
+  checkArn: arn:aws:trustedadvisor:::check/xSqX82fQu
+  id: 799aadf5-e781-4326-922f-f7b27ef82903
+  lastUpdatedAt: '2025-07-14T09:15:35.738000+00:00'
+  name: Classic Load Balancer Security Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - security
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/3dd10c32-0668-4d04-b777-4574510514be
+  awsServices:
+  - redshift
+  checkArn: arn:aws:trustedadvisor:::check/G31sQ1E9U
+  id: 3dd10c32-0668-4d04-b777-4574510514be
+  lastUpdatedAt: '2025-07-14T09:15:35.998000+00:00'
+  name: Underutilized Amazon Redshift Clusters
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/1678cfe5-49e2-4eba-aee8-dd76d6625d53
+  awsServices:
+  - route53
+  checkArn: arn:aws:trustedadvisor:::check/cF171Db240
+  id: 1678cfe5-49e2-4eba-aee8-dd76d6625d53
+  lastUpdatedAt: '2025-07-18T21:29:43.452000+00:00'
+  name: Amazon Route 53 Name Server Delegations
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/5c86c540-fb2f-4a4a-8511-8c3a292baa5a
+  checkArn: arn:aws:trustedadvisor:::check/Cjxm268ch1
+  id: 5c86c540-fb2f-4a4a-8511-8c3a292baa5a
+  lastUpdatedAt: '2025-07-18T17:35:45.849000+00:00'
+  name: Auto Scaling Available IPs in Subnets
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f6ddaada-4698-40f7-a030-f7a51263ef9f
+  awsServices:
+  - vpc
+  checkArn: arn:aws:trustedadvisor:::check/jL7PP0l7J9
+  id: f6ddaada-4698-40f7-a030-f7a51263ef9f
+  lastUpdatedAt: '2025-07-14T09:15:36.881000+00:00'
+  name: VPC
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 16
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/b7a980fc-8616-4028-a5c8-76d11e1816d2
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/dYWBaXaaMM
+  id: b7a980fc-8616-4028-a5c8-76d11e1816d2
+  lastUpdatedAt: '2025-07-21T23:31:05.625000+00:00'
+  name: RDS Subnet Groups
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/43c87394-6d4a-4348-a3d6-857d7a1837d6
+  awsServices:
+  - redshift
+  checkArn: arn:aws:trustedadvisor:::check/1qw23er45t
+  id: 43c87394-6d4a-4348-a3d6-857d7a1837d6
+  lastUpdatedAt: '2025-07-17T06:55:51.155000+00:00'
+  name: Amazon Redshift Reserved Node Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/5c978ce7-a04c-4206-85c4-2998b19ac675
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/Z4AUBRNSmz
+  id: 5c978ce7-a04c-4206-85c4-2998b19ac675
+  lastUpdatedAt: '2025-07-19T00:44:19.256000+00:00'
+  name: Unassociated Elastic IP Addresses
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/f446117f-c06a-4610-be12-eb2f61379c07
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/wuy7G1zxql
+  id: f446117f-c06a-4610-be12-eb2f61379c07
+  lastUpdatedAt: '2025-07-14T09:15:34.397000+00:00'
+  name: Amazon EC2 Availability Zone Balance
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/6df71a33-b779-46f5-adb9-731d684c5c60
+  awsServices:
+  - iam
+  checkArn: arn:aws:trustedadvisor:::check/sU7XX0l7J9
+  id: 6df71a33-b779-46f5-adb9-731d684c5c60
+  lastUpdatedAt: '2025-07-19T03:30:20.290000+00:00'
+  name: IAM Group
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 1
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/bf57e96d-9504-44af-a90b-281628c2c818
+  awsServices:
+  - kinesis
+  checkArn: arn:aws:trustedadvisor:::check/bW7HH0l7J9
+  id: bf57e96d-9504-44af-a90b-281628c2c818
+  lastUpdatedAt: '2025-07-21T22:07:15.755000+00:00'
+  name: Kinesis Shards per Region
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - service_limits
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 0
+  source: ta_check
+  status: ok
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/cf41926b-e02c-441c-bd4d-758acd70867e
+  awsServices:
+  - elasticache
+  checkArn: arn:aws:trustedadvisor:::check/h3L1otH3re
+  id: cf41926b-e02c-441c-bd4d-758acd70867e
+  lastUpdatedAt: '2025-07-18T18:03:06.672000+00:00'
+  name: Amazon ElastiCache Reserved Node Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 36.543466730700004
+      estimatedPercentMonthlySavings: 0.263807056551498
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 5
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/2bff77b2-52dd-48a4-8ea0-d3d5062a9c04
+  awsServices:
+  - rds
+  checkArn: arn:aws:trustedadvisor:::check/1qazXsw23e
+  id: 2bff77b2-52dd-48a4-8ea0-d3d5062a9c04
+  lastUpdatedAt: '2025-07-14T09:15:30.745000+00:00'
+  name: Amazon Relational Database Service (RDS) Reserved Instance Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 67.9993636188
+      estimatedPercentMonthlySavings: 0.31323536105665895
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 9
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/df160a32-d80d-487f-9a69-f4403afe83b4
+  awsServices:
+  - s3
+  checkArn: arn:aws:trustedadvisor:::check/c1fd6b96l4
+  id: df160a32-d80d-487f-9a69-f4403afe83b4
+  lastUpdatedAt: '2025-07-23T08:53:37.652000+00:00'
+  name: Amazon S3 Server Access Logs Enabled
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - operational_excellence
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 4
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/9aca8118-0825-482e-9b1e-c92ecddd6041
+  awsServices:
+  - opensearch
+  checkArn: arn:aws:trustedadvisor:::check/7ujm6yhn5t
+  id: 9aca8118-0825-482e-9b1e-c92ecddd6041
+  lastUpdatedAt: '2025-07-21T02:35:28.691000+00:00'
+  name: Amazon OpenSearch Service Reserved Instance Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 173.13099998199996
+      estimatedPercentMonthlySavings: 0.303335976139421
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 6
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/8aa97c65-8b7c-418f-8cef-c02e662e00cf
+  awsServices:
+  - ec2
+  checkArn: arn:aws:trustedadvisor:::check/cX3c2R1chu
+  id: 8aa97c65-8b7c-418f-8cef-c02e662e00cf
+  lastUpdatedAt: '2025-07-22T06:28:28.550000+00:00'
+  name: Amazon EC2 Reserved Instances Optimization
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 407.7012148267001
+      estimatedPercentMonthlySavings: 20.552038155117067
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 23
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/01c7d161-81ed-46e2-a5b4-c00ee2718dd4
+  awsServices:
+  - s3
+  checkArn: arn:aws:trustedadvisor:::check/c1cj39rr6v
+  id: 01c7d161-81ed-46e2-a5b4-c00ee2718dd4
+  lastUpdatedAt: '2025-07-23T20:53:37.652000+00:00'
+  name: S3 Incomplete Multipart Upload Abort Configuration
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 4
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/66a8e737-a292-430f-aee1-6e28cd6ae83a
+  awsServices:
+  - s3
+  checkArn: arn:aws:trustedadvisor:::check/R365s2Qddf
+  id: 66a8e737-a292-430f-aee1-6e28cd6ae83a
+  lastUpdatedAt: '2025-07-19T08:51:16.920000+00:00'
+  name: Amazon S3 Bucket Versioning
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 0.0
+      estimatedPercentMonthlySavings: 0.0
+  pillars:
+  - fault_tolerance
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 4
+  source: ta_check
+  status: warning
+  type: standard
+- arn: arn:aws:trustedadvisor::466171249965:recommendation/26ff2841-7378-4445-b79d-01dc16981c8d
+  awsServices:
+  - ec2
+  - ecs
+  - lambda
+  checkArn: arn:aws:trustedadvisor:::check/vZ2c2W1srf
+  id: 26ff2841-7378-4445-b79d-01dc16981c8d
+  lastUpdatedAt: '2025-07-18T20:45:31.842000+00:00'
+  name: Savings Plan
+  pillarSpecificAggregates:
+    costOptimizing:
+      estimatedMonthlySavings: 451.34999999999997
+      estimatedPercentMonthlySavings: 11.85
+  pillars:
+  - cost_optimizing
+  resourcesAggregates:
+    errorCount: 0
+    okCount: 0
+    warningCount: 2
+  source: ta_check
+  status: warning
+  type: standard
