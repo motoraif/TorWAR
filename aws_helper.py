@@ -26,11 +26,13 @@ def get_aws_session():
         region = session['aws_region']
         profile = session.get('aws_profile')
         
+        # QUICK FIX: Use beyon-money-payer profile if no profile is specified
+        if not profile or profile == 'default':
+            profile = 'beyon-money-payer'
+            print(f"DEBUG: Using beyon-money-payer profile for AWS session")
+        
         # Create session
-        if profile and profile != 'default':
-            aws_session = boto3.Session(profile_name=profile, region_name=region)
-        else:
-            aws_session = boto3.Session(region_name=region)
+        aws_session = boto3.Session(profile_name=profile, region_name=region)
         
         return aws_session
         

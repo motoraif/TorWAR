@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}API Debug - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>AWS Trusted Advisor API Debug</h2>
+            <p class="text-muted">Testing API parameters and methods</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>API Test Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="debug-results">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Testing API parameters...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/debug/test-api-params')
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('debug-results');
+            
+            if (data.error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6>Error:</h6>
+                        <p>${data.error}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Sample Recommendation:</h6>
+                        <ul>
+                            <li><strong>ID:</strong> ${data.sample_recommendation.id}</li>
+                            <li><strong>Name:</strong> ${data.sample_recommendation.name}</li>
+                        </ul>
+                        
+                        <h6>Client Information:</h6>
+                        <ul>
+                            <li><strong>Type:</strong> ${data.client_type}</li>
+                            <li><strong>Available Methods:</strong></li>
+                            <ul>
+            `;
+            
+            data.available_methods.forEach(method => {
+                html += `<li>${method}</li>`;
+            });
+            
+            html += `
+                            </ul>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>API Test Results:</h6>
+                        <ul>
+            `;
+            
+            Object.entries(data.tests).forEach(([test, result]) => {
+                const isSuccess = result === 'SUCCESS';
+                const badgeClass = isSuccess ? 'bg-success' : 'bg-danger';
+                html += `
+                    <li>
+                        <strong>${test}:</strong> 
+                        <span class="badge ${badgeClass}">${result}</span>
+                    </li>
+                `;
+            });
+            
+            html += `
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('debug-results').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6>Fetch Error:</h6>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        });
+});
+</script>
+{% endblock %}

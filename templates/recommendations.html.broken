@@ -1,0 +1,1213 @@
+<!--
+TorWAR - AWS Trusted Advisor Recommendations
+Author: Mohamed Toraif
+-->
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor Recommendations - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.recommendation-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-left: 4px solid #6c757d;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.recommendation-card.status-error {
+    border-left-color: #dc3545;
+}
+
+.recommendation-card.status-warning {
+    border-left-color: #ffc107;
+}
+
+.recommendation-card.status-ok {
+    border-left-color: #28a745;
+}
+
+.recommendation-card.status-not_available {
+    border-left-color: #6c757d;
+}
+
+.category-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.resource-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-icon {
+    font-size: 1.25rem;
+}
+
+.category-section {
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .stats-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.refresh-btn {
+    transition: transform 0.2s ease;
+}
+
+.refresh-btn:hover {
+    transform: rotate(180deg);
+}
+
+.filter-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .filter-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.aws-services .badge {
+    font-size: 0.7rem;
+    font-weight: normal;
+}
+
+.resource-summary .badge {
+    font-size: 0.7rem;
+}
+
+.recommendation-card[style*="none"] {
+    display: none !important;
+}
+
+.fade-out {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.fade-in {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-lightbulb text-warning me-3"></i>
+                        Trusted Advisor Recommendations
+                    </h2>
+                    <p class="text-muted mb-0">AWS recommendations for optimization and best practices</p>
+                    <p class="text-muted mb-0">
+                        Total recommendations: <span id="total-count">{{ total_count }}</span>
+                        <small class="ms-3">
+                            <i class="fas fa-sort-amount-down me-1"></i>
+                            Sorted by priority: 
+                            <span class="badge bg-danger me-1">High</span>
+                            <span class="badge bg-warning text-dark me-1">Medium</span>
+                            <span class="badge bg-success">Passing</span>
+                        </small>
+                    </p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="location.reload()">
+                        <i class="fas fa-sync-alt refresh-btn me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label for="pillarFilter" class="form-label">
+                                <i class="fas fa-columns me-2"></i>Filter by Pillar
+                            </label>
+                            <select class="form-select" id="pillarFilter">
+                                <option value="">All Pillars</option>
+                                <option value="security">Security</option>
+                                <option value="cost_optimizing">Cost Optimization</option>
+                                <option value="performance">Performance</option>
+                                <option value="fault_tolerance">Fault Tolerance</option>
+                                <option value="service_limits">Service Limits</option>
+                                <option value="operational_excellence">Operational Excellence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priorityFilter" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Filter by Priority
+                            </label>
+                            <select class="form-select" id="priorityFilter">
+                                <option value="">All Priorities</option>
+                                <option value="error">🔴 High Priority (Error)</option>
+                                <option value="warning">🟡 Medium Priority (Warning)</option>
+                                <option value="ok">🟢 Passing (OK)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="searchFilter" class="form-label">
+                                <i class="fas fa-search me-2"></i>Search
+                            </label>
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Search recommendations...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary me-2" id="clearFilters">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </button>
+                            <div class="ms-auto">
+                                <small class="text-muted">
+                                    Showing: <span id="filtered-count">{{ total_count }}</span> of {{ total_count }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <!-- Error State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Trusted Advisor Not Available
+                        </h5>
+                        <p class="mb-0">{{ error }}</p>
+                        <small class="text-muted">
+                            Trusted Advisor requires a Business or Enterprise support plan. 
+                            <a href="https://aws.amazon.com/support/" target="_blank" class="alert-link">Learn more</a>
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="https://aws.amazon.com/support/" target="_blank" class="btn btn-warning">
+                            <i class="fas fa-external-link-alt me-2"></i>AWS Support Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Statistics Overview -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total }}</h3>
+                    <small class="text-muted">Total Checks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.high_priority }}</h3>
+                    <small class="text-muted">High Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.medium_priority }}</h3>
+                    <small class="text-muted">Medium Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-server fa-2x"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total_resources }}</h3>
+                    <small class="text-muted">Flagged Resources</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Category Tabs -->
+    {% if categories %}
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="categoryTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                        <i class="fas fa-list me-2"></i>All ({{ recommendations|length }})
+                    </button>
+                </li>
+                {% for category_id, category_recommendations in categories.items() %}
+                {% if category_recommendations %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="{{ category_id }}-tab" data-bs-toggle="tab" data-bs-target="#{{ category_id }}" type="button" role="tab">
+                        {% if category_info[category_id] %}
+                            <i class="{{ category_info[category_id].icon }} me-2"></i>
+                            {{ category_info[category_id].name }}
+                        {% else %}
+                            <i class="fas fa-folder me-2"></i>
+                            {{ category_id|title }}
+                        {% endif %}
+                        ({{ category_recommendations|length }})
+                    </button>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-4" id="categoryTabContent">
+        <!-- All Recommendations -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            {% if recommendations %}
+                {% for recommendation in recommendations %}
+                    {% include 'recommendation_card.html' %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5>No recommendations found</h5>
+                    <p class="text-muted">All checks are currently passing or not available.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Category-specific tabs -->
+        {% for category_id, category_recommendations in categories.items() %}
+        {% if category_recommendations %}
+        <div class="tab-pane fade" id="{{ category_id }}" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-12">
+                    {% if category_info[category_id] %}
+                    <div class="alert alert-{{ category_info[category_id].color }} alert-dismissible">
+                        <h6 class="mb-2">
+                            <i class="{{ category_info[category_id].icon }} me-2"></i>
+                            {{ category_info[category_id].name }}
+                        </h6>
+                        <p class="mb-0">{{ category_info[category_id].description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% for recommendation in category_recommendations %}
+                {% include 'recommendation_card.html' %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- Last Updated -->
+    {% if last_updated %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="text-center text-muted">
+                <small>
+                    <i class="fas fa-clock me-1"></i>
+                    Last updated: {{ last_updated }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Resources Modal -->
+<div class="modal fade" id="resourcesModal" tabindex="-1" aria-labelledby="resourcesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resourcesModalLabel">
+                    <i class="fas fa-server me-2"></i>Recommendation Resources
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resourcesContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading resources...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh functionality
+let autoRefreshInterval;
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+        location.reload();
+    }, 300000); // Refresh every 5 minutes
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRefresh();
+});
+
+// Stop auto-refresh when page is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        stopAutoRefresh();
+    } else {
+        startAutoRefresh();
+    }
+});
+
+// Refresh specific check
+function refreshCheck(checkId) {
+    fetch(`/recommendations/refresh/${checkId}`)
+        .then(response => {
+            if (response.ok) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-success border-0';
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-check me-2"></i>Check refresh initiated
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing check:', error);
+        });
+}
+
+// Filtering functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const pillarFilter = document.getElementById('pillarFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const filteredCountSpan = document.getElementById('filtered-count');
+    
+    // Get all recommendation cards
+    const recommendationCards = document.querySelectorAll('.recommendation-card');
+    const totalCount = recommendationCards.length;
+    
+    function applyFilters() {
+        const pillarValue = pillarFilter.value.toLowerCase();
+        const priorityValue = priorityFilter.value.toLowerCase();
+        const searchValue = searchFilter.value.toLowerCase();
+        
+        let visibleCount = 0;
+        const visibleCards = [];
+        
+        recommendationCards.forEach(card => {
+            let shouldShow = true;
+            
+            // Add fade-out effect
+            card.classList.add('fade-out');
+            
+            // Pillar filter
+            if (pillarValue && shouldShow) {
+                const cardPillar = card.getAttribute('data-pillar');
+                shouldShow = cardPillar && cardPillar.toLowerCase() === pillarValue;
+            }
+            
+            // Priority filter
+            if (priorityValue && shouldShow) {
+                const cardStatus = card.getAttribute('data-status');
+                shouldShow = cardStatus && cardStatus.toLowerCase() === priorityValue;
+            }
+            
+            // Search filter
+            if (searchValue && shouldShow) {
+                const cardTitle = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+                const cardText = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
+                const cardServices = card.querySelector('.aws-services')?.textContent.toLowerCase() || '';
+                
+                shouldShow = cardTitle.includes(searchValue) || 
+                           cardText.includes(searchValue) || 
+                           cardServices.includes(searchValue);
+            }
+            
+            if (shouldShow) {
+                visibleCards.push({
+                    card: card,
+                    status: card.getAttribute('data-status') || 'unknown'
+                });
+            }
+        });
+        
+        // Sort visible cards by priority (error -> warning -> ok)
+        const priorityOrder = { 'error': 1, 'warning': 2, 'ok': 3 };
+        visibleCards.sort((a, b) => {
+            const aPriority = priorityOrder[a.status] || 4;
+            const bPriority = priorityOrder[b.status] || 4;
+            return aPriority - bPriority;
+        });
+        
+        // Hide all cards first
+        recommendationCards.forEach(card => {
+            card.style.display = 'none';
+            card.classList.remove('fade-in');
+        });
+        
+        // Show visible cards in priority order with animation
+        setTimeout(() => {
+            visibleCards.forEach((item, index) => {
+                const card = item.card;
+                card.style.display = 'block';
+                card.classList.remove('fade-out');
+                card.classList.add('fade-in');
+                
+                // Reorder cards in DOM to maintain visual priority order
+                const parent = card.parentNode;
+                parent.appendChild(card);
+            });
+            
+            visibleCount = visibleCards.length;
+        }, 50);
+        
+        // Update filtered count after animation
+        setTimeout(() => {
+            filteredCountSpan.textContent = visibleCount;
+            updateTabBadges();
+        }, 100);
+    }
+    
+    function updateTabBadges() {
+        // Update category tabs to show filtered counts
+        const categoryTabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+        
+        categoryTabs.forEach(tab => {
+            const targetId = tab.getAttribute('data-bs-target');
+            if (targetId) {
+                const tabPane = document.querySelector(targetId);
+                if (tabPane) {
+                    const visibleCards = tabPane.querySelectorAll('.recommendation-card:not([style*="none"])');
+                    const badge = tab.querySelector('.badge');
+                    if (badge) {
+                        const count = visibleCards.length;
+                        badge.textContent = count;
+                        
+                        // Update badge color based on count
+                        badge.className = badge.className.replace(/bg-\w+/, count > 0 ? 'bg-primary' : 'bg-secondary');
+                    }
+                }
+            }
+        });
+        
+        // Update "All" tab badge
+        const allTab = document.querySelector('#all-tab .badge');
+        if (allTab) {
+            const visibleCount = document.querySelectorAll('.recommendation-card:not([style*="none"])').length;
+            allTab.textContent = visibleCount;
+            allTab.className = allTab.className.replace(/bg-\w+/, visibleCount > 0 ? 'bg-primary' : 'bg-secondary');
+        }
+    }
+    
+    function clearFilters() {
+        pillarFilter.value = '';
+        priorityFilter.value = '';
+        searchFilter.value = '';
+        
+        // Reset all cards
+        recommendationCards.forEach(card => {
+            card.style.display = 'block';
+            card.classList.remove('fade-out');
+            card.classList.add('fade-in');
+        });
+        
+        filteredCountSpan.textContent = totalCount;
+        updateTabBadges();
+    }
+    
+    // Add event listeners
+    pillarFilter.addEventListener('change', applyFilters);
+    priorityFilter.addEventListener('change', applyFilters);
+    searchFilter.addEventListener('input', debounce(applyFilters, 300));
+    clearFiltersBtn.addEventListener('click', clearFilters);
+    
+    // Debounce function for search input
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Initialize tab badges
+    updateTabBadges();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + F to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchFilter.focus();
+        }
+        
+        // Escape to clear filters
+        if (e.key === 'Escape') {
+            clearFilters();
+        }
+    });
+});
+
+// Generate report function
+function generateReport() {
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    button.disabled = true;
+    
+    // Navigate to report page
+    window.location.href = '/recommendations/report';
+}
+
+// View resources function
+function viewResources(recommendationArn, recommendationName) {
+    // Set modal title
+    document.getElementById('resourcesModalLabel').innerHTML = 
+        '<i class="fas fa-server me-2"></i>' + recommendationName + ' - Resources';
+    
+    // Show loading state
+    document.getElementById('resourcesContent').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading resources...</p>
+        </div>
+    `;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('resourcesModal'));
+    modal.show();
+    
+    // Fetch resources
+    const encodedArn = encodeURIComponent(recommendationArn);
+    fetch(`/api/trusted-advisor/recommendation/${encodedArn}/resources`)
+        .then(response => {
+            if (response.status === 401) {
+                return response.json().then(data => {
+                    document.getElementById('resourcesContent').innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-lock fa-3x mb-3 text-warning"></i>
+                            <h5>Authentication Required</h5>
+                            <p class="text-muted mb-3">Please connect to AWS first to view resources</p>
+                            <a href="/aws-login" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Connect to AWS
+                            </a>
+                        </div>
+                    `;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            
+            if (data.error) {
+                document.getElementById('resourcesContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading resources: ${data.error}
+                    </div>
+                `;
+                return;
+            }
+            
+            displaySimpleResources(data);
+        })
+        .catch(error => {
+            console.error('Error fetching resources:', error);
+            document.getElementById('resourcesContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading resources: ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Simple resources display function
+function displaySimpleResources(data) {
+    const resources = data.resources || [];
+    const totalCount = data.total_count || 0;
+    
+    if (resources.length === 0) {
+        document.getElementById('resourcesContent').innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <h5>No Resources Found</h5>
+                <p>This recommendation doesn't have any specific resources to display.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Group resources by status
+    const errorResources = resources.filter(r => r.status === 'error');
+    const warningResources = resources.filter(r => r.status === 'warning');
+    const okResources = resources.filter(r => r.status === 'ok');
+    
+    let html = `
+        <div class="mb-3">
+            <h6>Resource Summary</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="text-danger">${errorResources.length}</h5>
+                            <small class="text-muted">Errors</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="text-warning">${warningResources.length}</h5>
+                            <small class="text-muted">Warnings</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="text-success">${okResources.length}</h5>
+                            <small class="text-muted">OK</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Display resources in a simple table
+    if (resources.length > 0) {
+        html += `
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Resource ID</th>
+                            <th>Region</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        resources.slice(0, 20).forEach(resource => {
+            const resourceId = resource.aws_resource_id || resource.id || 'N/A';
+            const region = resource.region || 'Global';
+            const lastUpdated = resource.last_updated ? 
+                new Date(resource.last_updated).toLocaleString() : 'N/A';
+            
+            let statusBadge = 'bg-secondary';
+            if (resource.status === 'error') statusBadge = 'bg-danger';
+            else if (resource.status === 'warning') statusBadge = 'bg-warning text-dark';
+            else if (resource.status === 'ok') statusBadge = 'bg-success';
+            
+            html += `
+                <tr>
+                    <td><span class="badge ${statusBadge}">${resource.status.toUpperCase()}</span></td>
+                    <td><code class="small">${resourceId}</code></td>
+                    <td><span class="badge bg-info">${region}</span></td>
+                    <td><small class="text-muted">${lastUpdated}</small></td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        if (resources.length > 20) {
+            html += `<p class="text-muted text-center">... and ${resources.length - 20} more resources</p>`;
+        }
+    }
+    
+    if (data.has_more) {
+        html += `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Showing first ${resources.length} resources. There may be more available.
+            </div>
+        `;
+    }
+    
+    document.getElementById('resourcesContent').innerHTML = html;
+}
+
+function displayResources(data) {
+    const resources = data.resources || [];
+    const totalCount = data.total_count || 0;
+    const summary = data.summary || {};
+    
+    if (resources.length === 0) {
+        document.getElementById('resourcesContent').innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-4x mb-3 opacity-50"></i>
+                <h5>No Resources Found</h5>
+                <p>This recommendation doesn't have any specific resources to display.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Group resources by status
+    const errorResources = resources.filter(r => r.status === 'error');
+    const warningResources = resources.filter(r => r.status === 'warning');
+    const okResources = resources.filter(r => r.status === 'ok');
+    
+    // Get region and service information from summary
+    const regionCounts = summary.region_counts || {};
+    const serviceCounts = summary.service_counts || {};
+    const regions = Object.keys(regionCounts).sort();
+    const services = Object.keys(serviceCounts).sort();
+    
+    let html = `
+        <!-- Enhanced Summary Section -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-danger">
+                            <div class="card-body text-center py-3">
+                                <i class="fas fa-exclamation-circle text-danger fa-2x mb-2"></i>
+                                <h4 class="text-danger mb-1">${errorResources.length}</h4>
+                                <small class="text-muted">Critical Issues</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center py-3">
+                                <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                                <h4 class="text-warning mb-1">${warningResources.length}</h4>
+                                <small class="text-muted">Warnings</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center py-3">
+                                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                                <h4 class="text-success mb-1">${okResources.length}</h4>
+                                <small class="text-muted">Compliant</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="row">
+                    <div class="col-md-6 col-lg-12 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-globe me-2"></i>Regional Impact</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">Affected Regions: <strong>${regions.length}</strong></small>
+                                </div>
+                                <div class="region-pills" style="max-height: 100px; overflow-y: auto;">
+                                    ${regions.map(region => {
+                                        const count = regionCounts[region];
+                                        const regionResources = resources.filter(r => r.region === region);
+                                        const errorCount = regionResources.filter(r => r.status === 'error').length;
+                                        const badgeClass = errorCount > 0 ? 'bg-danger' : 'bg-info';
+                                        return `<span class="badge ${badgeClass} me-1 mb-1" title="${count} resources in ${region}">${region} (${count})</span>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${services.length > 0 ? `
+                    <div class="col-md-6 col-lg-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-cogs me-2"></i>AWS Services</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">Services: <strong>${services.length}</strong></small>
+                                </div>
+                                <div class="service-pills">
+                                    ${services.map(service => {
+                                        const count = serviceCounts[service];
+                                        return `<span class="badge bg-secondary me-1 mb-1" title="${count} resources">${service} (${count})</span>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group me-2" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportResources('csv')">
+                        <i class="fas fa-download me-1"></i>Export CSV
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportResources('json')">
+                        <i class="fas fa-code me-1"></i>Export JSON
+                    </button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="filterResources('error')">
+                        <i class="fas fa-filter me-1"></i>Show Errors Only
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="filterResources('warning')">
+                        Show Warnings Only
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="filterResources('all')">
+                        Show All
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Enhanced resource display with better formatting and more information
+    const resourceGroups = [
+        { 
+            title: 'Critical Issues', 
+            resources: errorResources, 
+            badgeClass: 'bg-danger',
+            icon: 'fas fa-exclamation-circle',
+            description: 'These resources require immediate attention'
+        },
+        { 
+            title: 'Warnings', 
+            resources: warningResources, 
+            badgeClass: 'bg-warning text-dark',
+            icon: 'fas fa-exclamation-triangle',
+            description: 'These resources should be reviewed and improved'
+        },
+        { 
+            title: 'Compliant Resources', 
+            resources: okResources, 
+            badgeClass: 'bg-success',
+            icon: 'fas fa-check-circle',
+            description: 'These resources are following best practices'
+        }
+    ];
+    
+    resourceGroups.forEach(group => {
+        if (group.resources.length > 0) {
+            html += `
+                <div class="resource-group mb-4" data-status="${group.resources[0]?.status || 'unknown'}">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h6 class="mb-0">
+                                        <i class="${group.icon} me-2"></i>
+                                        ${group.title}
+                                        <span class="badge ${group.badgeClass} ms-2">${group.resources.length}</span>
+                                    </h6>
+                                    <small class="text-muted">${group.description}</small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#group-${group.resources[0]?.status || 'unknown'}" 
+                                            aria-expanded="true">
+                                        <i class="fas fa-chevron-up me-1"></i>Toggle View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show" id="group-${group.resources[0]?.status || 'unknown'}">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="5%"><i class="fas fa-circle-info"></i></th>
+                                                <th width="20%">Resource</th>
+                                                <th width="10%">Service</th>
+                                                <th width="10%">Region</th>
+                                                <th width="10%">Status</th>
+                                                <th width="15%">Last Updated</th>
+                                                <th width="25%">Details</th>
+                                                <th width="5%">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+            `;
+            
+            group.resources.forEach((resource, index) => {
+                const resourceId = resource.aws_resource_id || resource.id || 'N/A';
+                const serviceName = resource.service_name || 'Unknown';
+                const region = resource.region || 'Global';
+                const timeAgo = resource.time_ago || 'Unknown';
+                
+                // Enhanced metadata display
+                let metadataDisplay = '';
+                if (resource.metadata && Object.keys(resource.metadata).length > 0) {
+                    const metadataEntries = Object.entries(resource.metadata)
+                        .filter(([key, value]) => value && value.trim() !== '')
+                        .slice(0, 2);
+                    
+                    if (metadataEntries.length > 0) {
+                        metadataDisplay = metadataEntries
+                            .map(([key, value]) => `<div class="mb-1"><small class="text-muted">${key}:</small> <code class="small">${value}</code></div>`)
+                            .join('');
+                        
+                        if (Object.keys(resource.metadata).length > 2) {
+                            metadataDisplay += `<small class="text-muted">... and ${Object.keys(resource.metadata).length - 2} more</small>`;
+                        }
+                    }
+                }
+                
+                // Status icon and color
+                let statusIcon = 'fas fa-question-circle';
+                let statusColor = 'secondary';
+                if (resource.status === 'error') {
+                    statusIcon = 'fas fa-times-circle';
+                    statusColor = 'danger';
+                } else if (resource.status === 'warning') {
+                    statusIcon = 'fas fa-exclamation-triangle';
+                    statusColor = 'warning';
+                } else if (resource.status === 'ok') {
+                    statusIcon = 'fas fa-check-circle';
+                    statusColor = 'success';
+                }
+                
+                html += `
+                    <tr class="resource-row">
+                        <td class="text-center">
+                            <i class="${statusIcon} text-${statusColor}"></i>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <code class="small bg-light px-2 py-1 rounded mb-1" style="font-size: 0.75rem;">${resourceId}</code>
+                                ${resource.resource_type !== 'Unknown' ? `<small class="text-muted">${resource.resource_type}</small>` : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">${serviceName}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">${region}</span>
+                        </td>
+                        <td>
+                            <span class="badge ${group.badgeClass}">
+                                <i class="${statusIcon} me-1"></i>${resource.status.toUpperCase()}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>${timeAgo}
+                            </small>
+                        </td>
+                        <td>
+                            ${metadataDisplay || '<small class="text-muted">No additional details</small>'}
+                        </td>
+                        <td>
+                            ${resource.aws_console_url ? `
+                                <a href="${resource.aws_console_url}" target="_blank" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Open in AWS Console">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    // Add pagination info if there are more resources
+    if (data.has_more) {
+        html += `
+            <div class="alert alert-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Showing first ${resources.length} resources.</strong> 
+                        There may be additional resources available.
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadMoreResources()">
+                            <i class="fas fa-plus me-1"></i>Load More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Store resources data globally for export functionality
+    window.currentResources = resources;
+    
+    document.getElementById('resourcesContent').innerHTML = html;
+}
+
+// Enhanced utility functions
+function filterResources(status) {
+    const groups = document.querySelectorAll('.resource-group');
+    groups.forEach(group => {
+        if (status === 'all') {
+            group.style.display = 'block';
+        } else {
+            group.style.display = group.dataset.status === status ? 'block' : 'none';
+        }
+    });
+}
+
+function exportResources(format) {
+    if (!window.currentResources) {
+        alert('No resources to export');
+        return;
+    }
+    
+    const resources = window.currentResources;
+    let content = '';
+    let filename = '';
+    let mimeType = '';
+    
+    if (format === 'csv') {
+        const headers = ['Resource ID', 'AWS Resource ID', 'Status', 'Region', 'Last Updated', 'Metadata'];
+        const csvRows = [headers.join(',')];
+        
+        resources.forEach(resource => {
+            const row = [
+                `"${resource.id || ''}"`,
+                `"${resource.aws_resource_id || ''}"`,
+                `"${resource.status || ''}"`,
+                `"${resource.region || ''}"`,
+                `"${resource.last_updated || ''}"`,
+                `"${JSON.stringify(resource.metadata || {}).replace(/"/g, '""')}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+        
+        content = csvRows.join('\\n');
+        filename = 'trusted-advisor-resources.csv';
+        mimeType = 'text/csv';
+    } else if (format === 'json') {
+        content = JSON.stringify(resources, null, 2);
+        filename = 'trusted-advisor-resources.json';
+        mimeType = 'application/json';
+    }
+    
+    // Create and trigger download
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function loadMoreResources() {
+    // This would implement pagination - for now show a message
+    alert('Pagination feature coming soon! Currently showing the first 100 resources.');
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,248 @@
+<!-- Resource Table Template -->
+{% set display_resources = filtered_resources if filtered_resources is defined else affected_resources %}
+
+{% if display_resources and display_resources|length > 0 %}
+<div class="table-responsive">
+    <table class="table table-striped resource-table" id="resourceTable">
+        <thead class="table-dark">
+            <tr>
+                <th>Resource ID</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>AWS Resource ID</th>
+                <th>Last Updated</th>
+                <th>Metadata</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resource in display_resources %}
+            <tr>
+                <td>
+                    <div class="resource-id">
+                        {{ resource.resourceId or 'N/A' }}
+                    </div>
+                    {% if resource.arn %}
+                    <small class="text-muted d-block mt-1">
+                        <i class="fas fa-link me-1"></i>
+                        <span class="text-truncate" style="max-width: 200px; display: inline-block;" title="{{ resource.arn }}">
+                            {{ resource.arn }}
+                        </span>
+                    </small>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-info">
+                        {{ resource.regionCode or 'Global' }}
+                    </span>
+                </td>
+                <td>
+                    {% if resource.status == 'error' %}
+                        <span class="badge bg-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>Error
+                        </span>
+                    {% elif resource.status == 'warning' %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Warning
+                        </span>
+                    {% elif resource.status == 'ok' %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>OK
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-question-circle me-1"></i>{{ resource.status|title }}
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if resource.awsResourceId %}
+                        <div class="resource-id">
+                            {{ resource.awsResourceId }}
+                        </div>
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if resource.lastUpdatedAt %}
+                        <small>
+                            {% if resource.lastUpdatedAt|length > 19 %}
+                                {{ resource.lastUpdatedAt[:19] }}
+                            {% else %}
+                                {{ resource.lastUpdatedAt }}
+                            {% endif %}
+                        </small>
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if resource.metadata %}
+                        <div class="metadata-container">
+                            {% set metadata_items = resource.metadata if resource.metadata is sequence and resource.metadata is not string else [resource.metadata] %}
+                            {% for item in metadata_items %}
+                                {% if loop.index <= 3 %}
+                                <div class="metadata-item">
+                                    <small class="text-muted">{{ item }}</small>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            {% if metadata_items|length > 3 %}
+                                <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#metadata-{{ loop.index }}" 
+                                        aria-expanded="false">
+                                    <i class="fas fa-plus me-1"></i>{{ metadata_items|length - 3 }} more
+                                </button>
+                                <div class="collapse mt-2" id="metadata-{{ loop.index }}">
+                                    {% for item in metadata_items %}
+                                        {% if loop.index > 3 %}
+                                        <div class="metadata-item">
+                                            <small class="text-muted">{{ item }}</small>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <span class="text-muted">No metadata</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        {% if resource.arn %}
+                        <button class="btn btn-sm btn-outline-primary" 
+                                onclick="copyToClipboard('{{ resource.arn }}')"
+                                data-bs-toggle="tooltip" 
+                                title="Copy ARN">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        {% endif %}
+                        
+                        {% if resource.resourceId %}
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="searchAWSConsole('{{ resource.resourceId }}')"
+                                data-bs-toggle="tooltip" 
+                                title="Search in AWS Console">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                onclick="showResourceDetails('{{ resource.resourceId or resource.awsResourceId }}')"
+                                data-bs-toggle="tooltip" 
+                                title="View Details">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination if needed -->
+{% if display_resources|length > 50 %}
+<nav aria-label="Resource pagination">
+    <ul class="pagination justify-content-center">
+        <li class="page-item">
+            <a class="page-link" href="#" onclick="showPage(1)">First</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#" onclick="showPreviousPage()">Previous</a>
+        </li>
+        <li class="page-item active">
+            <span class="page-link" id="currentPage">1</span>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#" onclick="showNextPage()">Next</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="#" onclick="showLastPage()">Last</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+// Copy to clipboard functionality
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check me-2"></i>Copied to clipboard!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        // Remove toast after it's hidden
+        toast.addEventListener('hidden.bs.toast', function() {
+            document.body.removeChild(toast);
+        });
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+// Search in AWS Console
+function searchAWSConsole(resourceId) {
+    // This would ideally construct a direct link to the resource in AWS Console
+    // For now, we'll open the general AWS Console
+    const consoleUrl = `https://console.aws.amazon.com/`;
+    window.open(consoleUrl, '_blank');
+}
+
+// Show resource details in modal
+function showResourceDetails(resourceId) {
+    // This would show a modal with detailed resource information
+    alert(`Resource Details for: ${resourceId}\n\nThis feature will show detailed resource information in a modal dialog.`);
+}
+
+// Table pagination functions (if needed)
+let currentPage = 1;
+const rowsPerPage = 50;
+
+function showPage(page) {
+    // Implementation for pagination
+    currentPage = page;
+    // Update table display
+    document.getElementById('currentPage').textContent = page;
+}
+
+function showNextPage() {
+    showPage(currentPage + 1);
+}
+
+function showPreviousPage() {
+    if (currentPage > 1) {
+        showPage(currentPage - 1);
+    }
+}
+
+function showLastPage() {
+    const totalRows = document.querySelectorAll('#resourceTable tbody tr').length;
+    const lastPage = Math.ceil(totalRows / rowsPerPage);
+    showPage(lastPage);
+}
+</script>
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-server fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">No resources found</h5>
+    <p class="text-muted">There are no resources to display for this status.</p>
+</div>
+{% endif %}

@@ -1,7 +1,3 @@
-<!--
-TorWAR - AWS Trusted Advisor Recommendations
-Author: Mohamed Toraif
--->
 {% extends "base.html" %}
 
 {% block title %}Trusted Advisor Recommendations - TorWAR{% endblock %}
@@ -10,359 +6,283 @@ Author: Mohamed Toraif
 <style>
 .recommendation-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    border-left: 4px solid #6c757d;
 }
 
 .recommendation-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.recommendation-card.status-error {
-    border-left-color: #dc3545;
+.status-error {
+    border-left: 4px solid #dc3545;
 }
 
-.recommendation-card.status-warning {
-    border-left-color: #ffc107;
+.status-warning {
+    border-left: 4px solid #ffc107;
 }
 
-.recommendation-card.status-ok {
-    border-left-color: #28a745;
+.status-ok {
+    border-left: 4px solid #198754;
 }
 
-.recommendation-card.status-not_available {
-    border-left-color: #6c757d;
+.status-not_available {
+    border-left: 4px solid #6c757d;
+}
+
+.status-icon {
+    font-size: 1.2rem;
 }
 
 .category-badge {
     font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
 }
 
 .resource-count {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
-.status-icon {
-    font-size: 1.25rem;
+.pillar-tab {
+    border-radius: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
-.category-section {
-    margin-bottom: 2rem;
+.pillar-tab.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.filter-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
 .stats-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
 }
 
-[data-theme="dark"] .stats-card {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+.search-box {
+    border-radius: 25px;
+    border: 2px solid #e9ecef;
+    padding: 10px 20px;
 }
 
-.refresh-btn {
-    transition: transform 0.2s ease;
+.search-box:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-.refresh-btn:hover {
-    transform: rotate(180deg);
+.recommendation-grid {
+    display: grid;
+    gap: 20px;
 }
 
-.filter-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-[data-theme="dark"] .filter-card {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-}
-
-.form-select:focus, .form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.aws-services .badge {
-    font-size: 0.7rem;
-    font-weight: normal;
-}
-
-.resource-summary .badge {
-    font-size: 0.7rem;
-}
-
-.recommendation-card[style*="none"] {
-    display: none !important;
-}
-
-.fade-out {
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
+@media (min-width: 768px) {
+    .recommendation-grid {
+        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    }
 }
 
 .fade-in {
-    opacity: 1;
-    transition: opacity 0.3s ease;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+    display: none;
+}
+
+.loading .loading-spinner {
+    display: inline-block;
+}
+
+.loading .loading-text {
+    display: none;
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
+    <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2>
-                        <i class="fas fa-lightbulb text-warning me-3"></i>
+                    <h2 class="mb-1">
+                        <i class="fas fa-shield-alt me-2 text-primary"></i>
                         Trusted Advisor Recommendations
                     </h2>
-                    <p class="text-muted mb-0">AWS recommendations for optimization and best practices</p>
                     <p class="text-muted mb-0">
-                        Total recommendations: <span id="total-count">{{ total_count }}</span>
-                        <small class="ms-3">
-                            <i class="fas fa-sort-amount-down me-1"></i>
-                            Sorted by priority: 
-                            <span class="badge bg-danger me-1">High</span>
-                            <span class="badge bg-warning text-dark me-1">Medium</span>
-                            <span class="badge bg-success">Passing</span>
+                        AWS Well-Architected insights and optimization recommendations
+                        {% if last_updated %}
+                        <small class="ms-2">
+                            <i class="fas fa-clock me-1"></i>
+                            Last updated: {{ last_updated }}
                         </small>
+                        {% endif %}
                     </p>
                 </div>
                 <div>
                     <button class="btn btn-outline-primary me-2" onclick="location.reload()">
-                        <i class="fas fa-sync-alt refresh-btn me-2"></i>Refresh
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
                     </button>
                     <button class="btn btn-primary" onclick="generateReport()">
-                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                        <i class="fas fa-file-pdf me-1"></i>Generate Report
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filter Controls -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card filter-card">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-3">
-                            <label for="pillarFilter" class="form-label">
-                                <i class="fas fa-columns me-2"></i>Filter by Pillar
-                            </label>
-                            <select class="form-select" id="pillarFilter">
-                                <option value="">All Pillars</option>
-                                <option value="security">Security</option>
-                                <option value="cost_optimizing">Cost Optimization</option>
-                                <option value="performance">Performance</option>
-                                <option value="fault_tolerance">Fault Tolerance</option>
-                                <option value="service_limits">Service Limits</option>
-                                <option value="operational_excellence">Operational Excellence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="priorityFilter" class="form-label">
-                                <i class="fas fa-exclamation-triangle me-2"></i>Filter by Priority
-                            </label>
-                            <select class="form-select" id="priorityFilter">
-                                <option value="">All Priorities</option>
-                                <option value="error">🔴 High Priority (Error)</option>
-                                <option value="warning">🟡 Medium Priority (Warning)</option>
-                                <option value="ok">🟢 Passing (OK)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="searchFilter" class="form-label">
-                                <i class="fas fa-search me-2"></i>Search
-                            </label>
-                            <input type="text" class="form-control" id="searchFilter" placeholder="Search recommendations...">
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-outline-secondary me-2" id="clearFilters">
-                                <i class="fas fa-times me-2"></i>Clear Filters
-                            </button>
-                            <div class="ms-auto">
-                                <small class="text-muted">
-                                    Showing: <span id="filtered-count">{{ total_count }}</span> of {{ total_count }}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% if error %}
-    <!-- Error State -->
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-warning">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h5 class="mb-2">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Trusted Advisor Not Available
-                        </h5>
-                        <p class="mb-0">{{ error }}</p>
-                        <small class="text-muted">
-                            Trusted Advisor requires a Business or Enterprise support plan. 
-                            <a href="https://aws.amazon.com/support/" target="_blank" class="alert-link">Learn more</a>
-                        </small>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <a href="https://aws.amazon.com/support/" target="_blank" class="btn btn-warning">
-                            <i class="fas fa-external-link-alt me-2"></i>AWS Support Plans
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% else %}
-
-    <!-- Statistics Overview -->
+    <!-- Statistics Cards -->
     {% if stats %}
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-md-3">
             <div class="card stats-card text-center">
                 <div class="card-body">
-                    <div class="text-primary mb-2">
-                        <i class="fas fa-clipboard-list fa-2x"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.total }}</h3>
-                    <small class="text-muted">Total Checks</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card text-center">
-                <div class="card-body">
-                    <div class="text-danger mb-2">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                    </div>
+                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
                     <h3 class="mb-1">{{ stats.high_priority }}</h3>
-                    <small class="text-muted">High Priority</small>
+                    <small>High Priority</small>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card text-center">
+        <div class="col-md-3">
+            <div class="card bg-warning text-center">
                 <div class="card-body">
-                    <div class="text-warning mb-2">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    </div>
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                     <h3 class="mb-1">{{ stats.medium_priority }}</h3>
-                    <small class="text-muted">Medium Priority</small>
+                    <small>Medium Priority</small>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card text-center">
+        <div class="col-md-3">
+            <div class="card bg-success text-white text-center">
                 <div class="card-body">
-                    <div class="text-info mb-2">
-                        <i class="fas fa-server fa-2x"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.total_resources }}</h3>
-                    <small class="text-muted">Flagged Resources</small>
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.passing }}</h3>
+                    <small>Passing</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white text-center">
+                <div class="card-body">
+                    <i class="fas fa-list fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.total }}</h3>
+                    <small>Total Checks</small>
                 </div>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- Category Tabs -->
-    {% if categories %}
-    <div class="row">
-        <div class="col-12">
-            <ul class="nav nav-tabs" id="categoryTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        <i class="fas fa-list me-2"></i>All ({{ recommendations|length }})
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>Filter by Well-Architected Pillar
+                </h6>
+                <div class="pillar-tabs">
+                    <button class="btn btn-outline-primary pillar-tab active" data-pillar="all">
+                        All Pillars
+                        <span class="badge bg-primary ms-1" id="badge-all">{{ recommendations|length }}</span>
                     </button>
-                </li>
-                {% for category_id, category_recommendations in categories.items() %}
-                {% if category_recommendations %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="{{ category_id }}-tab" data-bs-toggle="tab" data-bs-target="#{{ category_id }}" type="button" role="tab">
-                        {% if category_info[category_id] %}
-                            <i class="{{ category_info[category_id].icon }} me-2"></i>
-                            {{ category_info[category_id].name }}
-                        {% else %}
-                            <i class="fas fa-folder me-2"></i>
-                            {{ category_id|title }}
-                        {% endif %}
-                        ({{ category_recommendations|length }})
+                    {% for category, info in category_info.items() %}
+                    <button class="btn btn-outline-primary pillar-tab" data-pillar="{{ category }}">
+                        <i class="{{ info.icon }} me-1"></i>{{ info.name }}
+                        <span class="badge bg-primary ms-1" id="badge-{{ category }}">0</span>
                     </button>
-                </li>
-                {% endif %}
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6 class="mb-3">
+                    <i class="fas fa-search me-2"></i>Search Recommendations
+                </h6>
+                <input type="text" class="form-control search-box" id="searchInput" 
+                       placeholder="Search by name, description, or service...">
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="mb-2">
+                    <i class="fas fa-traffic-light me-2"></i>Filter by Status
+                </h6>
+                <div class="btn-group" role="group">
+                    <input type="checkbox" class="btn-check" id="status-error" checked>
+                    <label class="btn btn-outline-danger" for="status-error">
+                        <i class="fas fa-exclamation-circle me-1"></i>High Priority
+                    </label>
+                    
+                    <input type="checkbox" class="btn-check" id="status-warning" checked>
+                    <label class="btn btn-outline-warning" for="status-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Medium Priority
+                    </label>
+                    
+                    <input type="checkbox" class="btn-check" id="status-ok" checked>
+                    <label class="btn btn-outline-success" for="status-ok">
+                        <i class="fas fa-check-circle me-1"></i>Passing
+                    </label>
+                    
+                    <input type="checkbox" class="btn-check" id="status-not_available">
+                    <label class="btn btn-outline-secondary" for="status-not_available">
+                        <i class="fas fa-question-circle me-1"></i>Not Available
+                    </label>
+                </div>
+                
+                <button class="btn btn-outline-secondary ms-3" onclick="clearFilters()">
+                    <i class="fas fa-times me-1"></i>Clear Filters
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Tab Content -->
-    <div class="tab-content mt-4" id="categoryTabContent">
-        <!-- All Recommendations -->
-        <div class="tab-pane fade show active" id="all" role="tabpanel">
-            {% if recommendations %}
+    <!-- Recommendations Grid -->
+    <div class="row">
+        <div class="col-12">
+            <div id="recommendations-container" class="recommendation-grid">
                 {% for recommendation in recommendations %}
                     {% include 'recommendation_card.html' %}
                 {% endfor %}
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h5>No recommendations found</h5>
-                    <p class="text-muted">All checks are currently passing or not available.</p>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Category-specific tabs -->
-        {% for category_id, category_recommendations in categories.items() %}
-        {% if category_recommendations %}
-        <div class="tab-pane fade" id="{{ category_id }}" role="tabpanel">
-            <div class="row mb-3">
-                <div class="col-12">
-                    {% if category_info[category_id] %}
-                    <div class="alert alert-{{ category_info[category_id].color }} alert-dismissible">
-                        <h6 class="mb-2">
-                            <i class="{{ category_info[category_id].icon }} me-2"></i>
-                            {{ category_info[category_id].name }}
-                        </h6>
-                        <p class="mb-0">{{ category_info[category_id].description }}</p>
-                    </div>
-                    {% endif %}
-                </div>
             </div>
             
-            {% for recommendation in category_recommendations %}
-                {% include 'recommendation_card.html' %}
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% endif %}
-
-    <!-- Last Updated -->
-    {% if last_updated %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="text-center text-muted">
-                <small>
-                    <i class="fas fa-clock me-1"></i>
-                    Last updated: {{ last_updated }}
-                </small>
+            <!-- No Results Message -->
+            <div id="no-results" class="text-center py-5" style="display: none;">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No recommendations found</h5>
+                <p class="text-muted">Try adjusting your filters or search terms</p>
             </div>
         </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="text-center py-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading recommendations...</p>
+    </div>
+    
+    {% if not recommendations %}
+    <div class="text-center py-5">
+        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No recommendations available</h5>
+        <p class="text-muted">Check your AWS connection and try refreshing the page</p>
+        <button class="btn btn-primary" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-1"></i>Refresh Page
+        </button>
     </div>
     {% endif %}
 </div>
@@ -386,196 +306,127 @@ function stopAutoRefresh() {
 // Start auto-refresh when page loads
 document.addEventListener('DOMContentLoaded', function() {
     startAutoRefresh();
+    
+    // Initialize filters
+    applyFilters();
+    updateTabBadges();
+    
+    // Set up event listeners
+    setupEventListeners();
 });
 
-// Stop auto-refresh when page is hidden
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-        stopAutoRefresh();
-    } else {
-        startAutoRefresh();
-    }
-});
-
-// Refresh specific check
+// Refresh individual check
 function refreshCheck(checkId) {
-    fetch(`/recommendations/refresh/${checkId}`)
-        .then(response => {
-            if (response.ok) {
-                // Show success message
-                const toast = document.createElement('div');
-                toast.className = 'toast align-items-center text-white bg-success border-0';
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="fas fa-check me-2"></i>Check refresh initiated
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                `;
-                document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast);
-                bsToast.show();
-                
-                // Remove toast after it's hidden
-                toast.addEventListener('hidden.bs.toast', () => {
-                    document.body.removeChild(toast);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error refreshing check:', error);
-        });
+    console.log('Refreshing check:', checkId);
+    // This would trigger a refresh of a specific check
+    // For now, just reload the page
+    location.reload();
 }
 
-// Filtering functionality
+// Filter and search functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const pillarFilter = document.getElementById('pillarFilter');
-    const priorityFilter = document.getElementById('priorityFilter');
-    const searchFilter = document.getElementById('searchFilter');
-    const clearFiltersBtn = document.getElementById('clearFilters');
-    const filteredCountSpan = document.getElementById('filtered-count');
-    
-    // Get all recommendation cards
-    const recommendationCards = document.querySelectorAll('.recommendation-card');
-    const totalCount = recommendationCards.length;
-    
+    const searchInput = document.getElementById('searchInput');
+    const pillarTabs = document.querySelectorAll('.pillar-tab');
+    const statusCheckboxes = document.querySelectorAll('.btn-check');
+    const recommendationsContainer = document.getElementById('recommendations-container');
+    const noResults = document.getElementById('no-results');
+
+    let currentPillar = 'all';
+    let currentSearch = '';
+    let currentStatuses = ['error', 'warning', 'ok'];
+
     function applyFilters() {
-        const pillarValue = pillarFilter.value.toLowerCase();
-        const priorityValue = priorityFilter.value.toLowerCase();
-        const searchValue = searchFilter.value.toLowerCase();
-        
+        const cards = document.querySelectorAll('.recommendation-card');
         let visibleCount = 0;
-        const visibleCards = [];
-        
-        recommendationCards.forEach(card => {
-            let shouldShow = true;
-            
-            // Add fade-out effect
-            card.classList.add('fade-out');
-            
-            // Pillar filter
-            if (pillarValue && shouldShow) {
-                const cardPillar = card.getAttribute('data-pillar');
-                shouldShow = cardPillar && cardPillar.toLowerCase() === pillarValue;
-            }
-            
-            // Priority filter
-            if (priorityValue && shouldShow) {
-                const cardStatus = card.getAttribute('data-status');
-                shouldShow = cardStatus && cardStatus.toLowerCase() === priorityValue;
-            }
-            
-            // Search filter
-            if (searchValue && shouldShow) {
-                const cardTitle = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-                const cardText = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
-                const cardServices = card.querySelector('.aws-services')?.textContent.toLowerCase() || '';
-                
-                shouldShow = cardTitle.includes(searchValue) || 
-                           cardText.includes(searchValue) || 
-                           cardServices.includes(searchValue);
-            }
-            
-            if (shouldShow) {
-                visibleCards.push({
-                    card: card,
-                    status: card.getAttribute('data-status') || 'unknown'
-                });
-            }
-        });
-        
-        // Sort visible cards by priority (error -> warning -> ok)
-        const priorityOrder = { 'error': 1, 'warning': 2, 'ok': 3 };
-        visibleCards.sort((a, b) => {
-            const aPriority = priorityOrder[a.status] || 4;
-            const bPriority = priorityOrder[b.status] || 4;
-            return aPriority - bPriority;
-        });
-        
-        // Hide all cards first
-        recommendationCards.forEach(card => {
-            card.style.display = 'none';
-            card.classList.remove('fade-in');
-        });
-        
-        // Show visible cards in priority order with animation
-        setTimeout(() => {
-            visibleCards.forEach((item, index) => {
-                const card = item.card;
+
+        cards.forEach(card => {
+            const pillar = card.dataset.pillar;
+            const status = card.dataset.status;
+            const category = card.dataset.category;
+            const cardText = card.textContent.toLowerCase();
+
+            const pillarMatch = currentPillar === 'all' || pillar === currentPillar || category === currentPillar;
+            const statusMatch = currentStatuses.includes(status);
+            const searchMatch = currentSearch === '' || cardText.includes(currentSearch.toLowerCase());
+
+            if (pillarMatch && statusMatch && searchMatch) {
                 card.style.display = 'block';
-                card.classList.remove('fade-out');
                 card.classList.add('fade-in');
-                
-                // Reorder cards in DOM to maintain visual priority order
-                const parent = card.parentNode;
-                parent.appendChild(card);
-            });
-            
-            visibleCount = visibleCards.length;
-        }, 50);
-        
-        // Update filtered count after animation
-        setTimeout(() => {
-            filteredCountSpan.textContent = visibleCount;
-            updateTabBadges();
-        }, 100);
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+                card.classList.remove('fade-in');
+            }
+        });
+
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.style.display = 'block';
+            recommendationsContainer.style.display = 'none';
+        } else {
+            noResults.style.display = 'none';
+            recommendationsContainer.style.display = 'grid';
+        }
+
+        updateTabBadges();
     }
-    
+
     function updateTabBadges() {
-        // Update category tabs to show filtered counts
-        const categoryTabs = document.querySelectorAll('[data-bs-toggle="tab"]');
-        
-        categoryTabs.forEach(tab => {
-            const targetId = tab.getAttribute('data-bs-target');
-            if (targetId) {
-                const tabPane = document.querySelector(targetId);
-                if (tabPane) {
-                    const visibleCards = tabPane.querySelectorAll('.recommendation-card:not([style*="none"])');
-                    const badge = tab.querySelector('.badge');
-                    if (badge) {
-                        const count = visibleCards.length;
-                        badge.textContent = count;
-                        
-                        // Update badge color based on count
-                        badge.className = badge.className.replace(/bg-\w+/, count > 0 ? 'bg-primary' : 'bg-secondary');
-                    }
+        const cards = document.querySelectorAll('.recommendation-card');
+        const counts = {
+            all: 0,
+            security: 0,
+            cost_optimizing: 0,
+            performance: 0,
+            fault_tolerance: 0,
+            service_limits: 0,
+            operational_excellence: 0
+        };
+
+        cards.forEach(card => {
+            if (card.style.display !== 'none') {
+                counts.all++;
+                const category = card.dataset.category;
+                if (counts.hasOwnProperty(category)) {
+                    counts[category]++;
                 }
             }
         });
-        
-        // Update "All" tab badge
-        const allTab = document.querySelector('#all-tab .badge');
-        if (allTab) {
-            const visibleCount = document.querySelectorAll('.recommendation-card:not([style*="none"])').length;
-            allTab.textContent = visibleCount;
-            allTab.className = allTab.className.replace(/bg-\w+/, visibleCount > 0 ? 'bg-primary' : 'bg-secondary');
-        }
-    }
-    
-    function clearFilters() {
-        pillarFilter.value = '';
-        priorityFilter.value = '';
-        searchFilter.value = '';
-        
-        // Reset all cards
-        recommendationCards.forEach(card => {
-            card.style.display = 'block';
-            card.classList.remove('fade-out');
-            card.classList.add('fade-in');
+
+        // Update badges
+        Object.keys(counts).forEach(key => {
+            const badge = document.getElementById(`badge-${key}`);
+            if (badge) {
+                badge.textContent = counts[key];
+            }
         });
-        
-        filteredCountSpan.textContent = totalCount;
-        updateTabBadges();
     }
-    
-    // Add event listeners
-    pillarFilter.addEventListener('change', applyFilters);
-    priorityFilter.addEventListener('change', applyFilters);
-    searchFilter.addEventListener('input', debounce(applyFilters, 300));
-    clearFiltersBtn.addEventListener('click', clearFilters);
-    
-    // Debounce function for search input
+
+    function clearFilters() {
+        currentPillar = 'all';
+        currentSearch = '';
+        currentStatuses = ['error', 'warning', 'ok'];
+
+        // Reset UI
+        searchInput.value = '';
+        pillarTabs.forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.pillar === 'all') {
+                tab.classList.add('active');
+            }
+        });
+
+        statusCheckboxes.forEach(checkbox => {
+            if (['status-error', 'status-warning', 'status-ok'].includes(checkbox.id)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
+
+        applyFilters();
+    }
+
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -587,16 +438,40 @@ document.addEventListener('DOMContentLoaded', function() {
             timeout = setTimeout(later, wait);
         };
     }
-    
-    // Initialize tab badges
-    updateTabBadges();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
+
+    // Event listeners
+    searchInput.addEventListener('input', debounce((e) => {
+        currentSearch = e.target.value;
+        applyFilters();
+    }, 300));
+
+    pillarTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            pillarTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentPillar = tab.dataset.pillar;
+            applyFilters();
+        });
+    });
+
+    statusCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            currentStatuses = [];
+            statusCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    currentStatuses.push(cb.id.replace('status-', ''));
+                }
+            });
+            applyFilters();
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
         // Ctrl/Cmd + F to focus search
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
             e.preventDefault();
-            searchFilter.focus();
+            searchInput.focus();
         }
         
         // Escape to clear filters

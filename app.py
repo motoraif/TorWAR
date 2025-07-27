@@ -39,7 +39,6 @@ from trusted_advisor_helper import (
     get_trusted_advisor_check_categories,
     refresh_trusted_advisor_check
 )
-# from check_ta_route import register_check_ta_route  # Module not found
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -1550,27 +1549,6 @@ def recommendations():
                              categories={},
                              error=str(e))
 
-@app.route('/recommendations/refresh/<check_id>')
-def refresh_recommendation(check_id):
-    """Refresh a specific Trusted Advisor check."""
-    if DEBUG_ENABLED:
-        print(f"DEBUG: Refreshing Trusted Advisor check: {check_id}")
-    
-    if 'aws_region' not in session:
-        flash('Please connect to AWS first', 'warning')
-        return redirect(url_for('aws_login'))
-    
-    try:
-        success = refresh_trusted_advisor_check(check_id)
-        if success:
-            flash('Trusted Advisor check refresh initiated. Results will be updated shortly.', 'success')
-        else:
-            flash('Failed to refresh Trusted Advisor check. Please try again.', 'error')
-    except Exception as e:
-        flash(f'Error refreshing check: {str(e)}', 'error')
-    
-    return redirect(url_for('recommendations'))
-
 @app.route('/recommendations/report')
 def recommendations_report():
     """Generate a comprehensive Trusted Advisor recommendations report."""
@@ -1642,8 +1620,433 @@ def recommendations_report():
         traceback.print_exc()
         flash(f'Error generating report: {str(e)}', 'error')
         return redirect(url_for('recommendations'))
+        
+        # Calculate statistics
+        stats = {
+            'total': len(recommendations),
+            'high_priority': len([r for r in recommendations if r.get('status') == 'error']),
+            'medium_priority': len([r for r in recommendations if r.get('status') == 'warning']),
+            'low_priority': len([r for r in recommendations if r.get('status') == 'ok']),
+            'total_resources': sum(r.get('resource_count', 0) for r in recommendations)
+        }
+        
+        if DEBUG_ENABLED:
+            print(f"DEBUG: Found {len(recommendations)} Trusted Advisor recommendations")
+        
+        return render_template('recommendations.html',
+                             recommendations=recommendations,
+                             categories=categories,
+                             category_info=category_info,
+                             stats=stats,
+                             last_updated=recommendations_data.get('last_updated'))
+    
+    except Exception as e:
+        if DEBUG_ENABLED:
+            print(f"DEBUG: Error in recommendations route: {e}")
+        flash(f'Error retrieving Trusted Advisor recommendations: {str(e)}', 'error')
+        return render_template('recommendations.html', 
+                             recommendations=[], 
+                             categories={},
+                             error=str(e))
 
-@app.route('/api/trusted-advisor/summary')
+@app.route('/recommendations/refresh/<check_id>')
+def refresh_recommendation(check_id):
+    """Refresh a specific Trusted Advisor check."""
+    if DEBUG_ENABLED:
+        print(f"DEBUG: Refreshing Trusted Advisor check: {check_id}")
+    
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        success = refresh_trusted_advisor_check(check_id)
+        if success:
+            flash('Trusted Advisor check refresh initiated. Results will be updated shortly.', 'success')
+        else:
+            flash('Failed to refresh Trusted Advisor check. Please try again.', 'error')
+    except Exception as e:
+        flash(f'Error refreshing check: {str(e)}', 'error')
+    
+    return redirect(url_for('recommendations'))
+
+@app.route('/recommendations/<recommendation_id>/details')
+def recommendation_details(recommendation_id):
+    """Display detailed information for a specific recommendation including affected resources."""
+    print(f"DEBUG: Accessing detailed view for recommendation {recommendation_id}")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        from trusted_advisor_helper import get_recommendation_details, get_all_affected_resources_for_check, get_all_trusted_advisor_recommendations
+        
+        # Get basic recommendation info from the main list for context
+        print("DEBUG: Getting basic recommendation information...")
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        current_recommendation = None
+        recommendation_identifier = None
+        
+        if 'recommendations' in recommendations_data:
+            # Find the recommendation by ID
+            current_recommendation = next(
+                (r for r in recommendations_data['recommendations'] if r.get('id') == recommendation_id),
+                None
+            )
+            
+            if current_recommendation:
+                # Get the correct recommendationIdentifier (should be the ARN)
+                recommendation_identifier = current_recommendation.get('recommendationIdentifier') or current_recommendation.get('arn')
+                print(f"DEBUG: Found recommendation. ID: {recommendation_id}, Identifier: {recommendation_identifier}")
+            else:
+                print(f"DEBUG: Recommendation not found with ID: {recommendation_id}")
+        
+        if not current_recommendation or not recommendation_identifier:
+            flash('Recommendation not found or missing identifier', 'error')
+            return redirect(url_for('recommendations'))
+        
+        # Try to get detailed recommendation information using the correct identifier
+        print(f"DEBUG: Attempting to get detailed recommendation information using identifier: {recommendation_identifier}")
+        details = get_recommendation_details(recommendation_identifier)
+        
+        affected_resources = []
+        resources_by_status = {'error': [], 'warning': [], 'ok': []}
+        
+        if details.get('error'):
+            print(f"DEBUG: Error getting detailed info: {details['error']}")
+            # If detailed API fails, try to get resources directly
+            print("DEBUG: Trying direct resource retrieval...")
+            try:
+                affected_resources = get_all_affected_resources_for_check(recommendation_identifier)
+                
+                # Group resources by status
+                resources_by_status = {
+                    'error': [r for r in affected_resources if r.get('status') == 'error'],
+                    'warning': [r for r in affected_resources if r.get('status') == 'warning'],
+                    'ok': [r for r in affected_resources if r.get('status') == 'ok']
+                }
+                
+                print(f"DEBUG: Retrieved {len(affected_resources)} resources directly")
+                
+            except Exception as e:
+                print(f"DEBUG: Direct resource retrieval also failed: {e}")
+                # If all detailed calls fail, show basic info with a message
+                flash('Detailed resource information is not available. Showing basic recommendation info.', 'info')
+        else:
+            affected_resources = details.get('affected_resources', [])
+            resources_by_status = {
+                'error': [r for r in affected_resources if r.get('status') == 'error'],
+                'warning': [r for r in affected_resources if r.get('status') == 'warning'],
+                'ok': [r for r in affected_resources if r.get('status') == 'ok']
+            }
+        
+        # If we still don't have resources, create mock data based on the recommendation counts
+        if not affected_resources and current_recommendation:
+            print("DEBUG: Creating mock resource data from recommendation counts...")
+            mock_resources = []
+            
+            # Create mock resources based on counts
+            error_count = current_recommendation.get('error_count', 0)
+            warning_count = current_recommendation.get('warning_count', 0)
+            ok_count = current_recommendation.get('ok_count', 0)
+            
+            for i in range(error_count):
+                mock_resources.append({
+                    'resourceId': f'Resource-Error-{i+1}',
+                    'arn': 'arn:aws:service:region:account:resource/mock',
+                    'awsResourceId': f'mock-error-{i+1}',
+                    'lastUpdatedAt': current_recommendation.get('timestamp', ''),
+                    'regionCode': 'us-east-1',
+                    'status': 'error',
+                    'metadata': ['Mock resource data - detailed information not available']
+                })
+            
+            for i in range(warning_count):
+                mock_resources.append({
+                    'resourceId': f'Resource-Warning-{i+1}',
+                    'arn': 'arn:aws:service:region:account:resource/mock',
+                    'awsResourceId': f'mock-warning-{i+1}',
+                    'lastUpdatedAt': current_recommendation.get('timestamp', ''),
+                    'regionCode': 'us-east-1',
+                    'status': 'warning',
+                    'metadata': ['Mock resource data - detailed information not available']
+                })
+            
+            for i in range(ok_count):
+                mock_resources.append({
+                    'resourceId': f'Resource-OK-{i+1}',
+                    'arn': 'arn:aws:service:region:account:resource/mock',
+                    'awsResourceId': f'mock-ok-{i+1}',
+                    'lastUpdatedAt': current_recommendation.get('timestamp', ''),
+                    'regionCode': 'us-east-1',
+                    'status': 'ok',
+                    'metadata': ['Mock resource data - detailed information not available']
+                })
+            
+            affected_resources = mock_resources
+            resources_by_status = {
+                'error': [r for r in mock_resources if r.get('status') == 'error'],
+                'warning': [r for r in mock_resources if r.get('status') == 'warning'],
+                'ok': [r for r in mock_resources if r.get('status') == 'ok']
+            }
+            
+            if mock_resources:
+                flash('Showing estimated resource counts. Detailed resource information may not be available for this recommendation type.', 'info')
+        
+        return render_template('recommendation_details.html',
+                             recommendation=current_recommendation,
+                             recommendation_details=details.get('recommendation') if details else None,
+                             affected_resources=affected_resources,
+                             resources_by_status=resources_by_status,
+                             remediation=details.get('remediation') if details else None,
+                             total_resources=len(affected_resources))
+        
+    except Exception as e:
+        print(f"DEBUG: Error in recommendation details route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error retrieving recommendation details: {str(e)}', 'error')
+        return redirect(url_for('recommendations'))
+
+@app.route('/remediations')
+def remediations():
+    """Display remediations page with all recommendations and their remediation options."""
+    print("DEBUG: Accessing remediations page")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        from trusted_advisor_helper import get_all_trusted_advisor_recommendations, get_trusted_advisor_check_categories
+        
+        # Get all recommendations
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        if 'error' in recommendations_data:
+            flash(f'Trusted Advisor Error: {recommendations_data["error"]}', 'warning')
+            return render_template('remediations.html', 
+                                 recommendations=[], 
+                                 categories={},
+                                 error=recommendations_data['error'])
+        
+        recommendations = recommendations_data.get('recommendations', [])
+        categories = recommendations_data.get('categories', {})
+        
+        # Filter for recommendations that need remediation (error and warning status)
+        remediation_needed = [r for r in recommendations if r.get('status') in ['error', 'warning']]
+        
+        # Group by category for better organization
+        remediation_by_category = {}
+        for rec in remediation_needed:
+            category = rec.get('category', 'unknown')
+            if category not in remediation_by_category:
+                remediation_by_category[category] = []
+            remediation_by_category[category].append(rec)
+        
+        # Get category information
+        category_info = get_trusted_advisor_check_categories()
+        
+        # Calculate statistics
+        stats = {
+            'total_recommendations': len(recommendations),
+            'needs_remediation': len(remediation_needed),
+            'high_priority': len([r for r in remediation_needed if r.get('status') == 'error']),
+            'medium_priority': len([r for r in remediation_needed if r.get('status') == 'warning']),
+            'total_affected_resources': sum(r.get('resource_count', 0) for r in remediation_needed)
+        }
+        
+        return render_template('remediations.html',
+                             recommendations=remediation_needed,
+                             remediation_by_category=remediation_by_category,
+                             categories=categories,
+                             category_info=category_info,
+                             stats=stats,
+                             last_updated=recommendations_data.get('last_updated'))
+        
+    except Exception as e:
+        print(f"DEBUG: Error in remediations route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error retrieving remediations: {str(e)}', 'error')
+        return render_template('remediations.html', 
+                             recommendations=[], 
+                             categories={},
+                             error=str(e))
+
+@app.route('/api/recommendation/<recommendation_id>/resources')
+def api_recommendation_resources(recommendation_id):
+    """API endpoint to get affected resources for a specific recommendation."""
+    try:
+        from trusted_advisor_helper import get_all_affected_resources_for_check, get_all_trusted_advisor_recommendations
+        
+        # First, get the correct recommendationIdentifier
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        if 'error' in recommendations_data:
+            return jsonify({
+                'success': False,
+                'error': f'Error getting recommendations: {recommendations_data["error"]}',
+                'resources': [],
+                'total': 0
+            }), 500
+        
+        # Find the recommendation and get the correct identifier
+        current_recommendation = None
+        recommendation_identifier = None
+        
+        for rec in recommendations_data.get('recommendations', []):
+            if rec.get('id') == recommendation_id:
+                current_recommendation = rec
+                recommendation_identifier = rec.get('recommendationIdentifier') or rec.get('arn')
+                break
+        
+        if not recommendation_identifier:
+            return jsonify({
+                'success': False,
+                'error': 'Recommendation identifier not found',
+                'resources': [],
+                'total': 0
+            }), 404
+        
+        # Get resources using the correct identifier
+        resources = get_all_affected_resources_for_check(recommendation_identifier)
+        
+        return jsonify({
+            'success': True,
+            'resources': resources,
+            'total': len(resources),
+            'recommendation_id': recommendation_id,
+            'recommendation_identifier': recommendation_identifier
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'resources': [],
+            'total': 0
+        }), 500
+
+@app.route('/debug/test-api-params')
+def debug_test_api_params():
+    """Debug route to test AWS Trusted Advisor API parameters."""
+    if 'aws_region' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        from trusted_advisor_helper import get_trusted_advisor_client, get_all_trusted_advisor_recommendations
+        
+        # Get client
+        client = get_trusted_advisor_client()
+        if not client:
+            return jsonify({'error': 'Unable to create Trusted Advisor client'})
+        
+        # Get a sample recommendation
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        if 'error' in recommendations_data:
+            return jsonify({'error': f'Error getting recommendations: {recommendations_data["error"]}'})
+        
+        recommendations = recommendations_data.get('recommendations', [])
+        if not recommendations:
+            return jsonify({'error': 'No recommendations found to test with'})
+        
+        sample_rec = recommendations[0]
+        sample_rec_id = sample_rec.get('id')
+        sample_rec_name = sample_rec.get('name')
+        sample_rec_arn = sample_rec.get('arn')
+        sample_rec_check_arn = sample_rec.get('check_arn')
+        
+        # Let's also get the raw data from the API to see all available fields
+        print("DEBUG: Getting raw recommendation data from API...")
+        try:
+            raw_response = client.list_recommendations()
+            raw_recommendations = raw_response.get('recommendationSummaries', [])
+            raw_sample = raw_recommendations[0] if raw_recommendations else {}
+            
+            results = {
+                'sample_recommendation': {
+                    'processed_id': sample_rec_id,
+                    'processed_name': sample_rec_name,
+                    'processed_arn': sample_rec_arn,
+                    'processed_check_arn': sample_rec_check_arn,
+                    'processed_keys': list(sample_rec.keys()),
+                    'raw_keys': list(raw_sample.keys()),
+                    'raw_id': raw_sample.get('id', 'N/A'),
+                    'raw_arn': raw_sample.get('arn', 'N/A'),
+                    'raw_checkArn': raw_sample.get('checkArn', 'N/A'),
+                    'raw_name': raw_sample.get('name', 'N/A'),
+                    'all_raw_data': raw_sample  # Show complete raw data
+                },
+                'client_type': str(type(client)),
+                'client_service_name': getattr(client, '_service_model', {}).name if hasattr(client, '_service_model') else 'unknown',
+                'available_methods': [method for method in dir(client) if 'recommendation' in method.lower() and not method.startswith('_')],
+                'tests': {}
+            }
+            
+            # Test different identifier fields
+            test_identifiers = [
+                ('id', sample_rec_id),
+                ('arn', sample_rec_arn),
+                ('check_arn', sample_rec_check_arn),
+                ('raw_id', raw_sample.get('id')),
+                ('raw_arn', raw_sample.get('arn')),
+                ('raw_checkArn', raw_sample.get('checkArn'))
+            ]
+            
+            for identifier_name, identifier_value in test_identifiers:
+                if not identifier_value:
+                    results['tests'][f'get_recommendation_{identifier_name}'] = 'SKIPPED: No value'
+                    continue
+                    
+                try:
+                    print(f"DEBUG: Testing get_recommendation with {identifier_name}: {identifier_value}")
+                    response = client.get_recommendation(recommendationIdentifier=identifier_value)
+                    results['tests'][f'get_recommendation_{identifier_name}'] = 'SUCCESS'
+                    results[f'get_recommendation_{identifier_name}_response_keys'] = list(response.keys()) if response else []
+                    break  # Stop on first success
+                except Exception as e:
+                    results['tests'][f'get_recommendation_{identifier_name}'] = f'FAILED: {str(e)}'
+                    print(f"DEBUG: get_recommendation with {identifier_name} failed: {e}")
+            
+            # Test list_recommendation_resources with different identifiers
+            for identifier_name, identifier_value in test_identifiers:
+                if not identifier_value:
+                    results['tests'][f'list_resources_{identifier_name}'] = 'SKIPPED: No value'
+                    continue
+                    
+                try:
+                    print(f"DEBUG: Testing list_recommendation_resources with {identifier_name}: {identifier_value}")
+                    response = client.list_recommendation_resources(recommendationIdentifier=identifier_value)
+                    results['tests'][f'list_resources_{identifier_name}'] = 'SUCCESS'
+                    results[f'list_resources_{identifier_name}_response_keys'] = list(response.keys()) if response else []
+                    results[f'list_resources_{identifier_name}_resource_count'] = len(response.get('recommendationResourceSummaries', [])) if response else 0
+                    break  # Stop on first success
+                except Exception as e:
+                    results['tests'][f'list_resources_{identifier_name}'] = f'FAILED: {str(e)}'
+                    print(f"DEBUG: list_recommendation_resources with {identifier_name} failed: {e}")
+            
+            return jsonify(results)
+            
+        except Exception as e:
+            return jsonify({'error': f'Error getting raw data: {str(e)}'})
+        
+    except Exception as e:
+        print(f"DEBUG: Debug test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Debug test failed: {str(e)}'})
+
+@app.route('/debug/api')
+def debug_api_page():
+    """Debug page to test API parameters."""
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    return render_template('debug_api.html')
 def api_trusted_advisor_summary():
     """API endpoint for Trusted Advisor summary data."""
     if 'aws_region' not in session:
@@ -1665,8 +2068,5 @@ if __name__ == '__main__':
     print(f"🐛 Debug mode: {debug_mode}")
     print(f"📁 Data directory: /app/data")
     print(f"📝 Log directory: /app/logs")
-    
-    # Register the check-ta route
-    # register_check_ta_route(app)  # Module not found
     
     app.run(host=host, port=port, debug=debug_mode)

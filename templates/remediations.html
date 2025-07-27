@@ -1,0 +1,611 @@
+{% extends "base.html" %}
+
+{% block title %}Remediations - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.remediation-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.remediation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.priority-high {
+    border-left: 4px solid #dc3545;
+}
+
+.priority-medium {
+    border-left: 4px solid #ffc107;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.category-section {
+    margin-bottom: 30px;
+}
+
+.category-header {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #0d6efd;
+}
+
+.remediation-actions {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.action-item {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.action-item:last-child {
+    margin-bottom: 0;
+}
+
+.priority-badge {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+.resource-summary {
+    font-size: 0.9rem;
+}
+
+.filter-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    border-radius: 25px;
+    border: 2px solid #e9ecef;
+    padding: 10px 20px;
+}
+
+.search-box:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.category-tab {
+    border-radius: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.category-tab.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.remediation-timeline {
+    border-left: 3px solid #0d6efd;
+    padding-left: 20px;
+    margin-left: 10px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.export-section {
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-tools me-2 text-primary"></i>
+                        Remediations
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Action plans and remediation steps for Trusted Advisor recommendations
+                        {% if last_updated %}
+                        <small class="ms-2">
+                            <i class="fas fa-clock me-1"></i>
+                            Last updated: {{ last_updated }}
+                        </small>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="export-section">
+                    <button class="btn btn-outline-primary me-2" onclick="exportRemediationPlan()">
+                        <i class="fas fa-file-export me-1"></i>Export Action Plan
+                    </button>
+                    <button class="btn btn-outline-secondary me-2" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.high_priority }}</h3>
+                    <small>High Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.medium_priority }}</h3>
+                    <small>Medium Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white text-center">
+                <div class="card-body">
+                    <i class="fas fa-server fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.total_affected_resources }}</h3>
+                    <small>Affected Resources</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white text-center">
+                <div class="card-body">
+                    <i class="fas fa-list fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ stats.needs_remediation }}</h3>
+                    <small>Need Remediation</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>Filter by Category
+                </h6>
+                <div class="category-tabs">
+                    <button class="btn btn-outline-primary category-tab active" data-category="all">
+                        All Categories
+                        <span class="badge bg-primary ms-1">{{ recommendations|length }}</span>
+                    </button>
+                    {% for category, recs in remediation_by_category.items() %}
+                    {% if category_info[category] %}
+                    <button class="btn btn-outline-primary category-tab" data-category="{{ category }}">
+                        <i class="{{ category_info[category].icon }} me-1"></i>{{ category_info[category].name }}
+                        <span class="badge bg-primary ms-1">{{ recs|length }}</span>
+                    </button>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6 class="mb-3">
+                    <i class="fas fa-search me-2"></i>Search Remediations
+                </h6>
+                <input type="text" class="form-control search-box" id="searchInput" 
+                       placeholder="Search by name or description...">
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="mb-2">
+                    <i class="fas fa-traffic-light me-2"></i>Filter by Priority
+                </h6>
+                <div class="btn-group" role="group">
+                    <input type="checkbox" class="btn-check" id="priority-high" checked>
+                    <label class="btn btn-outline-danger" for="priority-high">
+                        <i class="fas fa-exclamation-circle me-1"></i>High Priority
+                    </label>
+                    
+                    <input type="checkbox" class="btn-check" id="priority-medium" checked>
+                    <label class="btn btn-outline-warning" for="priority-medium">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Medium Priority
+                    </label>
+                </div>
+                
+                <button class="btn btn-outline-secondary ms-3" onclick="clearFilters()">
+                    <i class="fas fa-times me-1"></i>Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remediation Categories -->
+    {% if remediation_by_category %}
+        {% for category, category_recommendations in remediation_by_category.items() %}
+        {% if category_info[category] %}
+        <div class="category-section" data-category="{{ category }}">
+            <div class="category-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">
+                            <i class="{{ category_info[category].icon }} me-2"></i>
+                            {{ category_info[category].name }}
+                        </h4>
+                        <p class="mb-0 text-muted">{{ category_info[category].description }}</p>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary fs-6">{{ category_recommendations|length }} items</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations in this category -->
+            {% for recommendation in category_recommendations %}
+            <div class="card remediation-card {% if recommendation.status == 'error' %}priority-high{% else %}priority-medium{% endif %}" 
+                 data-priority="{{ recommendation.status }}" 
+                 data-category="{{ category }}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start mb-2">
+                                <div class="me-3">
+                                    {% if recommendation.status == 'error' %}
+                                        <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1">{{ recommendation.name }}</h6>
+                                    <p class="card-text text-muted small mb-2">{{ recommendation.description }}</p>
+                                    
+                                    <!-- Resource Summary -->
+                                    <div class="resource-summary mb-2">
+                                        <small class="text-muted me-2">Affected Resources:</small>
+                                        {% if recommendation.error_count > 0 %}
+                                            <span class="badge bg-danger me-1">{{ recommendation.error_count }} Error</span>
+                                        {% endif %}
+                                        {% if recommendation.warning_count > 0 %}
+                                            <span class="badge bg-warning text-dark me-1">{{ recommendation.warning_count }} Warning</span>
+                                        {% endif %}
+                                        {% if recommendation.ok_count > 0 %}
+                                            <span class="badge bg-success me-1">{{ recommendation.ok_count }} OK</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- AWS Services -->
+                                    {% if recommendation.aws_services and recommendation.aws_services|length > 0 %}
+                                    <div class="mb-2">
+                                        <small class="text-muted me-2">Services:</small>
+                                        {% for service in recommendation.aws_services %}
+                                            <span class="badge bg-light text-dark me-1">{{ service }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="mb-2">
+                                {% if recommendation.status == 'error' %}
+                                    <span class="badge bg-danger priority-badge">🔴 High Priority</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark priority-badge">🟡 Medium Priority</span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <a href="{{ url_for('recommendation_details', recommendation_id=recommendation.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remediation Actions -->
+                    <div class="remediation-actions">
+                        <h6 class="mb-3">
+                            <i class="fas fa-list-ol me-2"></i>Remediation Timeline
+                        </h6>
+                        
+                        <div class="remediation-timeline">
+                            {% if recommendation.status == 'error' %}
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Immediate (0-24 hours):</strong>
+                                    <p class="mb-1">Assess impact and identify critical resources requiring immediate attention.</p>
+                                    <small class="text-muted">Priority: Critical</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Short-term (1-7 days):</strong>
+                                    <p class="mb-1">Implement fixes for high-impact resources and establish monitoring.</p>
+                                    <small class="text-muted">Priority: High</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Medium-term (1-4 weeks):</strong>
+                                    <p class="mb-1">Address remaining resources and implement preventive measures.</p>
+                                    <small class="text-muted">Priority: Medium</small>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Planning (1-2 weeks):</strong>
+                                    <p class="mb-1">Review affected resources and plan remediation during maintenance windows.</p>
+                                    <small class="text-muted">Priority: Medium</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Implementation (2-8 weeks):</strong>
+                                    <p class="mb-1">Execute remediation plan and validate changes in non-production first.</p>
+                                    <small class="text-muted">Priority: Medium</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="timeline-item">
+                                <div class="action-item">
+                                    <strong>Ongoing:</strong>
+                                    <p class="mb-1">Monitor for compliance and prevent recurrence through automation.</p>
+                                    <small class="text-muted">Priority: Low</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="mt-3">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('recommendation_details', recommendation_id=recommendation.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i>View All Resources
+                                </a>
+                                <a href="https://console.aws.amazon.com/trustedadvisor/home" 
+                                   target="_blank" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-external-link-alt me-1"></i>AWS Console
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        onclick="exportSingleRemediation('{{ recommendation.id }}')">
+                                    <i class="fas fa-download me-1"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    {% else %}
+        <!-- No Remediations Needed -->
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h5 class="text-success">Great! No remediations needed</h5>
+            <p class="text-muted">All your Trusted Advisor recommendations are currently passing.</p>
+            <a href="{{ url_for('recommendations') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Recommendations
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- No Results Message -->
+    <div id="no-results" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No remediations found</h5>
+        <p class="text-muted">Try adjusting your filters or search terms</p>
+    </div>
+</div>
+
+<script>
+// Filter and search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const priorityCheckboxes = document.querySelectorAll('input[id^="priority-"]');
+    const categoryCards = document.querySelectorAll('.remediation-card');
+    const categorySections = document.querySelectorAll('.category-section');
+    const noResults = document.getElementById('no-results');
+
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let currentPriorities = ['error', 'warning'];
+
+    function applyFilters() {
+        let visibleCount = 0;
+        let visibleSections = new Set();
+
+        categoryCards.forEach(card => {
+            const category = card.dataset.category;
+            const priority = card.dataset.priority;
+            const cardText = card.textContent.toLowerCase();
+
+            const categoryMatch = currentCategory === 'all' || category === currentCategory;
+            const priorityMatch = currentPriorities.includes(priority);
+            const searchMatch = currentSearch === '' || cardText.includes(currentSearch.toLowerCase());
+
+            if (categoryMatch && priorityMatch && searchMatch) {
+                card.style.display = 'block';
+                visibleSections.add(category);
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide category sections
+        categorySections.forEach(section => {
+            const category = section.dataset.category;
+            if (visibleSections.has(category) || currentCategory === 'all') {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+        }
+    }
+
+    function clearFilters() {
+        currentCategory = 'all';
+        currentSearch = '';
+        currentPriorities = ['error', 'warning'];
+
+        // Reset UI
+        searchInput.value = '';
+        categoryTabs.forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.category === 'all') {
+                tab.classList.add('active');
+            }
+        });
+
+        priorityCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+
+        applyFilters();
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        applyFilters();
+    });
+
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentCategory = tab.dataset.category;
+            applyFilters();
+        });
+    });
+
+    priorityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            currentPriorities = [];
+            priorityCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    currentPriorities.push(cb.id.replace('priority-', ''));
+                }
+            });
+            applyFilters();
+        });
+    });
+
+    // Make clearFilters globally available
+    window.clearFilters = clearFilters;
+});
+
+// Export functionality
+function exportRemediationPlan() {
+    const remediations = {{ recommendations|tojson }};
+    const stats = {{ stats|tojson }};
+    
+    let content = "# Remediation Action Plan\n\n";
+    content += `Generated: ${new Date().toLocaleString()}\n\n`;
+    content += `## Summary\n`;
+    content += `- High Priority: ${stats.high_priority}\n`;
+    content += `- Medium Priority: ${stats.medium_priority}\n`;
+    content += `- Total Affected Resources: ${stats.total_affected_resources}\n\n`;
+    
+    remediations.forEach((rec, index) => {
+        content += `## ${index + 1}. ${rec.name}\n`;
+        content += `**Priority:** ${rec.status === 'error' ? 'High' : 'Medium'}\n`;
+        content += `**Category:** ${rec.category}\n`;
+        content += `**Affected Resources:** ${rec.resource_count}\n`;
+        content += `**Description:** ${rec.description}\n\n`;
+        
+        if (rec.status === 'error') {
+            content += `### Immediate Actions (0-24 hours)\n`;
+            content += `- Assess impact and identify critical resources\n`;
+            content += `- Implement emergency fixes if needed\n\n`;
+            content += `### Short-term Actions (1-7 days)\n`;
+            content += `- Fix high-impact resources\n`;
+            content += `- Establish monitoring\n\n`;
+        } else {
+            content += `### Planning Phase (1-2 weeks)\n`;
+            content += `- Review affected resources\n`;
+            content += `- Plan maintenance windows\n\n`;
+            content += `### Implementation Phase (2-8 weeks)\n`;
+            content += `- Execute remediation plan\n`;
+            content += `- Validate changes\n\n`;
+        }
+        
+        content += `### Ongoing Monitoring\n`;
+        content += `- Monitor for compliance\n`;
+        content += `- Prevent recurrence\n\n`;
+        content += `---\n\n`;
+    });
+    
+    // Create and download file
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `remediation_plan_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function exportSingleRemediation(recommendationId) {
+    // Export single remediation plan
+    alert(`Exporting remediation plan for recommendation: ${recommendationId}`);
+}
+</script>
+{% endblock %}

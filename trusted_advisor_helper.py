@@ -21,14 +21,48 @@ def get_trusted_advisor_client():
         if not aws_session:
             return None
         
-        # Use the newer trustedadvisor service
-        # Always use us-east-1 for Trusted Advisor regardless of session region
-        ta_client = aws_session.client(
-            'trustedadvisor', 
-            region_name='us-east-1',
-            endpoint_url='https://trustedadvisor.us-east-1.api.aws'
-        )
-        return ta_client
+        # Try different approaches to create the Trusted Advisor client
+        # The CLI works without custom endpoint, so try that first
+        try:
+            # First try: Use standard trustedadvisor service (matches CLI behavior)
+            print("DEBUG: Trying standard trustedadvisor service (CLI equivalent)...")
+            ta_client = aws_session.client(
+                'trustedadvisor', 
+                region_name='us-east-1'
+            )
+            print("DEBUG: Standard trustedadvisor service client created successfully")
+            return ta_client
+        except Exception as e1:
+            print(f"DEBUG: Standard trustedadvisor service failed: {e1}")
+        
+        try:
+            # Second try: Use the newer trustedadvisor service with custom endpoint
+            print("DEBUG: Trying trustedadvisor service with custom endpoint...")
+            ta_client = aws_session.client(
+                'trustedadvisor', 
+                region_name='us-east-1',
+                endpoint_url='https://trustedadvisor.us-east-1.api.aws'
+            )
+            print("DEBUG: Custom endpoint trustedadvisor service client created successfully")
+            return ta_client
+        except Exception as e2:
+            print(f"DEBUG: Custom endpoint failed: {e2}")
+        
+        try:
+            # Third try: Use support service (traditional Trusted Advisor API) as fallback
+            print("DEBUG: Trying support service client as fallback...")
+            support_client = aws_session.client(
+                'support',
+                region_name='us-east-1'
+            )
+            # Test if it has the methods we need
+            if hasattr(support_client, 'describe_trusted_advisor_checks'):
+                print("DEBUG: Support service client created successfully")
+                return support_client
+        except Exception as e3:
+            print(f"DEBUG: Support service failed: {e3}")
+            return None
+                    
     except Exception as e:
         print(f"Error creating Trusted Advisor client: {e}")
         return None
@@ -214,8 +248,12 @@ def get_all_trusted_advisor_recommendations():
                         total_resources = error_count + warning_count + ok_count
                         
                         # Create recommendation object
+                        # IMPORTANT: Use 'arn' as the recommendationIdentifier for detailed API calls
+                        recommendation_identifier = rec.get('arn', '')  # This is the key field for detailed calls
+                        
                         recommendation = {
-                            'id': rec.get('id', ''),
+                            'id': rec.get('id', ''),  # Keep original ID for display
+                            'recommendationIdentifier': recommendation_identifier,  # Store the correct identifier
                             'name': rec.get('name', ''),
                             'description': rec.get('name', ''),  # Use name as description for now
                             'category': pillar,
@@ -414,6 +452,401 @@ def get_trusted_advisor_check_categories():
             'color': 'primary'
         }
     }
+
+def get_recommendation_details(recommendation_id):
+    """Get detailed information for a specific recommendation including affected resources."""
+    try:
+        client = get_trusted_advisor_client()
+        if not client:
+            return {
+                'error': 'Unable to create Trusted Advisor client',
+                'recommendation': None,
+                'affected_resources': []
+            }
+        
+        print(f"DEBUG: Getting details for recommendation ID: {recommendation_id}")
+        print(f"DEBUG: Client type: {type(client)}")
+        
+        # Check which service we're using and call appropriate methods
+        service_name = 'unknown'
+        if hasattr(client, '_service_model'):
+            service_model = getattr(client, '_service_model')
+            if hasattr(service_model, 'service_name'):
+                service_name = service_model.service_name
+        
+        print(f"DEBUG: Client service: {service_name}")
+        
+        if service_name == 'support':
+            return get_recommendation_details_support(client, recommendation_id)
+        else:
+            return get_recommendation_details_trustedadvisor(client, recommendation_id)
+            
+    except Exception as e:
+        print(f"DEBUG: Outer exception: {str(e)}")
+        return {
+            'error': f'Error in get_recommendation_details: {str(e)}',
+            'recommendation': None,
+            'affected_resources': [],
+            'remediation': None
+        }
+
+def get_recommendation_details_trustedadvisor(client, recommendation_id):
+    """Get recommendation details using the trustedadvisor service."""
+    try:
+        print("DEBUG: Using trustedadvisor service API")
+        
+        # Get recommendation details - use only recommendationIdentifier
+        print("DEBUG: Calling get_recommendation with recommendationIdentifier...")
+        response = client.get_recommendation(recommendationIdentifier=recommendation_id)
+        recommendation_data = response.get('recommendation', {})
+        print("DEBUG: Successfully got recommendation details")
+        
+        # Get affected resources - use only recommendationIdentifier
+        print("DEBUG: Calling list_recommendation_resources with recommendationIdentifier...")
+        resources_response = client.list_recommendation_resources(
+            recommendationIdentifier=recommendation_id
+        )
+        print("DEBUG: Successfully got recommendation resources")
+        
+        affected_resources = []
+        resources = resources_response.get('recommendationResourceSummaries', [])
+        
+        for resource in resources:
+            # Format datetime fields to strings
+            last_updated = resource.get('lastUpdatedAt', '')
+            if hasattr(last_updated, 'isoformat'):  # It's a datetime object
+                last_updated = last_updated.isoformat()
+            elif last_updated and not isinstance(last_updated, str):
+                last_updated = str(last_updated)
+            
+            # Ensure metadata is always a list
+            metadata = resource.get('metadata', [])
+            if not isinstance(metadata, list):
+                metadata = [str(metadata)] if metadata else []
+            
+            formatted_resource = {
+                'resourceId': resource.get('resourceId', 'N/A'),
+                'arn': resource.get('arn', ''),
+                'awsResourceId': resource.get('awsResourceId', ''),
+                'lastUpdatedAt': last_updated,
+                'regionCode': resource.get('regionCode', 'N/A'),
+                'status': resource.get('status', 'unknown'),
+                'metadata': metadata
+            }
+            affected_resources.append(formatted_resource)
+        
+        print(f"DEBUG: Processed {len(affected_resources)} resources")
+        
+        # Get remediation information if available
+        remediation_info = get_recommendation_remediation(recommendation_id)
+        
+        return {
+            'recommendation': recommendation_data,
+            'affected_resources': affected_resources,
+            'remediation': remediation_info,
+            'total_resources': len(affected_resources),
+            'error': None
+        }
+        
+    except Exception as e:
+        print(f"DEBUG: trustedadvisor service error: {str(e)}")
+        return {
+            'error': f'Trustedadvisor API Error: {str(e)}',
+            'recommendation': None,
+            'affected_resources': [],
+            'remediation': None
+        }
+
+def get_recommendation_details_support(client, recommendation_id):
+    """Get recommendation details using the support service (traditional API)."""
+    try:
+        print("DEBUG: Using support service API")
+        
+        # The support service uses different methods
+        # We need to get the check result using describe_trusted_advisor_check_result
+        print(f"DEBUG: Calling describe_trusted_advisor_check_result with checkId: {recommendation_id}")
+        
+        try:
+            response = client.describe_trusted_advisor_check_result(
+                checkId=recommendation_id,
+                language='en'
+            )
+            
+            check_result = response.get('result', {})
+            print("DEBUG: Successfully got check result from support service")
+            
+            # Format the response to match the expected structure
+            recommendation_data = {
+                'id': recommendation_id,
+                'name': check_result.get('checkId', recommendation_id),
+                'description': 'Detailed information from Support API',
+                'status': check_result.get('status', 'unknown').lower()
+            }
+            
+            # Get flagged resources
+            affected_resources = []
+            flagged_resources = check_result.get('flaggedResources', [])
+            
+            for resource in flagged_resources:
+                formatted_resource = {
+                    'resourceId': resource.get('resourceId', 'N/A'),
+                    'arn': 'N/A',  # Support API doesn't provide ARN
+                    'awsResourceId': resource.get('resourceId', 'N/A'),
+                    'lastUpdatedAt': check_result.get('timestamp', ''),
+                    'regionCode': resource.get('region', 'N/A'),
+                    'status': resource.get('status', 'flagged'),
+                    'metadata': resource.get('metadata', [])
+                }
+                affected_resources.append(formatted_resource)
+            
+            print(f"DEBUG: Processed {len(affected_resources)} flagged resources from support API")
+            
+            return {
+                'recommendation': recommendation_data,
+                'affected_resources': affected_resources,
+                'remediation': None,  # Support API doesn't provide detailed remediation
+                'total_resources': len(affected_resources),
+                'error': None
+            }
+            
+        except Exception as e:
+            print(f"DEBUG: Support API call failed: {str(e)}")
+            # If the specific check call fails, return empty but valid response
+            return {
+                'recommendation': {'id': recommendation_id, 'name': 'Unknown Check'},
+                'affected_resources': [],
+                'remediation': None,
+                'total_resources': 0,
+                'error': f'Support API Error: {str(e)}'
+            }
+        
+    except Exception as e:
+        print(f"DEBUG: Support service error: {str(e)}")
+        return {
+            'error': f'Support API Error: {str(e)}',
+            'recommendation': None,
+            'affected_resources': [],
+            'remediation': None
+        }
+
+def get_recommendation_remediation(recommendation_id):
+    """Get remediation information for a specific recommendation."""
+    try:
+        client = get_trusted_advisor_client()
+        if not client:
+            return None
+        
+        print(f"DEBUG: Getting remediation for recommendation ID: {recommendation_id}")
+        
+        # Check which service we're using
+        service_name = 'unknown'
+        if hasattr(client, '_service_model'):
+            service_model = getattr(client, '_service_model')
+            if hasattr(service_model, 'service_name'):
+                service_name = service_model.service_name
+        
+        if service_name == 'support':
+            return get_remediation_support(client, recommendation_id)
+        else:
+            return get_remediation_trustedadvisor(client, recommendation_id)
+            
+    except Exception as e:
+        print(f"DEBUG: Error getting remediation info: {e}")
+        return None
+
+def get_remediation_trustedadvisor(client, recommendation_id):
+    """Get remediation using trustedadvisor service."""
+    try:
+        # Use only recommendationIdentifier
+        response = client.get_recommendation(recommendationIdentifier=recommendation_id)
+        recommendation = response.get('recommendation', {})
+        
+        # Extract remediation information from the recommendation
+        # Helper function to format datetime fields
+        def format_datetime_field(field_value):
+            if hasattr(field_value, 'isoformat'):  # It's a datetime object
+                return field_value.isoformat()
+            elif field_value and not isinstance(field_value, str):
+                return str(field_value)
+            return field_value or ''
+        
+        remediation_info = {
+            'description': recommendation.get('description', ''),
+            'resolvedAt': format_datetime_field(recommendation.get('resolvedAt')),
+            'createdAt': format_datetime_field(recommendation.get('createdAt')),
+            'lastUpdatedAt': format_datetime_field(recommendation.get('lastUpdatedAt')),
+            'lifecycleStage': recommendation.get('lifecycleStage', ''),
+            'updateReason': recommendation.get('updateReason', ''),
+            'updateReasonCode': recommendation.get('updateReasonCode', ''),
+            'pillarSpecificAggregates': recommendation.get('pillarSpecificAggregates', {}),
+            'source': recommendation.get('source', ''),
+            'type': recommendation.get('type', '')
+        }
+        
+        print("DEBUG: Successfully got remediation info from trustedadvisor service")
+        return remediation_info
+        
+    except Exception as e:
+        print(f"DEBUG: Could not get remediation info from trustedadvisor service: {e}")
+        return None
+
+def get_remediation_support(client, recommendation_id):
+    """Get remediation using support service."""
+    try:
+        # Support service doesn't have detailed remediation info
+        # We can get basic check information
+        response = client.describe_trusted_advisor_check_result(
+            checkId=recommendation_id,
+            language='en'
+        )
+        
+        check_result = response.get('result', {})
+        
+        # Create basic remediation info from what's available
+        remediation_info = {
+            'description': f"Check status: {check_result.get('status', 'unknown')}",
+            'resolvedAt': None,
+            'createdAt': None,
+            'lastUpdatedAt': check_result.get('timestamp', ''),
+            'lifecycleStage': check_result.get('status', ''),
+            'updateReason': '',
+            'updateReasonCode': '',
+            'pillarSpecificAggregates': {},
+            'source': 'support',
+            'type': 'trusted_advisor_check'
+        }
+        
+        print("DEBUG: Successfully got basic remediation info from support service")
+        return remediation_info
+        
+    except Exception as e:
+        print(f"DEBUG: Could not get remediation info from support service: {e}")
+        return None
+
+def get_all_affected_resources_for_check(recommendation_id):
+    """Get all affected resources for a specific check with pagination."""
+    try:
+        client = get_trusted_advisor_client()
+        if not client:
+            return []
+        
+        print(f"DEBUG: Getting all resources for recommendation ID: {recommendation_id}")
+        
+        # Check which service we're using
+        service_name = 'unknown'
+        if hasattr(client, '_service_model'):
+            service_model = getattr(client, '_service_model')
+            if hasattr(service_model, 'service_name'):
+                service_name = service_model.service_name
+        
+        print(f"DEBUG: Using service: {service_name}")
+        
+        if service_name == 'support':
+            return get_affected_resources_support(client, recommendation_id)
+        else:
+            return get_affected_resources_trustedadvisor(client, recommendation_id)
+        
+    except Exception as e:
+        print(f"DEBUG: Error getting affected resources: {e}")
+        return []
+
+def get_affected_resources_trustedadvisor(client, recommendation_id):
+    """Get affected resources using trustedadvisor service."""
+    all_resources = []
+    next_token = None
+    page_count = 0
+    
+    while True:
+        page_count += 1
+        print(f"DEBUG: Fetching page {page_count} of resources...")
+        
+        # Prepare the request parameters
+        params = {'recommendationIdentifier': recommendation_id}
+        if next_token:
+            params['nextToken'] = next_token
+        
+        try:
+            response = client.list_recommendation_resources(**params)
+            resources = response.get('recommendationResourceSummaries', [])
+            print(f"DEBUG: Got {len(resources)} resources on page {page_count}")
+            
+            for resource in resources:
+                # Format datetime fields to strings
+                last_updated = resource.get('lastUpdatedAt', '')
+                if hasattr(last_updated, 'isoformat'):  # It's a datetime object
+                    last_updated = last_updated.isoformat()
+                elif last_updated and not isinstance(last_updated, str):
+                    last_updated = str(last_updated)
+                
+                # Ensure metadata is always a list
+                metadata = resource.get('metadata', [])
+                if not isinstance(metadata, list):
+                    metadata = [str(metadata)] if metadata else []
+                
+                formatted_resource = {
+                    'resourceId': resource.get('resourceId', 'N/A'),
+                    'arn': resource.get('arn', ''),
+                    'awsResourceId': resource.get('awsResourceId', ''),
+                    'lastUpdatedAt': last_updated,
+                    'regionCode': resource.get('regionCode', 'N/A'),
+                    'status': resource.get('status', 'unknown'),
+                    'metadata': metadata,
+                    'exclusionStatus': resource.get('exclusionStatus', ''),
+                    'resourceArn': resource.get('resourceArn', '')
+                }
+                all_resources.append(formatted_resource)
+            
+            # Check if there are more pages
+            next_token = response.get('nextToken')
+            if not next_token:
+                break
+                
+            # Safety check to prevent infinite loops
+            if page_count > 20:  # Reasonable limit for resources
+                print("DEBUG: Reached maximum page limit (20)")
+                break
+                
+        except Exception as page_error:
+            print(f"DEBUG: Error fetching resources page {page_count}: {page_error}")
+            break
+    
+    print(f"DEBUG: Retrieved {len(all_resources)} total resources for recommendation {recommendation_id}")
+    return all_resources
+
+def get_affected_resources_support(client, recommendation_id):
+    """Get affected resources using support service."""
+    try:
+        print(f"DEBUG: Getting resources from support API for check: {recommendation_id}")
+        
+        response = client.describe_trusted_advisor_check_result(
+            checkId=recommendation_id,
+            language='en'
+        )
+        
+        check_result = response.get('result', {})
+        flagged_resources = check_result.get('flaggedResources', [])
+        
+        all_resources = []
+        for resource in flagged_resources:
+            formatted_resource = {
+                'resourceId': resource.get('resourceId', 'N/A'),
+                'arn': 'N/A',  # Support API doesn't provide ARN
+                'awsResourceId': resource.get('resourceId', 'N/A'),
+                'lastUpdatedAt': check_result.get('timestamp', ''),
+                'regionCode': resource.get('region', 'N/A'),
+                'status': resource.get('status', 'flagged'),
+                'metadata': resource.get('metadata', []),
+                'exclusionStatus': '',
+                'resourceArn': ''
+            }
+            all_resources.append(formatted_resource)
+        
+        print(f"DEBUG: Retrieved {len(all_resources)} flagged resources from support API")
+        return all_resources
+        
+    except Exception as e:
+        print(f"DEBUG: Support API error getting resources: {e}")
+        return []
 
 def format_trusted_advisor_resource(resource, metadata):
     """Format a flagged resource for display."""
