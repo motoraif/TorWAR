@@ -496,7 +496,7 @@ function generateReport() {
     window.location.href = '/recommendations/report';
 }
 
-// Refresh recommendations with cache refresh
+// Refresh recommendations with loading page
 async function refreshRecommendations() {
     const button = event.target.closest('button');
     const originalText = button.innerHTML;
@@ -504,10 +504,8 @@ async function refreshRecommendations() {
     button.disabled = true;
     
     try {
-        // Add refresh parameter to URL to force cache refresh
-        const url = new URL(window.location);
-        url.searchParams.set('refresh', 'true');
-        window.location.href = url.toString();
+        // Redirect to refresh with loading page
+        window.location.href = '/cache/refresh-with-loading?redirect=' + encodeURIComponent('/recommendations');
     } catch (error) {
         console.error('Error refreshing:', error);
         button.innerHTML = originalText;

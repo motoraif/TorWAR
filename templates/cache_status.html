@@ -81,12 +81,36 @@
                                 <span class="badge bg-secondary">{{ cache_info.cache_ttl_minutes }} min</span>
                                 {% if cache_info.refresh_in_progress %}
                                     <br><small class="text-info">Refreshing...</small>
+                                {% elif cache_info.is_loading %}
+                                    <br><small class="text-warning">Loading...</small>
                                 {% endif %}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Startup Status (if applicable) -->
+            {% if cache_info.is_first_startup or not cache_info.startup_complete %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-rocket"></i> Startup Status</h5>
+                        {% if cache_info.is_first_startup %}
+                            <p><strong>First Startup Detected:</strong> TorWAR is fetching fresh data from AWS on first launch.</p>
+                        {% endif %}
+                        {% if not cache_info.startup_complete %}
+                            <p><strong>Startup in Progress:</strong> Please wait while we load the latest Trusted Advisor data.</p>
+                            <div class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 60%"></div>
+                            </div>
+                        {% else %}
+                            <p><strong>Startup Complete:</strong> All systems ready!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Cache Details -->
             <div class="card">

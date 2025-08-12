@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - TorWAR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .loading-container {
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            padding: 2rem;
+        }
+        
+        .torwar-logo {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .loading-details {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+        
+        .progress-container {
+            margin: 2rem 0;
+        }
+        
+        .progress {
+            height: 8px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            animation: progress-animation 3s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        @keyframes progress-animation {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+        
+        .feature-item i {
+            margin-right: 0.8rem;
+            width: 20px;
+            color: #28a745;
+        }
+        
+        .auto-refresh-notice {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <!-- TorWAR Logo -->
+        <div class="torwar-logo">
+            <i class="fas fa-shield-alt"></i>
+            TorWAR
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div class="loading-spinner"></div>
+        
+        <!-- Loading Text -->
+        <div class="loading-text">
+            {{ loading_message or "Loading AWS Well-Architected Review Tool..." }}
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar"></div>
+            </div>
+        </div>
+        
+        <!-- Loading Details -->
+        <div class="loading-details">
+            {% if startup_refresh %}
+                <p><i class="fas fa-rocket"></i> First startup detected - fetching fresh data from AWS</p>
+                <p><i class="fas fa-cloud-download-alt"></i> This may take a few moments...</p>
+            {% else %}
+                <p><i class="fas fa-sync-alt"></i> Refreshing Trusted Advisor recommendations</p>
+                <p><i class="fas fa-database"></i> Updating cache with latest data</p>
+            {% endif %}
+        </div>
+        
+        <!-- Feature Highlights -->
+        <div class="feature-list">
+            <div class="feature-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>High-performance caching system</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-shield-check"></i>
+                <span>AWS Well-Architected Framework reviews</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-lightbulb"></i>
+                <span>Trusted Advisor recommendations</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-brain"></i>
+                <span>AI-powered analysis and insights</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Comprehensive reporting and analytics</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Auto-refresh notice -->
+    <div class="auto-refresh-notice">
+        <i class="fas fa-sync-alt"></i> Auto-refreshing...
+    </div>
+    
+    <script>
+        // Auto-refresh the page every 3 seconds to check if loading is complete
+        let refreshCount = 0;
+        const maxRefreshes = 60; // Maximum 3 minutes of loading
+        
+        function checkLoadingStatus() {
+            refreshCount++;
+            
+            // If we've been loading too long, redirect to homepage
+            if (refreshCount >= maxRefreshes) {
+                console.log('Loading timeout reached, redirecting to homepage');
+                window.location.href = '/';
+                return;
+            }
+            
+            // Check if we should continue loading
+            fetch('/api/cache/info')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Cache status:', data);
+                    
+                    // If startup is complete or not loading anymore, redirect
+                    if (data.startup_complete && !data.is_loading) {
+                        console.log('Loading complete, redirecting...');
+                        // Add a small delay for smooth transition
+                        setTimeout(() => {
+                            window.location.href = '{{ redirect_url or "/" }}';
+                        }, 1000);
+                    } else {
+                        // Continue checking
+                        setTimeout(checkLoadingStatus, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking cache status:', error);
+                    // If there's an error, redirect after a delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 5000);
+                });
+        }
+        
+        // Start checking after initial delay
+        setTimeout(checkLoadingStatus, 3000);
+        
+        // Add some visual feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate the progress bar
+            const progressBar = document.querySelector('.progress-bar');
+            let progress = 0;
+            
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90; // Don't complete until actually done
+                progressBar.style.width = progress + '%';
+            }, 500);
+            
+            // Clean up interval when page unloads
+            window.addEventListener('beforeunload', () => {
+                clearInterval(progressInterval);
+            });
+        });
+    </script>
+</body>
+</html>

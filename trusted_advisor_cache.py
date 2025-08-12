@@ -24,12 +24,14 @@ class TrustedAdvisorCache:
     - Graceful fallback to live API calls
     """
     
-    def __init__(self, cache_dir: str = "data/cache", cache_ttl_minutes: int = 30):
+    def __init__(self, cache_dir: str = "data/cache", cache_ttl_minutes: int = 30, startup_refresh: bool = True):
         self.cache_dir = cache_dir
         self.cache_ttl = timedelta(minutes=cache_ttl_minutes)
+        self.startup_refresh = startup_refresh
         self.recommendations_file = os.path.join(cache_dir, "trusted_advisor_recommendations.json")
         self.summary_file = os.path.join(cache_dir, "trusted_advisor_summary.json")
         self.metadata_file = os.path.join(cache_dir, "cache_metadata.json")
+        self.startup_flag_file = os.path.join(cache_dir, "startup_complete.flag")
         
         # In-memory cache
         self._memory_cache = {
@@ -41,12 +43,23 @@ class TrustedAdvisorCache:
         # Background refresh control
         self._refresh_in_progress = False
         self._refresh_thread = None
+        self._startup_complete = False
         
         # Ensure cache directory exists
         os.makedirs(cache_dir, exist_ok=True)
         
+        # Check if this is first startup
+        self._is_first_startup = not os.path.exists(self.startup_flag_file)
+        
         # Load existing cache on initialization
         self._load_from_disk()
+        
+        # If startup refresh is enabled and this is first startup, start background refresh
+        if self.startup_refresh and self._is_first_startup:
+            print("🚀 First application startup detected - initiating fresh cache fetch...")
+            self._start_startup_refresh()
+        else:
+            self._startup_complete = True
     
     def get_recommendations(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
@@ -59,6 +72,16 @@ class TrustedAdvisorCache:
             Dict containing recommendations data
         """
         print("🔍 TrustedAdvisorCache: Getting recommendations...")
+        
+        # If startup refresh is in progress, wait for it or return loading state
+        if not self._startup_complete and self._refresh_in_progress:
+            print("🚀 Startup refresh in progress...")
+            return {
+                'loading': True,
+                'message': 'Loading fresh data on first startup...',
+                'recommendations': [],
+                'startup_refresh': True
+            }
         
         # Check if we should use cache
         if not force_refresh and self._is_cache_valid():
@@ -220,6 +243,34 @@ class TrustedAdvisorCache:
         except Exception as e:
             print(f"⚠️  Warning: Failed to load cache from disk: {e}")
     
+    def _start_startup_refresh(self):
+        """Start background thread to refresh cache on startup."""
+        if self._refresh_in_progress:
+            return
+        
+        def startup_refresh():
+            self._refresh_in_progress = True
+            try:
+                print("🚀 Startup refresh started - fetching fresh data...")
+                self._fetch_and_cache_recommendations()
+                self._fetch_and_cache_summary()
+                
+                # Mark startup as complete
+                with open(self.startup_flag_file, 'w') as f:
+                    f.write(f"startup_complete_{datetime.now().isoformat()}")
+                
+                self._startup_complete = True
+                print("✅ Startup refresh completed - application ready!")
+            except Exception as e:
+                print(f"❌ Startup refresh failed: {e}")
+                # Still mark as complete to avoid blocking the app
+                self._startup_complete = True
+            finally:
+                self._refresh_in_progress = False
+        
+        self._refresh_thread = threading.Thread(target=startup_refresh, daemon=True)
+        self._refresh_thread.start()
+    
     def _start_background_refresh(self):
         """Start background thread to refresh cache."""
         if self._refresh_in_progress:
@@ -239,6 +290,14 @@ class TrustedAdvisorCache:
         
         self._refresh_thread = threading.Thread(target=background_refresh, daemon=True)
         self._refresh_thread.start()
+    
+    def is_startup_complete(self) -> bool:
+        """Check if startup refresh is complete."""
+        return self._startup_complete
+    
+    def is_loading(self) -> bool:
+        """Check if cache is currently loading (startup or refresh)."""
+        return self._refresh_in_progress and not self._startup_complete
     
     def clear_cache(self):
         """Clear all cache data."""
@@ -261,6 +320,9 @@ class TrustedAdvisorCache:
             'recommendations_cached': self._memory_cache['recommendations'] is not None,
             'summary_cached': self._memory_cache['summary'] is not None,
             'refresh_in_progress': self._refresh_in_progress,
+            'startup_complete': self._startup_complete,
+            'is_first_startup': self._is_first_startup,
+            'is_loading': self.is_loading(),
             'cache_ttl_minutes': self.cache_ttl.total_seconds() / 60,
             'recommendations_count': len(self._memory_cache['recommendations'].get('recommendations', [])) if self._memory_cache['recommendations'] else 0
         }
@@ -291,3 +353,11 @@ def clear_trusted_advisor_cache():
 def get_cache_status() -> Dict[str, Any]:
     """Get cache status information."""
     return get_cache_instance().get_cache_info()
+
+def is_cache_loading() -> bool:
+    """Check if cache is currently loading."""
+    return get_cache_instance().is_loading()
+
+def is_startup_complete() -> bool:
+    """Check if startup refresh is complete."""
+    return get_cache_instance().is_startup_complete()

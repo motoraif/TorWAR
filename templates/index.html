@@ -17,7 +17,17 @@ Simplified Homepage Template
                     <i class="fas fa-shield-alt me-3"></i>TorWAR
                 </h1>
                 <p class="lead mb-3">AWS Well-Architected Review Tool</p>
-                <p class="mb-0">Streamlined AWS Well-Architected Framework reviews with enhanced report management and comparison tools.</p>
+                <p class="mb-3">Streamlined AWS Well-Architected Framework reviews with enhanced report management and comparison tools.</p>
+                {% if aws_connected %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light btn-sm" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh Dashboard
+                    </button>
+                    <a href="/cache/status" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-tachometer-alt me-1"></i>Cache Status
+                    </a>
+                </div>
+                {% endif %}
             </div>
             <div class="col-lg-4 text-center">
                 <i class="fas fa-columns fa-4x mb-2"></i>
@@ -416,4 +426,24 @@ Simplified Homepage Template
     transition: color 0.3s ease;
 }
 </style>
+
+<script>
+// Refresh dashboard with loading page
+function refreshDashboard() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Refreshing...';
+    button.disabled = true;
+    
+    try {
+        // Redirect to refresh with loading page
+        window.location.href = '/cache/refresh-with-loading?redirect=' + encodeURIComponent('/');
+    } catch (error) {
+        console.error('Error refreshing dashboard:', error);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        alert('Error refreshing dashboard. Please try again.');
+    }
+}
+</script>
 {% endblock %}

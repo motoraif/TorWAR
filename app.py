@@ -43,7 +43,9 @@ from trusted_advisor_cache import (
     get_cached_recommendations,
     get_cached_summary,
     clear_trusted_advisor_cache,
-    get_cache_status
+    get_cache_status,
+    is_cache_loading,
+    is_startup_complete
 )
 
 # Initialize Flask app
@@ -172,6 +174,14 @@ def index():
     
     # Check if user is authenticated with AWS
     aws_connected = 'aws_region' in session
+    
+    # If connected and cache is loading (startup), show loading page
+    if aws_connected and is_cache_loading():
+        print("DEBUG: Cache is loading, showing loading page")
+        return render_template('loading.html', 
+                             loading_message="Loading TorWAR Dashboard...",
+                             startup_refresh=not is_startup_complete(),
+                             redirect_url="/")
     
     context = {
         'aws_connected': aws_connected,
@@ -1508,6 +1518,14 @@ def recommendations():
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
+    # Check if cache is loading (startup or refresh)
+    if is_cache_loading():
+        print("DEBUG: Cache is loading, showing loading page")
+        return render_template('loading.html', 
+                             loading_message="Loading Trusted Advisor Recommendations...",
+                             startup_refresh=not is_startup_complete(),
+                             redirect_url="/recommendations")
+    
     try:
         # Check if this is a force refresh request
         force_refresh = request.args.get('refresh', '').lower() == 'true'
@@ -1516,6 +1534,14 @@ def recommendations():
         print("DEBUG: Getting all Trusted Advisor recommendations from cache...")
         recommendations_data = get_cached_recommendations(force_refresh=force_refresh)
         print(f"DEBUG: Recommendations data keys: {recommendations_data.keys()}")
+        
+        # Check if we got a loading response
+        if recommendations_data.get('loading'):
+            print("DEBUG: Recommendations are loading, showing loading page")
+            return render_template('loading.html', 
+                                 loading_message=recommendations_data.get('message', "Loading recommendations..."),
+                                 startup_refresh=recommendations_data.get('startup_refresh', False),
+                                 redirect_url="/recommendations")
         
         if 'error' in recommendations_data:
             print(f"DEBUG: Error in recommendations data: {recommendations_data['error']}")
@@ -2571,6 +2597,14 @@ def api_trusted_advisor_summary():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/loading')
+def loading_page():
+    """Display loading page."""
+    return render_template('loading.html', 
+                         loading_message="Loading TorWAR...",
+                         startup_refresh=not is_startup_complete(),
+                         redirect_url=request.args.get('redirect', '/'))
+
 @app.route('/cache/status')
 def cache_status():
     """Display cache status and management options."""
@@ -2611,6 +2645,25 @@ def refresh_cache():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/cache/refresh-with-loading')
+def refresh_cache_with_loading():
+    """Refresh cache and show loading page."""
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    # Start the refresh process
+    try:
+        get_cached_recommendations(force_refresh=True)
+        # Redirect to loading page
+        return render_template('loading.html', 
+                             loading_message="Refreshing Trusted Advisor data...",
+                             startup_refresh=False,
+                             redirect_url=request.args.get('redirect', '/recommendations'))
+    except Exception as e:
+        flash(f'Error starting refresh: {str(e)}', 'error')
+        return redirect(url_for('recommendations'))
 
 @app.route('/cache/clear', methods=['POST'])
 def clear_cache():
