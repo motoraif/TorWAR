@@ -176,18 +176,23 @@ def index():
     aws_connected = 'aws_region' in session
     print(f"DEBUG: AWS connected: {aws_connected}")
     
+    # Check if this is a fresh sign-in
+    fresh_signin = session.pop('fresh_signin', False)
+    
     # If connected and cache is loading (startup), show loading page
     if aws_connected:
         cache_loading = is_cache_loading()
         startup_complete = is_startup_complete()
         print(f"DEBUG: Cache loading: {cache_loading}")
         print(f"DEBUG: Startup complete: {startup_complete}")
+        print(f"DEBUG: Fresh sign-in: {fresh_signin}")
         
-        if cache_loading:
-            print("DEBUG: Cache is loading, showing loading page")
+        if cache_loading or fresh_signin:
+            loading_message = "Loading fresh AWS data after sign-in..." if fresh_signin else "Loading TorWAR Dashboard..."
+            print(f"DEBUG: Showing loading page - {loading_message}")
             return render_template('loading.html', 
-                                 loading_message="Loading TorWAR Dashboard...",
-                                 startup_refresh=not startup_complete,
+                                 loading_message=loading_message,
+                                 startup_refresh=not startup_complete or fresh_signin,
                                  redirect_url="/")
         else:
             print("DEBUG: Cache not loading, showing regular dashboard")
@@ -1527,12 +1532,16 @@ def recommendations():
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
+    # Check if this is a fresh sign-in
+    fresh_signin = session.pop('fresh_signin', False)
+    
     # Check if cache is loading (startup or refresh)
-    if is_cache_loading():
-        print("DEBUG: Cache is loading, showing loading page")
+    if is_cache_loading() or fresh_signin:
+        loading_message = "Loading fresh Trusted Advisor data after sign-in..." if fresh_signin else "Loading Trusted Advisor Recommendations..."
+        print(f"DEBUG: Showing loading page - {loading_message}")
         return render_template('loading.html', 
-                             loading_message="Loading Trusted Advisor Recommendations...",
-                             startup_refresh=not is_startup_complete(),
+                             loading_message=loading_message,
+                             startup_refresh=not is_startup_complete() or fresh_signin,
                              redirect_url="/recommendations")
     
     try:

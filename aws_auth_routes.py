@@ -90,6 +90,19 @@ def register_auth_routes(app):
                 session['aws_user_info'] = session_info['user_info']
                 session['aws_auth_time'] = session_info['auth_time']
                 
+                # Force cache refresh on sign-in to ensure fresh data
+                try:
+                    from trusted_advisor_cache import clear_trusted_advisor_cache
+                    clear_trusted_advisor_cache()
+                    print("🔄 Cache cleared on sign-in - will fetch fresh data on first page load")
+                    
+                    # Add a flag to indicate this is a fresh sign-in
+                    session['fresh_signin'] = True
+                    
+                except Exception as e:
+                    print(f"⚠️  Warning: Failed to clear cache on sign-in: {e}")
+                    # Don't fail authentication if cache clearing fails
+                
                 flash(f'Successfully authenticated with AWS: {message}', 'success')
                 
                 # Redirect to original destination or home

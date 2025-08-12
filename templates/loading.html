@@ -158,8 +158,13 @@
         <!-- Loading Details -->
         <div class="loading-details">
             {% if startup_refresh %}
-                <p><i class="fas fa-rocket"></i> First startup detected - fetching fresh data from AWS</p>
-                <p><i class="fas fa-cloud-download-alt"></i> This may take a few moments...</p>
+                {% if 'sign-in' in (loading_message or '') %}
+                    <p><i class="fas fa-sign-in-alt"></i> Fresh sign-in detected - fetching latest AWS data</p>
+                    <p><i class="fas fa-cloud-download-alt"></i> Ensuring you have the most current information</p>
+                {% else %}
+                    <p><i class="fas fa-rocket"></i> First startup detected - fetching fresh data from AWS</p>
+                    <p><i class="fas fa-cloud-download-alt"></i> This may take a few moments...</p>
+                {% endif %}
             {% else %}
                 <p><i class="fas fa-sync-alt"></i> Refreshing Trusted Advisor recommendations</p>
                 <p><i class="fas fa-database"></i> Updating cache with latest data</p>
