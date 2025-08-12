@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block title %}AI Analysis - {{ recommendation.name if recommendation else 'Unknown' }} - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.ai-card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    border-left: 4px solid #0d6efd;
+}
+
+.ai-insight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.priority-score {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.priority-high { color: #dc3545; }
+.priority-medium { color: #ffc107; }
+.priority-low { color: #198754; }
+
+.code-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.code-block {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
+
+.chat-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.chat-user {
+    background-color: #0d6efd;
+    color: white;
+    margin-left: 20%;
+}
+
+.chat-ai {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    margin-right: 20%;
+}
+
+.loading-spinner {
+    display: none;
+}
+
+.ai-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.timeline-item {
+    border-left: 3px solid #0d6efd;
+    padding-left: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('recommendations') }}">Recommendations</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('recommendation_details', recommendation_id=recommendation.id) }}">Details</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">AI Analysis</li>
+                        </ol>
+                    </nav>
+                    <h2 class="mb-1">
+                        <i class="fas fa-robot me-2 text-primary"></i>
+                        AI-Powered Analysis
+                        <span class="ai-badge ms-2">
+                            <i class="fas fa-brain me-1"></i>Bedrock AI
+                        </span>
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Intelligent insights and actionable remediation powered by AWS Bedrock
+                    </p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="refreshAnalysis()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh Analysis
+                    </button>
+                    <a href="{{ url_for('recommendation_details', recommendation_id=recommendation.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Priority Analysis -->
+    {% if priority_analysis %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="ai-insight">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center">
+                        <div class="priority-score">{{ priority_analysis.priority_score or 5 }}/10</div>
+                        <small>Priority Score</small>
+                    </div>
+                    <div class="col-md-9">
+                        <h5 class="mb-2">
+                            <i class="fas fa-chart-line me-2"></i>AI Priority Assessment
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Business Impact:</strong><br>
+                                <span class="badge bg-light text-dark">{{ priority_analysis.business_impact or 'Medium' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Security Risk:</strong><br>
+                                <span class="badge bg-light text-dark">{{ priority_analysis.security_risk or 'Medium' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Effort Required:</strong><br>
+                                <span class="badge bg-light text-dark">{{ priority_analysis.effort_required or 'Medium' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Timeline:</strong><br>
+                                <span class="badge bg-light text-dark">{{ priority_analysis.recommended_timeline or 'Days' }}</span>
+                            </div>
+                        </div>
+                        {% if priority_analysis.justification %}
+                        <div class="mt-3">
+                            <strong>AI Analysis:</strong>
+                            <p class="mb-0 mt-1">{{ priority_analysis.justification }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommendation Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card ai-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                        {{ recommendation.name }}
+                    </h5>
+                    <p class="card-text">{{ recommendation.description }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Category:</strong> {{ recommendation.category|title }}<br>
+                            <strong>Pillar:</strong> {{ recommendation.pillar|title }}<br>
+                            <strong>Status:</strong> 
+                            {% if recommendation.status == 'error' %}
+                                <span class="badge bg-danger">High Priority</span>
+                            {% elif recommendation.status == 'warning' %}
+                                <span class="badge bg-warning text-dark">Medium Priority</span>
+                            {% else %}
+                                <span class="badge bg-success">Low Priority</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Affected Resources:</strong> {{ total_resources }}<br>
+                            <strong>Error Resources:</strong> {{ recommendation.error_count or 0 }}<br>
+                            <strong>Warning Resources:</strong> {{ recommendation.warning_count or 0 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Remediation Plan -->
+    {% if ai_remediation %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card ai-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-magic me-2"></i>AI-Generated Remediation Plan
+                        <span class="ai-badge ms-2">
+                            <i class="fas fa-robot me-1"></i>Generated by Bedrock
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if ai_remediation.type == 'structured' and ai_remediation.timeline %}
+                        <div class="timeline">
+                            {% for phase, actions in ai_remediation.timeline.items() %}
+                            <div class="timeline-item">
+                                <h6 class="text-primary">{{ phase|title }}</h6>
+                                <ul>
+                                    {% for action in actions %}
+                                    <li>{{ action }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="ai-content">
+                            {{ ai_remediation.content or ai_remediation.analysis or 'AI analysis in progress...' }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Generated: {{ ai_remediation.generated_at or 'Just now' }}
+                            | Source: {{ ai_remediation.source or 'AI' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Code Generation Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card ai-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-code me-2"></i>AI Code Generation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="codeType" class="form-label">Code Type:</label>
+                            <select class="form-select" id="codeType">
+                                <option value="cli">AWS CLI Commands</option>
+                                <option value="cloudformation">CloudFormation Template</option>
+                                <option value="terraform">Terraform Configuration</option>
+                                <option value="python">Python (boto3) Script</option>
+                                <option value="powershell">PowerShell Script</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button class="btn btn-primary" onclick="generateCode()">
+                                <i class="fas fa-magic me-1"></i>Generate Code
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="codeResult" class="code-container" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Generated Code:</h6>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="copyCode()">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                        </div>
+                        <div class="code-block" id="generatedCode">
+                            <!-- Generated code will appear here -->
+                        </div>
+                    </div>
+                    
+                    <div id="codeLoading" class="text-center py-3 loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Generating code...</span>
+                        </div>
+                        <p class="mt-2">AI is generating your code...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card ai-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Ask AI About This Recommendation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container" id="chatContainer">
+                        <div class="chat-message chat-ai">
+                            <strong>AI Assistant:</strong> Hi! I'm here to help you understand and remediate this recommendation. What would you like to know?
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="chatInput" 
+                                   placeholder="Ask about this recommendation..." 
+                                   onkeypress="if(event.key==='Enter') sendChatMessage()">
+                            <button class="btn btn-primary" onclick="sendChatMessage()">
+                                <i class="fas fa-paper-plane me-1"></i>Send
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <strong>Example questions:</strong> 
+                            "How urgent is this issue?", "What are the risks if I don't fix this?", "Can you explain the steps in detail?"
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const recommendationId = '{{ recommendation.id }}';
+
+function generateCode() {
+    const codeType = document.getElementById('codeType').value;
+    const codeResult = document.getElementById('codeResult');
+    const codeLoading = document.getElementById('codeLoading');
+    const generatedCode = document.getElementById('generatedCode');
+    
+    // Show loading
+    codeResult.style.display = 'none';
+    codeLoading.style.display = 'block';
+    
+    fetch('/api/ai/generate-code', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            recommendation_id: recommendationId,
+            code_type: codeType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        codeLoading.style.display = 'none';
+        
+        if (data.success) {
+            generatedCode.textContent = data.code_result.code;
+            codeResult.style.display = 'block';
+        } else {
+            alert('Error generating code: ' + data.error);
+        }
+    })
+    .catch(error => {
+        codeLoading.style.display = 'none';
+        alert('Error: ' + error.message);
+    });
+}
+
+function copyCode() {
+    const code = document.getElementById('generatedCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        // Show success message
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
+
+function sendChatMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const chatContainer = document.getElementById('chatContainer');
+    const question = chatInput.value.trim();
+    
+    if (!question) return;
+    
+    // Add user message
+    const userMessage = document.createElement('div');
+    userMessage.className = 'chat-message chat-user';
+    userMessage.innerHTML = `<strong>You:</strong> ${question}`;
+    chatContainer.appendChild(userMessage);
+    
+    // Clear input
+    chatInput.value = '';
+    
+    // Add loading message
+    const loadingMessage = document.createElement('div');
+    loadingMessage.className = 'chat-message chat-ai';
+    loadingMessage.innerHTML = '<strong>AI Assistant:</strong> <i class="fas fa-spinner fa-spin"></i> Thinking...';
+    chatContainer.appendChild(loadingMessage);
+    
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Send to AI
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            recommendation_id: recommendationId,
+            question: question
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Remove loading message
+        chatContainer.removeChild(loadingMessage);
+        
+        // Add AI response
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'chat-message chat-ai';
+        aiMessage.innerHTML = `<strong>AI Assistant:</strong> ${data.response || 'Sorry, I could not process your question.'}`;
+        chatContainer.appendChild(aiMessage);
+        
+        // Scroll to bottom
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    })
+    .catch(error => {
+        // Remove loading message
+        chatContainer.removeChild(loadingMessage);
+        
+        // Add error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'chat-message chat-ai';
+        errorMessage.innerHTML = '<strong>AI Assistant:</strong> Sorry, there was an error processing your question.';
+        chatContainer.appendChild(errorMessage);
+    });
+}
+
+function refreshAnalysis() {
+    location.reload();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus on chat input
+    document.getElementById('chatInput').focus();
+});
+</script>
+{% endblock %}

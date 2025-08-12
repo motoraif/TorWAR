@@ -160,6 +160,20 @@ Base Template for TorWAR Application
                             <i class="fas fa-tools"></i> Remediations
                         </a>
                     </li>
+                    
+                    <!-- AI Dashboard - Always show when connected -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ai_dashboard') }}">
+                            <i class="fas fa-brain"></i> AI Dashboard
+                        </a>
+                    </li>
+                    
+                    <!-- AI Configuration - Always show when connected -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ai_config') }}">
+                            <i class="fas fa-cogs"></i> AI Config
+                        </a>
+                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('aws_logout') }}">

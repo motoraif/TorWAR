@@ -1,0 +1,908 @@
+{% extends "base.html" %}
+
+{% block title %}AI Configuration - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.config-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.config-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+}
+
+.status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.status-success { background-color: #28a745; }
+.status-warning { background-color: #ffc107; }
+.status-error { background-color: #dc3545; }
+
+.code-block {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.step-card {
+    border-left: 4px solid #0d6efd;
+    background-color: #f8f9fa;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.ai-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="config-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="fas fa-cogs me-2"></i>
+                            AI Configuration
+                        </h2>
+                        <p class="mb-0 opacity-75">
+                            Configure AWS Bedrock integration for enhanced AI capabilities
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('ai_dashboard') }}" class="btn btn-light me-2">
+                            <i class="fas fa-brain me-1"></i>AI Dashboard
+                        </a>
+                        <button class="btn btn-outline-light" onclick="testBedrock()">
+                            <i class="fas fa-vial me-1"></i>Test Connection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card config-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Current Bedrock Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="currentStatus">
+                        {% if bedrock_status %}
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="status-indicator 
+                                {% if bedrock_status.status == 'success' %}status-success
+                                {% elif bedrock_status.status == 'warning' %}status-warning
+                                {% else %}status-error{% endif %}"></span>
+                            <strong>
+                                {% if bedrock_status.status == 'success' %}
+                                    ✅ Bedrock Connected
+                                {% else %}
+                                    ❌ Bedrock Not Available
+                                {% endif %}
+                            </strong>
+                        </div>
+                        
+                        {% if bedrock_status.status == 'success' %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Account Type:</strong> {{ bedrock_status.account_type|title }}<br>
+                                <strong>Region:</strong> {{ bedrock_status.region }}<br>
+                                <strong>Model:</strong> {{ bedrock_status.model }}
+                            </div>
+                            <div class="col-md-6">
+                                {% if bedrock_status.account_id %}
+                                <strong>Bedrock Account:</strong> {{ bedrock_status.account_id }}<br>
+                                {% endif %}
+                                <strong>Test Response:</strong><br>
+                                <small class="text-muted">{{ bedrock_status.response }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <strong>Error:</strong> {{ bedrock_status.error }}<br>
+                            <small>Currently using intelligent fallback mode with basic AI features.</small>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Checking status...</span>
+                            </div>
+                            <p class="mt-2">Checking Bedrock status...</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bedrock Configuration Options -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card config-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key me-2"></i>Bedrock Authentication Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Configure TorWAR to access Bedrock from any AWS account with Bedrock enabled. Choose your preferred authentication method.
+                    </p>
+                    
+                    <!-- Authentication Method Selection -->
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Authentication Method:</strong></label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="authMethod" id="authKeys" value="keys" checked>
+                                    <label class="form-check-label" for="authKeys">
+                                        <i class="fas fa-key me-2 text-primary"></i>
+                                        <strong>Access Keys (Recommended)</strong>
+                                        <br><small class="text-muted">Simple and secure with dedicated IAM user</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="authMethod" id="authRole" value="role">
+                                    <label class="form-check-label" for="authRole">
+                                        <i class="fas fa-user-shield me-2 text-secondary"></i>
+                                        <strong>Cross-Account Role</strong>
+                                        <br><small class="text-muted">Role assumption across accounts</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Access Keys Configuration -->
+                    <div id="keysConfig" class="auth-config">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-key me-2"></i>Access Keys Configuration
+                        </h6>
+                        <form id="keysConfigForm">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="keysAccountId" class="form-label">Bedrock Account ID *</label>
+                                    <input type="text" class="form-control" id="keysAccountId" 
+                                           placeholder="766188184180" 
+                                           value="766188184180"
+                                           pattern="[0-9]{12}" 
+                                           title="12-digit AWS account ID">
+                                    <div class="form-text">Account where the IAM user is located</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="accessKeyId" class="form-label">Access Key ID *</label>
+                                    <input type="text" class="form-control" id="accessKeyId" 
+                                           placeholder="AKIAIOSFODNN7EXAMPLE" 
+                                           pattern="AKIA[0-9A-Z]{16}" 
+                                           title="20-character access key starting with AKIA">
+                                    <div class="form-text">20-character access key from IAM user</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="secretAccessKey" class="form-label">Secret Access Key *</label>
+                                    <input type="password" class="form-control" id="secretAccessKey" 
+                                           placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY">
+                                    <div class="form-text">40-character secret key</div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="keysRegion" class="form-label">Bedrock Region</label>
+                                    <select class="form-select" id="keysRegion">
+                                        <option value="us-east-1" selected>us-east-1 (N. Virginia)</option>
+                                        <option value="us-west-2">us-west-2 (Oregon)</option>
+                                        <option value="eu-west-1">eu-west-1 (Ireland)</option>
+                                        <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fas fa-key me-1"></i>Configure with Access Keys
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="testApiConnection()">
+                                        <i class="fas fa-network-wired me-1"></i>Test API
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Cross-Account Role Configuration -->
+                    <div id="roleConfig" class="auth-config" style="display: none;">
+                        <h6 class="text-secondary mb-3">
+                            <i class="fas fa-user-shield me-2"></i>Cross-Account Role Configuration
+                        </h6>
+                        <form id="roleConfigForm">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="accountId" class="form-label">beyon-marketplace Account ID *</label>
+                                    <input type="text" class="form-control" id="accountId" 
+                                           placeholder="766188184180" 
+                                           value="766188184180"
+                                           pattern="[0-9]{12}" 
+                                           title="12-digit AWS account ID">
+                                    <div class="form-text">12-digit AWS account ID</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="roleName" class="form-label">IAM Role Name</label>
+                                    <input type="text" class="form-control" id="roleName" 
+                                           placeholder="TorWAR-BedrockAccess"
+                                           value="TorWAR-BedrockAccess">
+                                    <div class="form-text">Role name in beyon-marketplace</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="roleRegion" class="form-label">Bedrock Region</label>
+                                    <select class="form-select" id="roleRegion">
+                                        <option value="us-east-1" selected>us-east-1 (N. Virginia)</option>
+                                        <option value="us-west-2">us-west-2 (Oregon)</option>
+                                        <option value="eu-west-1">eu-west-1 (Ireland)</option>
+                                        <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-secondary">
+                                    <i class="fas fa-user-shield me-1"></i>Configure Cross-Account Role
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="configResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Instructions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card config-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>Setup Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Access Keys Setup -->
+                    <div id="keysInstructions" class="setup-instructions">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-key me-2"></i>Access Keys Setup (Recommended)
+                        </h6>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-user-plus me-2 text-primary"></i>Step 1: Create IAM User in Bedrock Account</h6>
+                            <p>In your Bedrock-enabled AWS account, create a dedicated IAM user:</p>
+                            <div class="code-block">aws iam create-user --user-name TorWAR-BedrockUser</div>
+                            <p><strong>User Name:</strong> <code>TorWAR-BedrockUser</code></p>
+                        </div>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-key me-2 text-primary"></i>Step 2: Attach Bedrock Permissions</h6>
+                            <p>Create and attach a policy with Bedrock permissions:</p>
+                            <div class="code-block">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream",
+        "bedrock:ListFoundationModels"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</div>
+                        </div>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-download me-2 text-primary"></i>Step 3: Generate Access Keys</h6>
+                            <p>Create access keys for the user:</p>
+                            <div class="code-block">aws iam create-access-key --user-name TorWAR-BedrockUser</div>
+                            <p>Save the <strong>Access Key ID</strong> and <strong>Secret Access Key</strong> securely.</p>
+                        </div>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-cog me-2 text-primary"></i>Step 4: Configure TorWAR</h6>
+                            <p>Use the form above with the <strong>Access Keys</strong> method:</p>
+                            <ul>
+                                <li><strong>Account ID:</strong> 12-digit ID of your Bedrock account</li>
+                                <li><strong>Access Key ID:</strong> From Step 3 (starts with AKIA)</li>
+                                <li><strong>Secret Access Key:</strong> From Step 3 (40 characters)</li>
+                                <li><strong>Region:</strong> <code>us-east-1</code> (recommended)</li>
+                            </ul>
+                            <div class="alert alert-info mt-2">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> You can get any account ID by running <code>aws sts get-caller-identity</code> while using that account's profile.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cross-Account Role Setup -->
+                    <div id="roleInstructions" class="setup-instructions" style="display: none;">
+                        <h6 class="text-secondary mb-3">
+                            <i class="fas fa-user-shield me-2"></i>Cross-Account Role Setup
+                        </h6>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-user-shield me-2 text-primary"></i>Step 1: Create IAM Role in beyon-marketplace</h6>
+                            <p>In your <strong>beyon-marketplace</strong> account (766188184180), create an IAM role with trust policy:</p>
+                            <div class="code-block">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::466171249965:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "TorWAR-Bedrock-Access"
+        }
+      }
+    }
+  ]
+}</div>
+                        </div>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-key me-2 text-primary"></i>Step 2: Attach Bedrock Permissions</h6>
+                            <p>Attach the same Bedrock policy as shown in the Access Keys method.</p>
+                        </div>
+                        
+                        <div class="step-card">
+                            <h6><i class="fas fa-user-cog me-2 text-primary"></i>Step 3: Update beyon-money-payer Role</h6>
+                            <p>Add AssumeRole permission to your current role in account 466171249965.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative Options -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card config-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Alternative Options
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-shield-alt me-2 text-success"></i>Same-Account Bedrock</h6>
+                            <p>Enable Bedrock in your current account (466171249965) by:</p>
+                            <ul>
+                                <li>Adding Bedrock permissions to your current role</li>
+                                <li>Enabling Bedrock models in AWS Console</li>
+                                <li>No cross-account configuration needed</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-brain me-2 text-info"></i>Intelligent Fallback</h6>
+                            <p>Continue using current smart features:</p>
+                            <ul>
+                                <li>Rule-based priority scoring</li>
+                                <li>Template-based code generation</li>
+                                <li>Structured remediation plans</li>
+                                <li>Context-aware responses</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle authentication method switching
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DEBUG: DOM loaded, initializing form handlers...');
+    
+    const authKeys = document.getElementById('authKeys');
+    const authRole = document.getElementById('authRole');
+    const keysConfig = document.getElementById('keysConfig');
+    const roleConfig = document.getElementById('roleConfig');
+    const keysInstructions = document.getElementById('keysInstructions');
+    const roleInstructions = document.getElementById('roleInstructions');
+    
+    // Check if elements exist
+    if (!authKeys || !authRole || !keysConfig || !roleConfig) {
+        console.error('DEBUG: Required form elements not found!');
+        return;
+    }
+    
+    function switchAuthMethod() {
+        console.log('DEBUG: Switching auth method, keys checked:', authKeys.checked);
+        if (authKeys.checked) {
+            keysConfig.style.display = 'block';
+            roleConfig.style.display = 'none';
+            if (keysInstructions) keysInstructions.style.display = 'block';
+            if (roleInstructions) roleInstructions.style.display = 'none';
+        } else {
+            keysConfig.style.display = 'none';
+            roleConfig.style.display = 'block';
+            if (keysInstructions) keysInstructions.style.display = 'none';
+            if (roleInstructions) roleInstructions.style.display = 'block';
+        }
+    }
+    
+    authKeys.addEventListener('change', switchAuthMethod);
+    authRole.addEventListener('change', switchAuthMethod);
+    
+    // Initialize
+    switchAuthMethod();
+    
+    // Set up form handlers
+    setupFormHandlers();
+});
+
+function setupFormHandlers() {
+    console.log('DEBUG: Setting up form handlers...');
+    
+    // Handle access keys form submission
+    const keysForm = document.getElementById('keysConfigForm');
+    if (keysForm) {
+        console.log('DEBUG: Found keysConfigForm, adding event listener');
+        
+        keysForm.addEventListener('submit', function(e) {
+            console.log('DEBUG: Keys form submit event triggered');
+            e.preventDefault();
+            handleKeysFormSubmission();
+        });
+        
+        // Also add click handler to the submit button as backup
+        const submitButton = keysForm.querySelector('button[type="submit"]');
+        if (submitButton) {
+            console.log('DEBUG: Found submit button, adding click handler');
+            submitButton.addEventListener('click', function(e) {
+                console.log('DEBUG: Submit button clicked');
+                e.preventDefault();
+                handleKeysFormSubmission();
+            });
+        }
+    } else {
+        console.error('DEBUG: keysConfigForm not found!');
+    }
+    
+    // Handle role form submission
+    const roleForm = document.getElementById('roleConfigForm');
+    if (roleForm) {
+        console.log('DEBUG: Found roleConfigForm, adding event listener');
+        
+        roleForm.addEventListener('submit', function(e) {
+            console.log('DEBUG: Role form submit event triggered');
+            e.preventDefault();
+            handleRoleFormSubmission();
+        });
+    } else {
+        console.error('DEBUG: roleConfigForm not found!');
+    }
+}
+
+function handleKeysFormSubmission() {
+    console.log('DEBUG: handleKeysFormSubmission called');
+    
+    const accountId = document.getElementById('keysAccountId').value.trim();
+    const accessKeyId = document.getElementById('accessKeyId').value.trim();
+    const secretAccessKey = document.getElementById('secretAccessKey').value.trim();
+    const region = document.getElementById('keysRegion').value;
+    
+    console.log('DEBUG: Form values:');
+    console.log('  Account ID:', accountId);
+    console.log('  Access Key ID:', accessKeyId ? accessKeyId.substring(0, 8) + '...' : 'empty');
+    console.log('  Secret Key length:', secretAccessKey ? secretAccessKey.length : 0);
+    console.log('  Region:', region);
+    
+    // Validation
+    if (!accessKeyId || !secretAccessKey) {
+        alert('Please enter both Access Key ID and Secret Access Key');
+        return;
+    }
+    
+    if (!accessKeyId.startsWith('AKIA') || accessKeyId.length !== 20) {
+        alert('Access Key ID must be 20 characters and start with AKIA');
+        return;
+    }
+    
+    if (secretAccessKey.length !== 40) {
+        alert('Secret Access Key must be exactly 40 characters');
+        return;
+    }
+    
+    // Validate account ID if provided
+    if (accountId && (!/^\d{12}$/.test(accountId))) {
+        alert('AWS account ID must be exactly 12 digits');
+        return;
+    }
+    
+    console.log('DEBUG: Validation passed, proceeding with API call');
+    
+    const resultDiv = document.getElementById('configResult');
+    const submitButton = document.querySelector('#keysConfigForm button[type="submit"]');
+    
+    if (!resultDiv) {
+        console.error('DEBUG: configResult div not found!');
+        alert('Configuration result area not found. Please refresh the page.');
+        return;
+    }
+    
+    // Show loading state
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Configuring Bedrock access with access keys${accountId ? ' for account ' + accountId : ''}...
+            <br><small>This may take up to 30 seconds...</small>
+        </div>
+    `;
+    
+    // Disable submit button
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Configuring...';
+    }
+    
+    const requestBody = {
+        auth_method: 'keys',
+        access_key_id: accessKeyId,
+        secret_access_key: secretAccessKey,
+        region: region
+    };
+    
+    // Add account ID if provided
+    if (accountId) {
+        requestBody.account_id = accountId;
+    }
+    
+    console.log('DEBUG: Sending POST request to /api/ai/configure');
+    console.log('DEBUG: Request body (keys hidden):', {
+        ...requestBody,
+        access_key_id: requestBody.access_key_id.substring(0, 8) + '...',
+        secret_access_key: '[HIDDEN]'
+    });
+    
+    // Add timeout to the fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        console.log('DEBUG: Request timeout after 30 seconds');
+        controller.abort();
+    }, 30000); // 30 second timeout
+    
+    fetch('/api/ai/configure', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+    })
+    .then(response => {
+        clearTimeout(timeoutId);
+        console.log('DEBUG: Received response, status:', response.status);
+        console.log('DEBUG: Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        console.log('DEBUG: Response data:', data);
+        
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${data.message}
+                    <br><small>Access Key: ${data.test_result.access_key_id || 'Configured'}</small>
+                    ${data.test_result.account_id ? '<br><small>Account: ' + data.test_result.account_id + '</small>' : ''}
+                </div>
+            `;
+            
+            // Update status after 2 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error: ${data.error}
+                    <br><small>Check the browser console and server logs for more details</small>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        clearTimeout(timeoutId);
+        console.error('DEBUG: Request failed:', error);
+        
+        let errorMessage = 'Unknown error occurred';
+        
+        if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out after 30 seconds. This might indicate network issues or server problems.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Configuration failed: ${errorMessage}
+                <br><small>Check the browser console (F12) and server logs for more details</small>
+                <br><small>Try refreshing the page and attempting again</small>
+            </div>
+        `;
+    })
+    .finally(() => {
+        // Re-enable submit button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-key me-1"></i>Configure with Access Keys';
+        }
+        console.log('DEBUG: Request completed');
+    });
+}
+
+function handleRoleFormSubmission() {
+    console.log('DEBUG: handleRoleFormSubmission called');
+    
+    const accountId = document.getElementById('accountId').value.trim();
+    const roleName = document.getElementById('roleName').value.trim();
+    const region = document.getElementById('roleRegion').value;
+    
+    console.log('DEBUG: Role form values:', { accountId, roleName, region });
+    
+    if (!accountId) {
+        alert('Please enter a valid AWS account ID');
+        return;
+    }
+    
+    if (!/^\d{12}$/.test(accountId)) {
+        alert('AWS account ID must be exactly 12 digits');
+        return;
+    }
+    
+    const resultDiv = document.getElementById('configResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Configuring cross-account Bedrock access...
+        </div>
+    `;
+    
+    fetch('/api/ai/configure', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            auth_method: 'role',
+            account_id: accountId,
+            role_name: roleName,
+            region: region
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${data.message}
+                </div>
+            `;
+            
+            // Update status
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error: ${error.message}
+            </div>
+        `;
+    });
+}
+
+function testBedrock() {
+    const statusDiv = document.getElementById('currentStatus');
+    
+    statusDiv.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Testing connection...</span>
+            </div>
+            <p class="mt-2">Testing Bedrock connection...</p>
+        </div>
+    `;
+    
+    fetch('/api/ai/test-bedrock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const result = data.test_result;
+            const statusClass = result.status === 'success' ? 'status-success' : 'status-error';
+            const statusIcon = result.status === 'success' ? '✅' : '❌';
+            
+            statusDiv.innerHTML = `
+                <div class="d-flex align-items-center mb-3">
+                    <span class="status-indicator ${statusClass}"></span>
+                    <strong>${statusIcon} ${result.status === 'success' ? 'Bedrock Connected' : 'Bedrock Not Available'}</strong>
+                </div>
+                
+                ${result.status === 'success' ? `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Auth Method:</strong> ${result.auth_method}<br>
+                        <strong>Region:</strong> ${result.region}<br>
+                        <strong>Model:</strong> ${result.model}
+                    </div>
+                    <div class="col-md-6">
+                        ${result.account_id ? `<strong>Account:</strong> ${result.account_id}<br>` : ''}
+                        ${result.access_key_id ? `<strong>Access Key:</strong> ${result.access_key_id}<br>` : ''}
+                        <strong>Test Response:</strong><br>
+                        <small class="text-muted">${result.response}</small>
+                    </div>
+                </div>
+                ` : `
+                <div class="alert alert-warning">
+                    <strong>Error:</strong> ${result.error}<br>
+                    <small>Currently using intelligent fallback mode with basic AI features.</small>
+                </div>
+                `}
+            `;
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error testing Bedrock: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        statusDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error: ${error.message}
+            </div>
+        `;
+    });
+}
+
+function testApiConnection() {
+    console.log('DEBUG: Testing API connection...');
+    
+    const resultDiv = document.getElementById('configResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Testing API connection...
+        </div>
+    `;
+    
+    fetch('/api/ai/test-connection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('DEBUG: API test response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('DEBUG: API test response data:', data);
+        
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    API Connection Test Successful!
+                    <br><small>Timestamp: ${data.timestamp}</small>
+                    <br><small>The API is responding correctly. You can proceed with Bedrock configuration.</small>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    API Test Failed: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('DEBUG: API test failed:', error);
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                API Connection Failed: ${error.message}
+                <br><small>This indicates a problem with the TorWAR server or network connectivity.</small>
+            </div>
+        `;
+    });
+}
+
+function clearConfig() {
+    // Clear access keys form
+    document.getElementById('keysAccountId').value = '766188184180';  // Default to beyon-marketplace
+    document.getElementById('accessKeyId').value = '';
+    document.getElementById('secretAccessKey').value = '';
+    document.getElementById('keysRegion').value = 'us-east-1';
+    
+    // Clear role form
+    document.getElementById('accountId').value = '766188184180';
+    document.getElementById('roleName').value = 'TorWAR-BedrockAccess';
+    document.getElementById('roleRegion').value = 'us-east-1';
+    
+    document.getElementById('configResult').style.display = 'none';
+}
+
+// Test connection on page load
+{% if not bedrock_status %}
+testBedrock();
+{% endif %}
+</script>
+{% endblock %}

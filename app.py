@@ -1530,8 +1530,22 @@ def recommendations():
             }
             print(f"DEBUG: {category} status counts: {status_counts}")
         
-        # Get category information
-        category_info = get_trusted_advisor_check_categories()
+        # Get category information with error handling
+        try:
+            from trusted_advisor_helper import get_trusted_advisor_check_categories
+            category_info = get_trusted_advisor_check_categories()
+            print(f"DEBUG: Category info loaded successfully: {list(category_info.keys())}")
+        except Exception as e:
+            print(f"DEBUG: Error loading category info: {e}")
+            # Provide fallback category info
+            category_info = {
+                'cost_optimizing': {'name': 'Cost Optimization', 'icon': 'fas fa-dollar-sign', 'color': 'success'},
+                'performance': {'name': 'Performance', 'icon': 'fas fa-tachometer-alt', 'color': 'info'},
+                'security': {'name': 'Security', 'icon': 'fas fa-shield-alt', 'color': 'danger'},
+                'fault_tolerance': {'name': 'Fault Tolerance', 'icon': 'fas fa-heartbeat', 'color': 'warning'},
+                'service_limits': {'name': 'Service Limits', 'icon': 'fas fa-chart-line', 'color': 'secondary'},
+                'operational_excellence': {'name': 'Operational Excellence', 'icon': 'fas fa-cogs', 'color': 'primary'}
+            }
         
         return render_template('recommendations.html', 
                              recommendations=recommendations, 
@@ -1543,10 +1557,18 @@ def recommendations():
         print(f"DEBUG: Error in recommendations route: {e}")
         import traceback
         traceback.print_exc()
+        
+        # Provide fallback data for error case
+        fallback_category_info = {
+            'error': {'name': 'Error', 'icon': 'fas fa-exclamation-circle', 'color': 'danger'}
+        }
+        
         flash(f'Error retrieving Trusted Advisor recommendations: {str(e)}', 'error')
         return render_template('recommendations.html', 
                              recommendations=[], 
                              categories={},
+                             category_info=fallback_category_info,
+                             total_count=0,
                              error=str(e))
 
 @app.route('/recommendations/report')
@@ -2038,6 +2060,488 @@ def debug_test_api_params():
         import traceback
         traceback.print_exc()
         return jsonify({'error': f'Debug test failed: {str(e)}'})
+
+@app.route('/recommendations/<recommendation_id>/ai-analysis')
+def ai_recommendation_analysis_loading(recommendation_id):
+    """Show loading page for AI analysis."""
+    print(f"DEBUG: Showing AI analysis loading page for {recommendation_id}")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    return render_template('ai_analysis_loading.html', recommendation_id=recommendation_id)
+
+@app.route('/recommendations/<recommendation_id>/ai-analysis-result')
+def ai_recommendation_analysis_result(recommendation_id):
+    """AI-powered analysis of a specific recommendation using Bedrock."""
+    print(f"DEBUG: AI analysis result for recommendation {recommendation_id}")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    # Check if fallback was requested
+    force_fallback = request.args.get('fallback') == 'true'
+    timeout_occurred = request.args.get('timeout') == 'true'
+    
+    if timeout_occurred:
+        flash('AI analysis timed out, showing intelligent fallback results', 'warning')
+    elif force_fallback:
+        flash('Using intelligent fallback results', 'info')
+    
+    try:
+        from bedrock_helper import get_bedrock_analyzer
+        from trusted_advisor_helper import get_all_trusted_advisor_recommendations, get_all_affected_resources_for_check
+        import threading
+        import time
+        
+        # Get recommendation data
+        print("DEBUG: Getting recommendation data...")
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        current_recommendation = None
+        recommendation_identifier = None
+        
+        if 'recommendations' in recommendations_data:
+            current_recommendation = next(
+                (r for r in recommendations_data['recommendations'] if r.get('id') == recommendation_id),
+                None
+            )
+            if current_recommendation:
+                recommendation_identifier = current_recommendation.get('recommendationIdentifier') or current_recommendation.get('arn')
+        
+        if not current_recommendation or not recommendation_identifier:
+            flash('Recommendation not found', 'error')
+            return redirect(url_for('recommendations'))
+        
+        print(f"DEBUG: Found recommendation: {current_recommendation.get('name')}")
+        
+        # Get affected resources with timeout
+        print("DEBUG: Getting affected resources...")
+        try:
+            affected_resources = get_all_affected_resources_for_check(recommendation_identifier)
+            print(f"DEBUG: Found {len(affected_resources)} affected resources")
+        except Exception as e:
+            print(f"DEBUG: Error getting resources: {e}")
+            affected_resources = []
+        
+        # Get Bedrock analyzer
+        analyzer = get_bedrock_analyzer()
+        
+        # Initialize results
+        ai_remediation = None
+        priority_analysis = None
+        
+        if force_fallback or timeout_occurred:
+            print("DEBUG: Using fallback results as requested")
+            ai_remediation = analyzer._fallback_remediation(current_recommendation)
+            priority_analysis = analyzer._fallback_priority_analysis(current_recommendation)
+        else:
+            # Function to run AI analysis with timeout
+            def run_ai_analysis():
+                nonlocal ai_remediation, priority_analysis
+                try:
+                    print("DEBUG: Generating AI-powered remediation...")
+                    ai_remediation = analyzer.generate_actionable_remediation(current_recommendation, affected_resources)
+                    print("DEBUG: AI remediation completed")
+                    
+                    print("DEBUG: Analyzing priority with AI...")
+                    priority_analysis = analyzer.analyze_recommendation_priority(current_recommendation, affected_resources)
+                    print("DEBUG: AI priority analysis completed")
+                    
+                except Exception as e:
+                    print(f"DEBUG: AI analysis error in thread: {e}")
+                    # Set fallback results
+                    ai_remediation = analyzer._fallback_remediation(current_recommendation)
+                    priority_analysis = analyzer._fallback_priority_analysis(current_recommendation)
+            
+            # Run AI analysis in a separate thread with timeout
+            print("DEBUG: Starting AI analysis with 8-second timeout...")
+            ai_thread = threading.Thread(target=run_ai_analysis)
+            ai_thread.daemon = True
+            ai_thread.start()
+            
+            # Wait for completion or timeout
+            ai_thread.join(timeout=8.0)  # 8-second timeout
+            
+            # Check if thread completed
+            if ai_thread.is_alive():
+                print("DEBUG: AI analysis timed out, using fallback")
+                # Use fallback methods
+                ai_remediation = analyzer._fallback_remediation(current_recommendation)
+                priority_analysis = analyzer._fallback_priority_analysis(current_recommendation)
+                flash('AI analysis took too long, showing intelligent fallback results', 'info')
+            elif ai_remediation is None or priority_analysis is None:
+                print("DEBUG: AI analysis failed, using fallback")
+                # Use fallback methods
+                ai_remediation = analyzer._fallback_remediation(current_recommendation)
+                priority_analysis = analyzer._fallback_priority_analysis(current_recommendation)
+                flash('AI analysis unavailable, showing intelligent fallback results', 'info')
+            else:
+                print("DEBUG: AI analysis completed successfully")
+        
+        print("DEBUG: Rendering AI analysis template...")
+        return render_template('ai_recommendation_analysis.html',
+                             recommendation=current_recommendation,
+                             affected_resources=affected_resources,
+                             ai_remediation=ai_remediation,
+                             priority_analysis=priority_analysis,
+                             total_resources=len(affected_resources))
+        
+    except Exception as e:
+        print(f"DEBUG: Error in AI analysis route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error generating AI analysis: {str(e)}', 'error')
+        return redirect(url_for('recommendations'))
+
+@app.route('/api/ai/generate-code', methods=['POST'])
+def api_generate_remediation_code():
+    """API endpoint to generate remediation code using AI."""
+    try:
+        data = request.get_json()
+        recommendation_id = data.get('recommendation_id')
+        code_type = data.get('code_type', 'cli')
+        
+        if not recommendation_id:
+            return jsonify({'error': 'Recommendation ID required'}), 400
+        
+        from bedrock_helper import get_bedrock_analyzer
+        from trusted_advisor_helper import get_all_trusted_advisor_recommendations, get_all_affected_resources_for_check
+        
+        # Get recommendation data
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        current_recommendation = None
+        recommendation_identifier = None
+        
+        for rec in recommendations_data.get('recommendations', []):
+            if rec.get('id') == recommendation_id:
+                current_recommendation = rec
+                recommendation_identifier = rec.get('recommendationIdentifier') or rec.get('arn')
+                break
+        
+        if not current_recommendation:
+            return jsonify({'error': 'Recommendation not found'}), 404
+        
+        # Get affected resources
+        affected_resources = get_all_affected_resources_for_check(recommendation_identifier)
+        
+        # Generate code with AI
+        analyzer = get_bedrock_analyzer()
+        code_result = analyzer.generate_remediation_code(current_recommendation, affected_resources, code_type)
+        
+        return jsonify({
+            'success': True,
+            'code_result': code_result,
+            'recommendation_name': current_recommendation.get('name')
+        })
+        
+    except Exception as e:
+        print(f"DEBUG: Error generating code: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/chat', methods=['POST'])
+def api_ai_chat():
+    """API endpoint for AI chat about recommendations."""
+    try:
+        data = request.get_json()
+        recommendation_id = data.get('recommendation_id')
+        question = data.get('question')
+        
+        if not recommendation_id or not question:
+            return jsonify({'error': 'Recommendation ID and question required'}), 400
+        
+        from bedrock_helper import get_bedrock_analyzer
+        from trusted_advisor_helper import get_all_trusted_advisor_recommendations, get_all_affected_resources_for_check
+        
+        # Get recommendation data
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        current_recommendation = None
+        recommendation_identifier = None
+        
+        for rec in recommendations_data.get('recommendations', []):
+            if rec.get('id') == recommendation_id:
+                current_recommendation = rec
+                recommendation_identifier = rec.get('recommendationIdentifier') or rec.get('arn')
+                break
+        
+        if not current_recommendation:
+            return jsonify({'error': 'Recommendation not found'}), 404
+        
+        # Get affected resources
+        affected_resources = get_all_affected_resources_for_check(recommendation_identifier)
+        
+        # Get AI response
+        analyzer = get_bedrock_analyzer()
+        ai_response = analyzer.chat_about_recommendation(current_recommendation, affected_resources, question)
+        
+        return jsonify({
+            'success': True,
+            'response': ai_response,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"DEBUG: Error in AI chat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/ai-dashboard')
+def ai_dashboard():
+    """AI-powered dashboard with intelligent insights."""
+    print("DEBUG: Accessing AI dashboard")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        from bedrock_helper import get_bedrock_analyzer
+        from trusted_advisor_helper import get_all_trusted_advisor_recommendations
+        
+        # Get all recommendations
+        recommendations_data = get_all_trusted_advisor_recommendations()
+        
+        if 'error' in recommendations_data:
+            flash(f'Error loading recommendations: {recommendations_data["error"]}', 'error')
+            return render_template('ai_dashboard.html', recommendations=[], ai_insights={})
+        
+        recommendations = recommendations_data.get('recommendations', [])
+        
+        # Filter high-priority recommendations for AI analysis
+        high_priority_recs = [r for r in recommendations if r.get('status') in ['error', 'warning']][:5]
+        
+        # Generate AI insights for top recommendations
+        analyzer = get_bedrock_analyzer()
+        ai_insights = {}
+        
+        for rec in high_priority_recs:
+            try:
+                priority_analysis = analyzer.analyze_recommendation_priority(rec, [])
+                ai_insights[rec.get('id')] = priority_analysis
+            except Exception as e:
+                print(f"DEBUG: Error analyzing {rec.get('name')}: {e}")
+        
+        # Calculate overall statistics
+        stats = {
+            'total_recommendations': len(recommendations),
+            'high_priority': len([r for r in recommendations if r.get('status') == 'error']),
+            'medium_priority': len([r for r in recommendations if r.get('status') == 'warning']),
+            'ai_analyzed': len(ai_insights)
+        }
+        
+        return render_template('ai_dashboard.html',
+                             recommendations=high_priority_recs,
+                             ai_insights=ai_insights,
+                             stats=stats,
+                             last_updated=recommendations_data.get('last_updated'))
+        
+    except Exception as e:
+        print(f"DEBUG: Error in AI dashboard: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading AI dashboard: {str(e)}', 'error')
+        return render_template('ai_dashboard.html', recommendations=[], ai_insights={})
+
+@app.route('/ai-config')
+def ai_config():
+    """AI configuration page for cross-account Bedrock setup."""
+    print("DEBUG: Accessing AI configuration page")
+    
+    if 'aws_region' not in session:
+        flash('Please log in to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        from bedrock_helper import get_bedrock_analyzer
+        
+        analyzer = get_bedrock_analyzer()
+        
+        # Test current Bedrock access
+        bedrock_status = analyzer.test_bedrock_access()
+        
+        return render_template('ai_config.html',
+                             bedrock_status=bedrock_status,
+                             current_account=analyzer.bedrock_account_id,
+                             current_role=analyzer.bedrock_role_name,
+                             current_region=analyzer.bedrock_region)
+        
+    except Exception as e:
+        print(f"DEBUG: Error in AI config route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading AI configuration: {str(e)}', 'error')
+        return render_template('ai_config.html', bedrock_status={'status': 'failed', 'error': str(e)})
+
+@app.route('/api/ai/configure', methods=['POST'])
+def api_configure_bedrock():
+    """API endpoint to configure Bedrock access (access keys or cross-account role)."""
+    try:
+        data = request.get_json()
+        auth_method = data.get('auth_method', 'role')  # 'keys' or 'role'
+        
+        from bedrock_helper import get_bedrock_analyzer
+        analyzer = get_bedrock_analyzer()
+        
+        if auth_method == 'keys':
+            # Configure with access keys
+            access_key_id = data.get('access_key_id', '').strip()
+            secret_access_key = data.get('secret_access_key', '').strip()
+            region = data.get('region', 'us-east-1').strip()
+            account_id = data.get('account_id', '').strip()  # Optional account ID
+            
+            print(f"DEBUG: Configuring Bedrock with access keys")
+            print(f"  Account ID: {account_id}")
+            print(f"  Access Key ID: {access_key_id[:8]}..." if access_key_id else "  Access Key ID: None")
+            print(f"  Region: {region}")
+            
+            if not access_key_id or not secret_access_key:
+                print("DEBUG: Missing access key credentials")
+                return jsonify({'error': 'Access Key ID and Secret Access Key are required'}), 400
+            
+            # Validate access key format
+            if not access_key_id.startswith('AKIA') or len(access_key_id) != 20:
+                print(f"DEBUG: Invalid access key format: {access_key_id}")
+                return jsonify({'error': 'Invalid Access Key ID format (must start with AKIA and be 20 characters)'}), 400
+            
+            if len(secret_access_key) != 40:
+                print(f"DEBUG: Invalid secret key length: {len(secret_access_key)}")
+                return jsonify({'error': 'Invalid Secret Access Key format (must be exactly 40 characters)'}), 400
+            
+            # Validate account ID if provided
+            if account_id and (not account_id.isdigit() or len(account_id) != 12):
+                print(f"DEBUG: Invalid account ID format: {account_id}")
+                return jsonify({'error': 'Invalid AWS account ID format (must be exactly 12 digits)'}), 400
+            
+            # Configure access keys
+            print("DEBUG: Attempting to configure Bedrock analyzer...")
+            try:
+                success = analyzer.configure_access_keys(access_key_id, secret_access_key, region, account_id)
+                print(f"DEBUG: Configuration result: {success}")
+                
+                if success:
+                    # Test the configuration
+                    print("DEBUG: Testing Bedrock connection...")
+                    test_result = analyzer.test_bedrock_access()
+                    print(f"DEBUG: Test result: {test_result}")
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': f'Bedrock access configured successfully with access keys{" for account " + account_id if account_id else ""}',
+                        'test_result': test_result
+                    })
+                else:
+                    print("DEBUG: Configuration returned False")
+                    return jsonify({
+                        'success': False,
+                        'error': 'Failed to configure Bedrock access with provided keys - client initialization failed'
+                    }), 500
+                    
+            except Exception as config_error:
+                print(f"DEBUG: Configuration exception: {config_error}")
+                import traceback
+                traceback.print_exc()
+                return jsonify({
+                    'success': False,
+                    'error': f'Configuration error: {str(config_error)}'
+                }), 500
+        
+        else:
+            # Configure with cross-account role (existing logic)
+            account_id = data.get('account_id', '').strip()
+            role_name = data.get('role_name', 'BedrockAccessRole').strip()
+            region = data.get('region', 'us-east-1').strip()
+            
+            if not account_id:
+                return jsonify({'error': 'Account ID is required'}), 400
+            
+            # Validate account ID format
+            if not account_id.isdigit() or len(account_id) != 12:
+                return jsonify({'error': 'Invalid AWS account ID format'}), 400
+            
+            # Configure cross-account access
+            success = analyzer.configure_cross_account_access(account_id, role_name, region)
+            
+            if success:
+                # Test the configuration
+                test_result = analyzer.test_bedrock_access()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Cross-account Bedrock access configured successfully',
+                    'test_result': test_result
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to configure cross-account access'
+                }), 500
+        
+    except Exception as e:
+        print(f"DEBUG: Error configuring Bedrock: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/test-connection', methods=['GET', 'POST'])
+def api_test_connection():
+    """Simple test endpoint to verify API connectivity."""
+    try:
+        import time
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        
+        return jsonify({
+            'success': True,
+            'message': 'API is responding correctly',
+            'timestamp': current_time,
+            'method': request.method
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/ai/test-bedrock', methods=['POST'])
+def api_test_bedrock():
+    """API endpoint to test Bedrock connectivity."""
+    try:
+        from bedrock_helper import get_bedrock_analyzer
+        
+        analyzer = get_bedrock_analyzer()
+        test_result = analyzer.test_bedrock_access()
+        
+        return jsonify({
+            'success': True,
+            'test_result': test_result
+        })
+        
+    except Exception as e:
+        print(f"DEBUG: Error testing Bedrock: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/debug/setup-session')
+def debug_setup_session():
+    """Debug route to set up a basic session for testing."""
+    try:
+        session['aws_region'] = 'us-east-1'
+        session['aws_profile'] = 'beyon-money-payer'
+        session['aws_account_id'] = '466171249965'
+        session['aws_user_info'] = {'username': 'test-user'}
+        session['aws_auth_time'] = '2025-01-01T00:00:00Z'
+        
+        return jsonify({
+            'success': True,
+            'message': 'Session set up successfully',
+            'session_data': {
+                'aws_region': session.get('aws_region'),
+                'aws_profile': session.get('aws_profile'),
+                'aws_account_id': session.get('aws_account_id')
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/debug/api')
 def debug_api_page():

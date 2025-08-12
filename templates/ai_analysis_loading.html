@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}AI Analysis Loading - TorWAR{% endblock %}
+
+{% block extra_head %}
+<style>
+.loading-container {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 80px;
+    height: 80px;
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 30px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.progress-steps {
+    max-width: 600px;
+    margin: 20px 0;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.step.active {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.step.completed {
+    opacity: 1;
+    color: #198754;
+}
+
+.step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 12px;
+}
+
+.step.active .step-icon {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.step.completed .step-icon {
+    background-color: #198754;
+    color: white;
+}
+
+.ai-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.timeout-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    max-width: 500px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        
+        <h3 class="mb-2">
+            <i class="fas fa-brain me-2 text-primary"></i>
+            AI Analysis in Progress
+        </h3>
+        
+        <p class="text-muted mb-4">
+            Analyzing recommendation with AWS Bedrock AI
+            <span class="ai-badge ms-2">
+                <i class="fas fa-robot me-1"></i>Powered by Bedrock
+            </span>
+        </p>
+        
+        <div class="progress-steps">
+            <div class="step completed" id="step1">
+                <div class="step-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div>Loading recommendation data</div>
+            </div>
+            
+            <div class="step active" id="step2">
+                <div class="step-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div>Fetching affected resources</div>
+            </div>
+            
+            <div class="step" id="step3">
+                <div class="step-icon">3</div>
+                <div>Analyzing with AI (Priority Assessment)</div>
+            </div>
+            
+            <div class="step" id="step4">
+                <div class="step-icon">4</div>
+                <div>Generating remediation plan</div>
+            </div>
+            
+            <div class="step" id="step5">
+                <div class="step-icon">5</div>
+                <div>Preparing results</div>
+            </div>
+        </div>
+        
+        <div class="timeout-warning">
+            <i class="fas fa-clock me-2 text-warning"></i>
+            <strong>Note:</strong> AI analysis may take up to 15 seconds. If it takes longer, 
+            you'll see intelligent fallback results instead.
+        </div>
+        
+        <div class="mt-4">
+            <button class="btn btn-outline-secondary" onclick="skipToFallback()">
+                <i class="fas fa-forward me-1"></i>Skip to Fallback Results
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let startTime = Date.now();
+const recommendationId = '{{ recommendation_id }}';
+
+function updateStep(stepNumber, status = 'active') {
+    // Mark previous steps as completed
+    for (let i = 1; i < stepNumber; i++) {
+        const step = document.getElementById(`step${i}`);
+        if (step) {
+            step.className = 'step completed';
+            const icon = step.querySelector('.step-icon');
+            icon.innerHTML = '<i class="fas fa-check"></i>';
+        }
+    }
+    
+    // Update current step
+    const currentStepEl = document.getElementById(`step${stepNumber}`);
+    if (currentStepEl) {
+        if (status === 'active') {
+            currentStepEl.className = 'step active';
+            const icon = currentStepEl.querySelector('.step-icon');
+            icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        } else if (status === 'completed') {
+            currentStepEl.className = 'step completed';
+            const icon = currentStepEl.querySelector('.step-icon');
+            icon.innerHTML = '<i class="fas fa-check"></i>';
+        }
+    }
+}
+
+function simulateProgress() {
+    setTimeout(() => {
+        updateStep(2, 'completed');
+        updateStep(3, 'active');
+    }, 1000);
+    
+    setTimeout(() => {
+        updateStep(3, 'completed');
+        updateStep(4, 'active');
+    }, 3000);
+    
+    setTimeout(() => {
+        updateStep(4, 'completed');
+        updateStep(5, 'active');
+    }, 6000);
+    
+    // Redirect to actual analysis after 8 seconds or when ready
+    setTimeout(() => {
+        window.location.href = `/recommendations/${recommendationId}/ai-analysis-result`;
+    }, 8000);
+}
+
+function skipToFallback() {
+    window.location.href = `/recommendations/${recommendationId}/ai-analysis-result?fallback=true`;
+}
+
+// Start the progress simulation
+simulateProgress();
+
+// Fallback redirect after 20 seconds
+setTimeout(() => {
+    if (window.location.pathname.includes('ai-analysis-loading')) {
+        window.location.href = `/recommendations/${recommendationId}/ai-analysis-result?timeout=true`;
+    }
+}, 20000);
+</script>
+{% endblock %}
