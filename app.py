@@ -39,6 +39,12 @@ from trusted_advisor_helper import (
     get_trusted_advisor_check_categories,
     refresh_trusted_advisor_check
 )
+from trusted_advisor_cache import (
+    get_cached_recommendations,
+    get_cached_summary,
+    clear_trusted_advisor_cache,
+    get_cache_status
+)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -183,9 +189,9 @@ def index():
             else:
                 context['workload_count'] = 0
             
-            # Get Trusted Advisor summary - just the summary, not all recommendations
-            print("DEBUG: Getting Trusted Advisor summary...")
-            ta_summary = get_trusted_advisor_summary()
+            # Get Trusted Advisor summary - use cached version for fast loading
+            print("DEBUG: Getting Trusted Advisor summary from cache...")
+            ta_summary = get_cached_summary()
             print(f"DEBUG: TA Summary result: {ta_summary}")
             context['trusted_advisor'] = ta_summary
             
@@ -1503,9 +1509,12 @@ def recommendations():
         return redirect(url_for('aws_login'))
     
     try:
-        # Get all recommendations
-        print("DEBUG: Getting all Trusted Advisor recommendations...")
-        recommendations_data = get_all_trusted_advisor_recommendations()
+        # Check if this is a force refresh request
+        force_refresh = request.args.get('refresh', '').lower() == 'true'
+        
+        # Get all recommendations from cache (much faster!)
+        print("DEBUG: Getting all Trusted Advisor recommendations from cache...")
+        recommendations_data = get_cached_recommendations(force_refresh=force_refresh)
         print(f"DEBUG: Recommendations data keys: {recommendations_data.keys()}")
         
         if 'error' in recommendations_data:
@@ -2561,6 +2570,73 @@ def api_trusted_advisor_summary():
         return jsonify(summary)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/cache/status')
+def cache_status():
+    """Display cache status and management options."""
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    cache_info = get_cache_status()
+    return render_template('cache_status.html', cache_info=cache_info)
+
+@app.route('/cache/refresh', methods=['POST'])
+def refresh_cache():
+    """Force refresh the Trusted Advisor cache."""
+    if 'aws_region' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        # Force refresh both recommendations and summary
+        print("🔄 Manual cache refresh requested...")
+        recommendations_data = get_cached_recommendations(force_refresh=True)
+        summary_data = get_cached_summary(force_refresh=True)
+        
+        if 'error' in recommendations_data:
+            return jsonify({
+                'success': False,
+                'error': recommendations_data['error']
+            })
+        
+        return jsonify({
+            'success': True,
+            'message': 'Cache refreshed successfully',
+            'recommendations_count': len(recommendations_data.get('recommendations', [])),
+            'cache_info': get_cache_status()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/cache/clear', methods=['POST'])
+def clear_cache():
+    """Clear the Trusted Advisor cache."""
+    if 'aws_region' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        clear_trusted_advisor_cache()
+        return jsonify({
+            'success': True,
+            'message': 'Cache cleared successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cache/info')
+def api_cache_info():
+    """API endpoint to get cache information."""
+    if 'aws_region' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    return jsonify(get_cache_status())
 
 if __name__ == '__main__':
     # Get configuration from environment variables

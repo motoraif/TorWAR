@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Cache Status - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-speedometer2"></i> Cache Status</h2>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="refreshCacheInfo()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh Info
+                    </button>
+                    <button class="btn btn-warning" onclick="refreshCache()">
+                        <i class="bi bi-cloud-download"></i> Force Refresh Cache
+                    </button>
+                    <button class="btn btn-danger" onclick="clearCache()">
+                        <i class="bi bi-trash"></i> Clear Cache
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cache Status Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card {% if cache_info.cache_valid %}border-success{% else %}border-warning{% endif %}">
+                        <div class="card-body text-center">
+                            <i class="bi bi-{% if cache_info.cache_valid %}check-circle text-success{% else %}exclamation-triangle text-warning{% endif %} fs-1"></i>
+                            <h5 class="card-title mt-2">Cache Status</h5>
+                            <p class="card-text">
+                                {% if cache_info.cache_valid %}
+                                    <span class="badge bg-success">Valid</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Stale</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock text-info fs-1"></i>
+                            <h5 class="card-title mt-2">Last Updated</h5>
+                            <p class="card-text">
+                                {% if cache_info.last_updated %}
+                                    <small>{{ cache_info.last_updated }}</small>
+                                {% else %}
+                                    <span class="text-muted">Never</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <i class="bi bi-list-check text-primary fs-1"></i>
+                            <h5 class="card-title mt-2">Recommendations</h5>
+                            <p class="card-text">
+                                <span class="badge bg-primary">{{ cache_info.recommendations_count }}</span>
+                                {% if cache_info.recommendations_cached %}
+                                    <br><small class="text-success">Cached</small>
+                                {% else %}
+                                    <br><small class="text-muted">Not cached</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-secondary">
+                        <div class="card-body text-center">
+                            <i class="bi bi-hourglass text-secondary fs-1"></i>
+                            <h5 class="card-title mt-2">Cache TTL</h5>
+                            <p class="card-text">
+                                <span class="badge bg-secondary">{{ cache_info.cache_ttl_minutes }} min</span>
+                                {% if cache_info.refresh_in_progress %}
+                                    <br><small class="text-info">Refreshing...</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cache Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> Cache Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Cache Configuration</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>TTL:</strong> {{ cache_info.cache_ttl_minutes }} minutes</li>
+                                <li><strong>Storage:</strong> File-based + In-memory</li>
+                                <li><strong>Background Refresh:</strong> 
+                                    {% if cache_info.refresh_in_progress %}
+                                        <span class="badge bg-info">In Progress</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Idle</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Cache Status</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Recommendations Cached:</strong> 
+                                    {% if cache_info.recommendations_cached %}
+                                        <i class="bi bi-check-circle text-success"></i> Yes
+                                    {% else %}
+                                        <i class="bi bi-x-circle text-danger"></i> No
+                                    {% endif %}
+                                </li>
+                                <li><strong>Summary Cached:</strong> 
+                                    {% if cache_info.summary_cached %}
+                                        <i class="bi bi-check-circle text-success"></i> Yes
+                                    {% else %}
+                                        <i class="bi bi-x-circle text-danger"></i> No
+                                    {% endif %}
+                                </li>
+                                <li><strong>Total Items:</strong> {{ cache_info.recommendations_count }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Benefits -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning"></i> Performance Benefits</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-speedometer2 text-success fs-1"></i>
+                                <h6 class="mt-2">Fast Loading</h6>
+                                <p class="text-muted">Pages load in milliseconds instead of seconds</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-cloud-arrow-down text-primary fs-1"></i>
+                                <h6 class="mt-2">Reduced API Calls</h6>
+                                <p class="text-muted">Background refresh minimizes AWS API usage</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-shield-check text-info fs-1"></i>
+                                <h6 class="mt-2">Graceful Fallback</h6>
+                                <p class="text-muted">Uses cached data if API is temporarily unavailable</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" id="loadingMessage">Processing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showLoading(message) {
+    document.getElementById('loadingMessage').textContent = message;
+    new bootstrap.Modal(document.getElementById('loadingModal')).show();
+}
+
+function hideLoading() {
+    bootstrap.Modal.getInstance(document.getElementById('loadingModal'))?.hide();
+}
+
+function refreshCacheInfo() {
+    location.reload();
+}
+
+async function refreshCache() {
+    showLoading('Refreshing cache from AWS API...');
+    
+    try {
+        const response = await fetch('/cache/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Cache refreshed successfully!\nLoaded ${result.recommendations_count} recommendations.`);
+            location.reload();
+        } else {
+            alert(`Error refreshing cache: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Error refreshing cache: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function clearCache() {
+    if (!confirm('Are you sure you want to clear the cache? This will force fresh API calls on the next page load.')) {
+        return;
+    }
+    
+    showLoading('Clearing cache...');
+    
+    try {
+        const response = await fetch('/cache/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Cache cleared successfully!');
+            location.reload();
+        } else {
+            alert(`Error clearing cache: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Error clearing cache: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+</script>
+{% endblock %}

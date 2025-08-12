@@ -154,6 +154,13 @@ Base Template for TorWAR Application
                         </a>
                     </li>
                     
+                    <!-- Cache Status - Always show when connected -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('cache_status') }}">
+                            <i class="fas fa-tachometer-alt"></i> Cache Status
+                        </a>
+                    </li>
+                    
                     <!-- Remediations - Always show when connected -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('remediations') }}">
