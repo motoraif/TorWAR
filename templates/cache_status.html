@@ -131,6 +131,9 @@
                                         <span class="badge bg-secondary">Idle</span>
                                     {% endif %}
                                 </li>
+                                <li><strong>Auto-Clear on Logout:</strong> 
+                                    <span class="badge bg-success">Enabled</span>
+                                </li>
                             </ul>
                         </div>
                         <div class="col-md-6">
@@ -151,7 +154,42 @@
                                     {% endif %}
                                 </li>
                                 <li><strong>Total Items:</strong> {{ cache_info.recommendations_count }}</li>
+                                <li><strong>Security:</strong> 
+                                    <span class="badge bg-success">Auto-cleared on logout</span>
+                                </li>
                             </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Information -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-shield-check"></i> Security & Privacy</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-box-arrow-right text-success fs-1"></i>
+                                <h6 class="mt-2">Auto-Clear on Logout</h6>
+                                <p class="text-muted">Cache is automatically cleared when you sign out</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-arrow-clockwise text-primary fs-1"></i>
+                                <h6 class="mt-2">Fresh Data on Login</h6>
+                                <p class="text-muted">Next login fetches fresh data from AWS</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="bi bi-lock text-info fs-1"></i>
+                                <h6 class="mt-2">Data Privacy</h6>
+                                <p class="text-muted">No cached data persists between sessions</p>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -154,7 +154,17 @@ def register_auth_routes(app):
         from aws_helper import clear_current_session
         clear_current_session()
         
-        flash('Successfully logged out from AWS', 'info')
+        # Clear Trusted Advisor cache for security and data freshness
+        try:
+            from trusted_advisor_cache import clear_trusted_advisor_cache
+            clear_trusted_advisor_cache()
+            print("✅ Trusted Advisor cache cleared on logout")
+            flash('Successfully logged out from AWS. Cache cleared for security.', 'info')
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to clear cache on logout: {e}")
+            # Don't fail logout if cache clearing fails
+            flash('Successfully logged out from AWS. Warning: Cache may not have been cleared.', 'warning')
+        
         return redirect(url_for('aws_login'))
     
     @app.route('/aws-clear-session')
@@ -171,5 +181,13 @@ def register_auth_routes(app):
         from aws_helper import clear_current_session
         clear_current_session()
         
-        flash('All session data cleared', 'info')
+        # Clear Trusted Advisor cache
+        try:
+            from trusted_advisor_cache import clear_trusted_advisor_cache
+            clear_trusted_advisor_cache()
+            print("✅ Trusted Advisor cache cleared on session clear")
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to clear cache on session clear: {e}")
+        
+        flash('All session data and cache cleared', 'info')
         return redirect(url_for('aws_login'))

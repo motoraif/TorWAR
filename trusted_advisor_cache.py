@@ -311,17 +311,21 @@ class TrustedAdvisorCache:
         return self._refresh_in_progress and not self._startup_complete
     
     def clear_cache(self):
-        """Clear all cache data."""
+        """Clear all cache data and reset startup flag."""
         self._memory_cache = {'recommendations': None, 'summary': None, 'last_updated': None}
         
-        for file_path in [self.recommendations_file, self.summary_file, self.metadata_file]:
+        # Reset startup completion flag so next login triggers fresh fetch
+        self._startup_complete = False
+        self._is_first_startup = True
+        
+        for file_path in [self.recommendations_file, self.summary_file, self.metadata_file, self.startup_flag_file]:
             try:
                 if os.path.exists(file_path):
                     os.remove(file_path)
             except Exception as e:
                 print(f"⚠️  Warning: Failed to remove {file_path}: {e}")
         
-        print("🗑️  Cache cleared")
+        print("🗑️  Cache cleared and startup flag reset - next login will fetch fresh data")
     
     def get_cache_info(self) -> Dict[str, Any]:
         """Get information about the current cache state."""
@@ -358,8 +362,13 @@ def get_cached_summary(force_refresh: bool = False) -> Dict[str, Any]:
     return get_cache_instance().get_summary(force_refresh)
 
 def clear_trusted_advisor_cache():
-    """Clear the Trusted Advisor cache."""
-    get_cache_instance().clear_cache()
+    """Clear the Trusted Advisor cache and reset global instance."""
+    global _cache_instance
+    if _cache_instance:
+        _cache_instance.clear_cache()
+    # Reset global instance so next access creates fresh instance
+    _cache_instance = None
+    print("🔄 Global cache instance reset - next access will create fresh instance")
 
 def get_cache_status() -> Dict[str, Any]:
     """Get cache status information."""
