@@ -161,6 +161,13 @@ Base Template for TorWAR Application
                         </a>
                     </li>
                     
+                    <!-- Loading Test - Debug/Development -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('debug_loading_test') }}">
+                            <i class="fas fa-vial"></i> Loading Test
+                        </a>
+                    </li>
+                    
                     <!-- Remediations - Always show when connected -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('remediations') }}">

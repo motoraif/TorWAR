@@ -174,14 +174,23 @@ def index():
     
     # Check if user is authenticated with AWS
     aws_connected = 'aws_region' in session
+    print(f"DEBUG: AWS connected: {aws_connected}")
     
     # If connected and cache is loading (startup), show loading page
-    if aws_connected and is_cache_loading():
-        print("DEBUG: Cache is loading, showing loading page")
-        return render_template('loading.html', 
-                             loading_message="Loading TorWAR Dashboard...",
-                             startup_refresh=not is_startup_complete(),
-                             redirect_url="/")
+    if aws_connected:
+        cache_loading = is_cache_loading()
+        startup_complete = is_startup_complete()
+        print(f"DEBUG: Cache loading: {cache_loading}")
+        print(f"DEBUG: Startup complete: {startup_complete}")
+        
+        if cache_loading:
+            print("DEBUG: Cache is loading, showing loading page")
+            return render_template('loading.html', 
+                                 loading_message="Loading TorWAR Dashboard...",
+                                 startup_refresh=not startup_complete,
+                                 redirect_url="/")
+        else:
+            print("DEBUG: Cache not loading, showing regular dashboard")
     
     context = {
         'aws_connected': aws_connected,
@@ -2596,6 +2605,49 @@ def api_trusted_advisor_summary():
         return jsonify(summary)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/debug/loading-test')
+def debug_loading_test():
+    """Debug page to test loading functionality."""
+    return render_template('loading_test.html')
+
+@app.route('/debug/force-startup')
+def debug_force_startup():
+    """Debug route to force startup refresh for testing."""
+    if 'aws_region' not in session:
+        flash('Please connect to AWS first', 'warning')
+        return redirect(url_for('aws_login'))
+    
+    try:
+        # Remove startup flag to force startup refresh
+        from trusted_advisor_cache import get_cache_instance, _cache_instance
+        import os
+        
+        cache = get_cache_instance()
+        startup_flag_file = os.path.join(cache.cache_dir, "startup_complete.flag")
+        
+        if os.path.exists(startup_flag_file):
+            os.remove(startup_flag_file)
+            print("🔄 Removed startup flag - forcing startup refresh")
+        
+        # Reset the cache instance
+        import trusted_advisor_cache
+        trusted_advisor_cache._cache_instance = None
+        
+        flash('Startup refresh forced - next page load will show loading page', 'info')
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        flash(f'Error forcing startup: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/debug/test-loading')
+def debug_test_loading():
+    """Debug route to test loading page directly."""
+    return render_template('loading.html', 
+                         loading_message="Testing Loading Page...",
+                         startup_refresh=True,
+                         redirect_url="/")
 
 @app.route('/loading')
 def loading_page():

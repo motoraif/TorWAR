@@ -250,17 +250,28 @@ class TrustedAdvisorCache:
         
         def startup_refresh():
             self._refresh_in_progress = True
+            startup_start_time = time.time()
             try:
                 print("🚀 Startup refresh started - fetching fresh data...")
                 self._fetch_and_cache_recommendations()
                 self._fetch_and_cache_summary()
+                
+                # Ensure minimum loading time for better UX (at least 2 seconds)
+                elapsed_time = time.time() - startup_start_time
+                min_loading_time = 2.0  # 2 seconds minimum
+                
+                if elapsed_time < min_loading_time:
+                    remaining_time = min_loading_time - elapsed_time
+                    print(f"⏰ Ensuring minimum loading time - waiting {remaining_time:.1f}s more...")
+                    time.sleep(remaining_time)
                 
                 # Mark startup as complete
                 with open(self.startup_flag_file, 'w') as f:
                     f.write(f"startup_complete_{datetime.now().isoformat()}")
                 
                 self._startup_complete = True
-                print("✅ Startup refresh completed - application ready!")
+                total_time = time.time() - startup_start_time
+                print(f"✅ Startup refresh completed in {total_time:.1f}s - application ready!")
             except Exception as e:
                 print(f"❌ Startup refresh failed: {e}")
                 # Still mark as complete to avoid blocking the app

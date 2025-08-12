@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Loading Page Test - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-vial"></i> Loading Page Test</h2>
+            <p class="text-muted">Use these buttons to test the loading page functionality.</p>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-play"></i> Direct Tests</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="/debug/test-loading" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> View Loading Page Directly
+                                </a>
+                                <a href="/loading" class="btn btn-outline-primary">
+                                    <i class="fas fa-spinner"></i> Test Loading Route
+                                </a>
+                                <a href="/cache/refresh-with-loading" class="btn btn-warning">
+                                    <i class="fas fa-sync-alt"></i> Test Cache Refresh Loading
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-rocket"></i> Startup Tests</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="/debug/force-startup" class="btn btn-danger">
+                                    <i class="fas fa-redo"></i> Force Startup Refresh
+                                </a>
+                                <button class="btn btn-info" onclick="testStartupFlow()">
+                                    <i class="fas fa-play-circle"></i> Test Complete Flow
+                                </button>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                "Force Startup Refresh" will make the next page load show the loading page.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Current Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="status-info">
+                                <button class="btn btn-outline-secondary" onclick="loadStatus()">
+                                    <i class="fas fa-refresh"></i> Load Current Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb"></i> How to Test Loading Page</h6>
+                        <ol>
+                            <li><strong>Direct Test:</strong> Click "View Loading Page Directly" to see the loading page</li>
+                            <li><strong>Startup Test:</strong> Click "Force Startup Refresh" then go to homepage</li>
+                            <li><strong>Refresh Test:</strong> Click "Test Cache Refresh Loading"</li>
+                            <li><strong>Real Scenario:</strong> Restart the application to see first startup loading</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadStatus() {
+    const statusDiv = document.getElementById('status-info');
+    statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Loading status...';
+    
+    try {
+        const response = await fetch('/api/cache/info');
+        if (response.ok) {
+            const data = await response.json();
+            statusDiv.innerHTML = `
+                <table class="table table-sm">
+                    <tr><td><strong>Startup Complete:</strong></td><td>${data.startup_complete ? '✅ Yes' : '❌ No'}</td></tr>
+                    <tr><td><strong>Cache Loading:</strong></td><td>${data.is_loading ? '🔄 Yes' : '✅ No'}</td></tr>
+                    <tr><td><strong>First Startup:</strong></td><td>${data.is_first_startup ? '🚀 Yes' : '✅ No'}</td></tr>
+                    <tr><td><strong>Cache Valid:</strong></td><td>${data.cache_valid ? '✅ Yes' : '⚠️ No'}</td></tr>
+                    <tr><td><strong>Refresh in Progress:</strong></td><td>${data.refresh_in_progress ? '🔄 Yes' : '✅ No'}</td></tr>
+                </table>
+            `;
+        } else {
+            statusDiv.innerHTML = '<div class="alert alert-warning">Please authenticate with AWS first</div>';
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+}
+
+function testStartupFlow() {
+    if (confirm('This will force a startup refresh and redirect to homepage. Continue?')) {
+        window.location.href = '/debug/force-startup';
+    }
+}
+</script>
+{% endblock %}
