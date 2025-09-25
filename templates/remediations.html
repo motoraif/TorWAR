@@ -3,6 +3,22 @@
 {% block title %}Remediations - TorWAR{% endblock %}
 
 {% block extra_head %}
+<script>
+// Show loading indicator when page starts loading fresh data
+document.addEventListener('DOMContentLoaded', function() {
+    // Always hide loading indicator when page is ready
+    if (window.TorWAR) {
+        TorWAR.hideLoading();
+    }
+    
+    const fromCache = {{ 'true' if recommendations else 'false' }};
+    if (!fromCache) {
+        console.log('Loading fresh remediation data...');
+    } else {
+        console.log('Remediations loaded from cache');
+    }
+});
+</script>
 <style>
 .remediation-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;

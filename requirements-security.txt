@@ -1,0 +1,31 @@
+# TorWAR Security Enhancement Requirements
+# Author: Mohamed Toraif
+
+# Core requirements (existing)
+Flask>=3.0.0
+boto3>=1.34.0
+requests>=2.31.0
+gunicorn>=21.0.0
+pytest>=7.0.0
+pytest-flask>=1.0.0
+
+# Performance optimization dependencies
+redis>=4.5.0
+aioboto3>=11.0.0
+psutil>=5.9.0
+hiredis>=2.2.0
+
+# Database integration dependencies
+Flask-SQLAlchemy>=3.0.0
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.0
+
+# Security dependencies
+Flask-WTF>=1.1.0           # CSRF protection and form handling
+PyJWT>=2.8.0               # JWT token handling
+cryptography>=41.0.0       # Secure cryptographic operations
+bcrypt>=4.0.0              # Password hashing (alternative to PBKDF2)
+
+# Optional: Advanced security features
+# flask-limiter>=3.5.0     # Advanced rate limiting
+# flask-talisman>=1.1.0    # Security headers middleware

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TorWAR - AWS Well-Architected Review Tool">
+    <title>TorWAR - Modern Frontend</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/dist/assets/index.css" as="style">
+    <link rel="preload" href="/static/dist/assets/index.js" as="script">
+    
+    <!-- Vue.js app styles -->
+    <link rel="stylesheet" href="/static/dist/assets/index.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading fallback -->
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="text-align: center;">
+                <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                <h2 style="color: #333; margin-bottom: 10px;">Loading TorWAR...</h2>
+                <p style="color: #666;">Modern AWS Well-Architected Review Tool</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vue.js app script -->
+    <script type="module" src="/static/dist/assets/index.js"></script>
+    
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

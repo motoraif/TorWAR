@@ -1,499 +1,222 @@
 {% extends "base.html" %}
 
-{% block title %}Recommendation Details - {{ recommendation.name if recommendation else 'Unknown' }} - TorWAR{% endblock %}
-
-{% block extra_head %}
-<style>
-.detail-card {
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.status-error {
-    border-left: 4px solid #dc3545;
-}
-
-.status-warning {
-    border-left: 4px solid #ffc107;
-}
-
-.status-ok {
-    border-left: 4px solid #198754;
-}
-
-.resource-table {
-    font-size: 0.9rem;
-}
-
-.resource-id {
-    font-family: 'Courier New', monospace;
-    font-size: 0.8rem;
-    background-color: #f8f9fa;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.metadata-item {
-    margin-bottom: 5px;
-    font-size: 0.85rem;
-}
-
-.remediation-section {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 20px;
-}
-
-.action-plan-item {
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 10px;
-}
-
-.priority-high {
-    border-left: 4px solid #dc3545;
-}
-
-.priority-medium {
-    border-left: 4px solid #ffc107;
-}
-
-.priority-low {
-    border-left: 4px solid #198754;
-}
-
-.resource-status-error {
-    color: #dc3545;
-    font-weight: bold;
-}
-
-.resource-status-warning {
-    color: #ffc107;
-    font-weight: bold;
-}
-
-.resource-status-ok {
-    color: #198754;
-    font-weight: bold;
-}
-
-.tab-content {
-    border: 1px solid #dee2e6;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
-    padding: 20px;
-}
-
-.nav-tabs .nav-link.active {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-}
-
-.export-buttons {
-    margin-bottom: 20px;
-}
-
-.resource-count-badge {
-    font-size: 1.2rem;
-    padding: 8px 12px;
-}
-</style>
-{% endblock %}
+{% block title %}{{ recommendation.name }} - Recommendation Details{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header Section -->
+<div class="container-fluid mt-4">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('recommendations') }}">Recommendations</a></li>
+                    <li class="breadcrumb-item active">{{ recommendation.name }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ url_for('recommendations') }}">Recommendations</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Details</li>
-                        </ol>
-                    </nav>
-                    <h2 class="mb-1">
-                        {% if recommendation.status == 'error' %}
-                            <i class="fas fa-exclamation-circle text-danger me-2"></i>
-                        {% elif recommendation.status == 'warning' %}
-                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                        {% elif recommendation.status == 'ok' %}
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle text-muted me-2"></i>
-                        {% endif %}
-                        {{ recommendation.name if recommendation else 'Recommendation Details' }}
+                    <h2 class="mb-2">
+                        <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }} me-2">
+                            {{ recommendation.status|upper }}
+                        </span>
+                        {{ recommendation.name }}
                     </h2>
-                    <p class="text-muted mb-0">
-                        Detailed view of affected resources and remediation options
-                    </p>
+                    <p class="text-muted">{{ recommendation.category }} | Check ID: {{ recommendation.id }}</p>
                 </div>
-                <div class="export-buttons">
-                    <button class="btn btn-outline-primary me-2" onclick="exportToCSV()">
-                        <i class="fas fa-file-csv me-1"></i>Export CSV
-                    </button>
-                    <button class="btn btn-outline-secondary me-2" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i>Print
-                    </button>
-                    <a href="{{ url_for('recommendations') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Back to Recommendations
+                <div>
+                    <a href="{{ url_for('recommendations') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Recommendations
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recommendation Overview -->
-    {% if recommendation %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card detail-card status-{{ recommendation.status }}">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h5 class="card-title">{{ recommendation.name }}</h5>
-                            <p class="card-text">{{ recommendation.description }}</p>
-                            
-                            <!-- AWS Services -->
-                            {% if recommendation.aws_services and recommendation.aws_services|length > 0 %}
-                            <div class="mb-3">
-                                <strong>AWS Services:</strong>
-                                {% for service in recommendation.aws_services %}
-                                    <span class="badge bg-light text-dark me-1">{{ service }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Category and Pillar -->
-                            <div class="mb-2">
-                                <strong>Category:</strong> 
-                                <span class="badge bg-primary">{{ recommendation.category|title }}</span>
-                                <strong class="ms-3">Pillar:</strong> 
-                                <span class="badge bg-secondary">{{ recommendation.pillar|title }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <!-- Status Badge -->
-                            <div class="mb-2">
-                                {% if recommendation.status == 'error' %}
-                                    <span class="badge bg-danger resource-count-badge">🔴 High Priority</span>
-                                {% elif recommendation.status == 'warning' %}
-                                    <span class="badge bg-warning text-dark resource-count-badge">🟡 Medium Priority</span>
-                                {% elif recommendation.status == 'ok' %}
-                                    <span class="badge bg-success resource-count-badge">🟢 Passing</span>
-                                {% else %}
-                                    <span class="badge bg-secondary resource-count-badge">Not Available</span>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Resource Counts -->
-                            <div class="row text-center">
-                                {% if recommendation.error_count > 0 %}
-                                <div class="col-4">
-                                    <div class="text-danger">
-                                        <strong>{{ recommendation.error_count }}</strong>
-                                        <br><small>Error</small>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% if recommendation.warning_count > 0 %}
-                                <div class="col-4">
-                                    <div class="text-warning">
-                                        <strong>{{ recommendation.warning_count }}</strong>
-                                        <br><small>Warning</small>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% if recommendation.ok_count > 0 %}
-                                <div class="col-4">
-                                    <div class="text-success">
-                                        <strong>{{ recommendation.ok_count }}</strong>
-                                        <br><small>OK</small>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Resource Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-danger text-white text-center">
-                <div class="card-body">
-                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ resources_by_status.error|length }}</h3>
-                    <small>Error Resources</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-center">
-                <div class="card-body">
-                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ resources_by_status.warning|length }}</h3>
-                    <small>Warning Resources</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white text-center">
-                <div class="card-body">
-                    <i class="fas fa-check-circle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ resources_by_status.ok|length }}</h3>
-                    <small>OK Resources</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white text-center">
-                <div class="card-body">
-                    <i class="fas fa-server fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ total_resources }}</h3>
-                    <small>Total Resources</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Affected Resources Tabs -->
+    <!-- Main Content -->
     <div class="row">
-        <div class="col-12">
-            <div class="card detail-card">
+        <div class="col-lg-8">
+            <!-- Description -->
+            <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-server me-2"></i>Affected Resources ({{ total_resources }})
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs" id="resourceTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                                All Resources <span class="badge bg-primary ms-1">{{ total_resources }}</span>
-                            </button>
-                        </li>
-                        {% if resources_by_status.error|length > 0 %}
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link text-danger" id="error-tab" data-bs-toggle="tab" data-bs-target="#error" type="button" role="tab">
-                                Error <span class="badge bg-danger ms-1">{{ resources_by_status.error|length }}</span>
-                            </button>
-                        </li>
-                        {% endif %}
-                        {% if resources_by_status.warning|length > 0 %}
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link text-warning" id="warning-tab" data-bs-toggle="tab" data-bs-target="#warning" type="button" role="tab">
-                                Warning <span class="badge bg-warning ms-1">{{ resources_by_status.warning|length }}</span>
-                            </button>
-                        </li>
-                        {% endif %}
-                        {% if resources_by_status.ok|length > 0 %}
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link text-success" id="ok-tab" data-bs-toggle="tab" data-bs-target="#ok" type="button" role="tab">
-                                OK <span class="badge bg-success ms-1">{{ resources_by_status.ok|length }}</span>
-                            </button>
-                        </li>
-                        {% endif %}
-                    </ul>
-
-                    <!-- Tab content -->
-                    <div class="tab-content" id="resourceTabContent">
-                        <!-- All Resources Tab -->
-                        <div class="tab-pane fade show active" id="all" role="tabpanel">
-                            {% include 'resource_table.html' with context %}
-                        </div>
-                        
-                        <!-- Error Resources Tab -->
-                        {% if resources_by_status.error|length > 0 %}
-                        <div class="tab-pane fade" id="error" role="tabpanel">
-                            {% set filtered_resources = resources_by_status.error %}
-                            {% include 'resource_table.html' with context %}
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Warning Resources Tab -->
-                        {% if resources_by_status.warning|length > 0 %}
-                        <div class="tab-pane fade" id="warning" role="tabpanel">
-                            {% set filtered_resources = resources_by_status.warning %}
-                            {% include 'resource_table.html' with context %}
-                        </div>
-                        {% endif %}
-                        
-                        <!-- OK Resources Tab -->
-                        {% if resources_by_status.ok|length > 0 %}
-                        <div class="tab-pane fade" id="ok" role="tabpanel">
-                            {% set filtered_resources = resources_by_status.ok %}
-                            {% include 'resource_table.html' with context %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Remediation Section -->
-    {% if remediation or recommendation.status in ['error', 'warning'] %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card detail-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tools me-2"></i>Remediation Information
-                    </h5>
+                    <h5><i class="fas fa-info-circle"></i> Description</h5>
                 </div>
                 <div class="card-body">
-                    {% if remediation and remediation.description %}
-                        <div class="mb-3">
-                            <h6>Description:</h6>
-                            <p>{{ remediation.description }}</p>
+                    <p>{{ recommendation.description }}</p>
+                </div>
+            </div>
+
+            <!-- Resources -->
+            {% if recommendation.resource_count > 0 %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-exclamation-triangle text-warning"></i> Affected Resources ({{ recommendation.resource_count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if recommendation.resources_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for resource in recommendation.resources_data[:10] %}
+                                    <tr>
+                                        <td>{{ resource.get('resourceId', 'N/A') }}</td>
+                                        <td>{{ resource.get('status', 'Flagged') }}</td>
+                                        <td>{{ resource.get('metadata', {}).get('description', 'No details available') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% if recommendation.resources_data|length > 10 %}
+                            <p class="text-muted">Showing first 10 of {{ recommendation.resources_data|length }} resources.</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            {{ recommendation.resource_count }} resources are flagged for this recommendation. 
+                            Detailed resource information is not available.
                         </div>
                     {% endif %}
-                    
-                    <!-- Action Plan -->
-                    <div class="action-plan">
-                        <h6 class="mb-3">
-                            <i class="fas fa-list-ol me-2"></i>Recommended Action Plan
-                        </h6>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Remediation Steps -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools"></i> Recommended Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recommendation.status == 'error' %}
+                    <div class="alert alert-danger">
+                        <strong>High Priority:</strong> This recommendation requires immediate attention.
+                    </div>
+                    {% elif recommendation.status == 'warning' %}
+                    <div class="alert alert-warning">
+                        <strong>Medium Priority:</strong> Consider addressing this recommendation.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">
+                        <strong>Good:</strong> No action required for this check.
+                    </div>
+                    {% endif %}
+
+                    <h6>Suggested Steps:</h6>
+                    <ol>
+                        <li>Review the affected resources listed above</li>
+                        <li>Analyze the impact on your AWS environment</li>
+                        <li>Implement the recommended changes</li>
+                        <li>Monitor the results after implementation</li>
+                        <li>Re-run Trusted Advisor to verify the fix</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-bar"></i> Quick Info</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }}">
+                                    {{ recommendation.resource_count }}
+                                </h4>
+                                <small class="text-muted">Resources</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ recommendation.category }}</h4>
+                            <small class="text-muted">Category</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-tags"></i> Details</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-5">Check ID:</dt>
+                        <dd class="col-sm-7"><code>{{ recommendation.id }}</code></dd>
                         
-                        {% if recommendation.status == 'error' %}
-                        <div class="action-plan-item priority-high">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-danger">
-                                        <i class="fas fa-exclamation-circle me-2"></i>Immediate Action Required
-                                    </h6>
-                                    <p class="mb-2">This is a high-priority issue that requires immediate attention to prevent potential service disruptions or security vulnerabilities.</p>
-                                    <ul class="mb-0">
-                                        <li>Review all flagged resources in the Error tab above</li>
-                                        <li>Prioritize resources based on business criticality</li>
-                                        <li>Implement fixes for critical resources first</li>
-                                        <li>Monitor the impact of changes</li>
-                                    </ul>
-                                </div>
-                                <span class="badge bg-danger">High Priority</span>
-                            </div>
-                        </div>
-                        {% elif recommendation.status == 'warning' %}
-                        <div class="action-plan-item priority-medium">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-warning">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>Action Recommended
-                                    </h6>
-                                    <p class="mb-2">This issue should be addressed to optimize your AWS environment and prevent potential problems.</p>
-                                    <ul class="mb-0">
-                                        <li>Review flagged resources in the Warning tab above</li>
-                                        <li>Plan remediation during maintenance windows</li>
-                                        <li>Test changes in non-production environments first</li>
-                                        <li>Document changes for future reference</li>
-                                    </ul>
-                                </div>
-                                <span class="badge bg-warning text-dark">Medium Priority</span>
-                            </div>
-                        </div>
+                        <dt class="col-sm-5">Category:</dt>
+                        <dd class="col-sm-7">{{ recommendation.category }}</dd>
+                        
+                        <dt class="col-sm-5">Pillar:</dt>
+                        <dd class="col-sm-7">{{ recommendation.pillar }}</dd>
+                        
+                        <dt class="col-sm-5">Status:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }}">
+                                {{ recommendation.status|title }}
+                            </span>
+                        </dd>
+                        
+                        {% if recommendation.updated_at %}
+                        <dt class="col-sm-5">Last Updated:</dt>
+                        <dd class="col-sm-7">{{ recommendation.updated_at }}</dd>
                         {% endif %}
-                        
-                        <!-- General Remediation Steps -->
-                        <div class="action-plan-item">
-                            <h6>
-                                <i class="fas fa-cog me-2"></i>General Remediation Steps
-                            </h6>
-                            <ol class="mb-0">
-                                <li><strong>Assessment:</strong> Review each affected resource individually</li>
-                                <li><strong>Planning:</strong> Create a remediation plan with timelines</li>
-                                <li><strong>Testing:</strong> Test changes in a non-production environment</li>
-                                <li><strong>Implementation:</strong> Apply fixes during appropriate maintenance windows</li>
-                                <li><strong>Validation:</strong> Verify that the issue has been resolved</li>
-                                <li><strong>Monitoring:</strong> Continue monitoring to prevent recurrence</li>
-                            </ol>
-                        </div>
-                        
-                        <!-- AWS Console Links -->
-                        <div class="action-plan-item">
-                            <h6>
-                                <i class="fas fa-external-link-alt me-2"></i>Useful AWS Console Links
-                            </h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <a href="https://console.aws.amazon.com/support/home#/case/create" target="_blank" class="btn btn-outline-primary btn-sm me-2 mb-2">
-                                        <i class="fas fa-ticket-alt me-1"></i>Create Support Case
-                                    </a>
-                                    <a href="https://console.aws.amazon.com/trustedadvisor/home" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
-                                        <i class="fas fa-shield-alt me-1"></i>Trusted Advisor Console
-                                    </a>
-                                </div>
-                                <div class="col-md-6">
-                                    {% if recommendation.aws_services %}
-                                        {% for service in recommendation.aws_services[:2] %}
-                                        <a href="https://console.aws.amazon.com/{{ service.lower() }}/home" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                                            <i class="fas fa-external-link-alt me-1"></i>{{ service }} Console
-                                        </a>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-cogs"></i> Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('remediations') }}" class="btn btn-primary">
+                            <i class="fas fa-tools"></i> View Remediations
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print Details
+                        </button>
+                        <button class="btn btn-outline-info" onclick="exportRecommendation()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 <script>
-// Export to CSV functionality
-function exportToCSV() {
-    const resources = {{ affected_resources|tojson }};
-    const recommendation = {{ recommendation|tojson if recommendation else '{}' }};
+function exportRecommendation() {
+    const data = {
+        name: "{{ recommendation.name }}",
+        category: "{{ recommendation.category }}",
+        status: "{{ recommendation.status }}",
+        description: "{{ recommendation.description }}",
+        resource_count: {{ recommendation.resource_count }},
+        check_id: "{{ recommendation.id }}"
+    };
     
-    let csvContent = "data:text/csv;charset=utf-8,";
-    
-    // Add header
-    csvContent += "Resource ID,ARN,Region,Status,AWS Resource ID,Last Updated,Metadata\n";
-    
-    // Add data rows
-    resources.forEach(resource => {
-        const row = [
-            resource.resourceId || 'N/A',
-            resource.arn || 'N/A',
-            resource.regionCode || 'N/A',
-            resource.status || 'unknown',
-            resource.awsResourceId || 'N/A',
-            resource.lastUpdatedAt || 'N/A',
-            (resource.metadata || []).join('; ')
-        ];
-        csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-    });
-    
-    // Create download link
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `recommendation_${recommendation.id || 'details'}_resources.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recommendation_{{ recommendation.id }}.json';
+    a.click();
+    URL.revokeObjectURL(url);
 }
-
-// Initialize tooltips
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-});
 </script>
 {% endblock %}

@@ -4,101 +4,138 @@
 
 {% block extra_head %}
 <style>
-.ai-dashboard-card {
+.ai-card {
     border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-sm);
     margin-bottom: 20px;
     transition: transform 0.2s ease-in-out;
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
-.ai-dashboard-card:hover {
+.ai-card:hover {
     transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .ai-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
     color: white;
     border-radius: 15px 15px 0 0;
     padding: 20px;
 }
 
-.priority-indicator {
-    width: 60px;
-    height: 60px;
+.insight-card {
+    border-left: 4px solid var(--primary-500);
+    background: var(--bg-secondary) !important;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+    color: var(--text-primary) !important;
+}
+
+.insight-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.insight-card.priority-high {
+    border-left-color: var(--error-500);
+}
+
+.insight-card.priority-medium {
+    border-left-color: var(--warning-500);
+}
+
+.insight-card.priority-low {
+    border-left-color: var(--success-500);
+}
+
+.score-circle {
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     font-weight: bold;
+    margin: 0 auto;
+}
+
+.score-excellent {
+    background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%);
     color: white;
 }
 
-.priority-critical { background-color: #dc3545; }
-.priority-high { background-color: #fd7e14; }
-.priority-medium { background-color: #ffc107; color: #000; }
-.priority-low { background-color: #198754; }
+.score-good {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    color: white;
+}
 
-.insight-card {
-    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-    border-radius: 10px;
+.score-warning {
+    background: linear-gradient(135deg, var(--warning-500) 0%, var(--warning-600) 100%);
+    color: white;
+}
+
+.score-danger {
+    background: linear-gradient(135deg, var(--error-500) 0%, var(--error-600) 100%);
+    color: white;
+}
+
+.ai-recommendation {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px;
     padding: 15px;
-    margin-bottom: 15px;
-    border-left: 4px solid #0d6efd;
+    margin-bottom: 10px;
+    position: relative;
+    color: var(--text-primary) !important;
+}
+
+.ai-recommendation::before {
+    content: '🤖';
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    background: var(--bg-primary);
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.metric-card {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary) !important;
 }
 
 .ai-badge {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, var(--primary-500), var(--primary-600));
     color: white;
     font-size: 0.8rem;
     padding: 4px 8px;
     border-radius: 12px;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    text-align: center;
-    padding: 20px;
-    border-radius: 10px;
-    color: white;
-}
-
-.stat-card.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.stat-card.high { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); }
-.stat-card.medium { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); }
-.stat-card.ai { background: linear-gradient(135deg, #20c997 0%, #0dcaf0 100%); }
-
-.recommendation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 20px;
-}
-
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 15px;
-    z-index: 10;
+.confidence-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--error-500) 0%, var(--warning-500) 50%, var(--success-500) 100%);
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header Section -->
+    <!-- AI Dashboard Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="ai-header">
@@ -109,245 +146,200 @@
                             AI-Powered Dashboard
                         </h2>
                         <p class="mb-0 opacity-75">
-                            Intelligent insights and prioritization powered by AWS Bedrock
-                            {% if last_updated %}
-                            <small class="ms-3">
-                                <i class="fas fa-clock me-1"></i>
-                                Last updated: {{ last_updated }}
-                            </small>
-                            {% endif %}
+                            Intelligent insights and recommendations for your AWS environment
                         </p>
                     </div>
                     <div>
-                        <button class="btn btn-light me-2" onclick="refreshDashboard()">
-                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        <span class="ai-badge me-2">
+                            <i class="fas fa-robot me-1"></i>AI Enabled
+                        </span>
+                        <button class="btn btn-outline-light" onclick="refreshAIAnalysis()">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh Analysis
                         </button>
-                        <a href="{{ url_for('recommendations') }}" class="btn btn-outline-light">
-                            <i class="fas fa-list me-1"></i>All Recommendations
-                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    {% if stats %}
-    <div class="stats-grid">
-        <div class="stat-card total">
-            <i class="fas fa-list fa-2x mb-2"></i>
-            <h3 class="mb-1">{{ stats.total_recommendations }}</h3>
-            <small>Total Recommendations</small>
-        </div>
-        <div class="stat-card high">
-            <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-            <h3 class="mb-1">{{ stats.high_priority }}</h3>
-            <small>High Priority</small>
-        </div>
-        <div class="stat-card medium">
-            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-            <h3 class="mb-1">{{ stats.medium_priority }}</h3>
-            <small>Medium Priority</small>
-        </div>
-        <div class="stat-card ai">
-            <i class="fas fa-robot fa-2x mb-2"></i>
-            <h3 class="mb-1">{{ stats.ai_analyzed }}</h3>
-            <small>AI Analyzed</small>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- AI Insights Section -->
-    {% if recommendations %}
+    <!-- Key Metrics Row -->
     <div class="row mb-4">
-        <div class="col-12">
-            <h4 class="mb-3">
-                <i class="fas fa-lightbulb me-2 text-warning"></i>
-                Top Priority Recommendations
-                <span class="ai-badge ms-2">
-                    <i class="fas fa-magic me-1"></i>AI Prioritized
-                </span>
-            </h4>
+        <div class="col-lg-3 col-md-6">
+            <div class="card metric-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-clipboard-check fa-2x text-primary mb-2"></i>
+                    <h3 class="text-primary">{{ dashboard_stats.total_recommendations }}</h3>
+                    <small class="text-muted">Total Recommendations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card metric-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h3 class="text-danger">{{ dashboard_stats.error_count }}</h3>
+                    <small class="text-muted">Critical Issues</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card metric-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-circle fa-2x text-warning mb-2"></i>
+                    <h3 class="text-warning">{{ dashboard_stats.warning_count }}</h3>
+                    <small class="text-muted">Warnings</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card metric-card text-center">
+                <div class="card-body">
+                    <div class="score-circle score-{{ 'excellent' if dashboard_stats.optimization_score > 90 else 'good' if dashboard_stats.optimization_score > 70 else 'warning' if dashboard_stats.optimization_score > 50 else 'danger' }}" style="width: 60px; height: 60px; font-size: 1rem; margin: 0 auto 10px;">
+                        {{ dashboard_stats.optimization_score }}%
+                    </div>
+                    <small class="text-muted">Health Score</small>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="recommendation-grid">
-        {% for recommendation in recommendations %}
-        <div class="ai-dashboard-card" data-recommendation-id="{{ recommendation.id }}">
-            <div class="card h-100">
-                <div class="card-body position-relative">
-                    <!-- Loading overlay (hidden by default) -->
-                    <div class="loading-overlay" style="display: none;">
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2 mb-0">AI analyzing...</p>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-start mb-3">
-                        <div class="me-3">
-                            {% set ai_insight = ai_insights.get(recommendation.id, {}) %}
-                            {% set priority_score = ai_insight.get('priority_score', 5) %}
-                            
-                            <div class="priority-indicator 
-                                {% if priority_score >= 8 %}priority-critical
-                                {% elif priority_score >= 6 %}priority-high
-                                {% elif priority_score >= 4 %}priority-medium
-                                {% else %}priority-low{% endif %}">
-                                {{ priority_score }}
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Left Column: AI Tools -->
+        <div class="col-lg-8">
+            <!-- AI Remediation Generator -->
+            <div class="card ai-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools text-success me-2"></i>
+                        AI Remediation Generator
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set error_warning_recs = recommendations_data.recommendations | selectattr('status', 'in', ['error', 'warning']) | list %}
+                    {% if error_warning_recs %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Select a recommendation to generate AI-powered remediation:</label>
+                                <select class="form-select" id="recommendationSelect">
+                                    <option value="">Choose a recommendation that needs attention...</option>
+                                    {% for rec in error_warning_recs %}
+                                    <option value="{{ rec.check_id }}">
+                                        {% if rec.status == 'error' %}🔴{% else %}🟡{% endif %} {{ rec.name }} ({{ rec.category }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button class="btn btn-success w-100" onclick="generateAIRemediation()">
+                                    <i class="fas fa-robot me-1"></i>Generate AI Remediation
+                                </button>
                             </div>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="card-title mb-1">{{ recommendation.name }}</h6>
-                            <p class="card-text small text-muted mb-2">{{ recommendation.description[:100] }}...</p>
-                            
-                            <div class="mb-2">
-                                <span class="badge bg-primary me-1">{{ recommendation.category|title }}</span>
-                                {% if recommendation.status == 'error' %}
-                                    <span class="badge bg-danger">High Priority</span>
-                                {% elif recommendation.status == 'warning' %}
-                                    <span class="badge bg-warning text-dark">Medium Priority</span>
-                                {% else %}
-                                    <span class="badge bg-success">Low Priority</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- AI Insights -->
-                    {% if ai_insight %}
-                    <div class="insight-card">
-                        <h6 class="mb-2">
-                            <i class="fas fa-robot me-1"></i>AI Analysis
-                        </h6>
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <small class="text-muted">Business Impact</small><br>
-                                <strong>{{ ai_insight.get('business_impact', 'Medium') }}</strong>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Timeline</small><br>
-                                <strong>{{ ai_insight.get('recommended_timeline', 'Days') }}</strong>
-                            </div>
-                        </div>
-                        {% if ai_insight.get('justification') %}
-                        <div class="mt-2">
-                            <small>{{ ai_insight.justification[:150] }}{% if ai_insight.justification|length > 150 %}...{% endif %}</small>
-                        </div>
-                        {% endif %}
-                    </div>
                     {% else %}
-                    <div class="insight-card">
-                        <div class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" onclick="analyzeRecommendation('{{ recommendation.id }}')">
-                                <i class="fas fa-magic me-1"></i>Analyze with AI
-                            </button>
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h6>No Issues Found</h6>
+                            <p class="text-muted">All recommendations are in good status</p>
                         </div>
-                    </div>
                     {% endif %}
+                </div>
+            </div>
 
-                    <!-- Resource Summary -->
-                    <div class="row text-center mb-3">
-                        {% if recommendation.error_count > 0 %}
-                        <div class="col-4">
-                            <div class="text-danger">
-                                <strong>{{ recommendation.error_count }}</strong><br>
-                                <small>Error</small>
+            <!-- AI Assistant Chat -->
+            <div class="card ai-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments text-primary me-2"></i>
+                        AI Assistant Chat
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="chatMessages" class="border rounded p-3 mb-3" style="height: 350px; overflow-y: auto;">
+                        <div class="chat-message ai-message mb-2">
+                            <div class="d-flex align-items-start">
+                                <div class="rounded-circle p-2 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--primary-500); color: white;">
+                                    <i class="fas fa-robot" style="font-size: 0.8rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="rounded p-2 shadow-sm" style="background: var(--bg-secondary); color: var(--text-primary);">
+                                        <small class="text-muted">AI Assistant</small>
+                                        <p class="mb-0">Hello! I'm your AWS Well-Architected expert. Ask me about your recommendations, security findings, cost optimization, or any AWS best practices.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {% endif %}
-                        {% if recommendation.warning_count > 0 %}
-                        <div class="col-4">
-                            <div class="text-warning">
-                                <strong>{{ recommendation.warning_count }}</strong><br>
-                                <small>Warning</small>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% if recommendation.ok_count > 0 %}
-                        <div class="col-4">
-                            <div class="text-success">
-                                <strong>{{ recommendation.ok_count }}</strong><br>
-                                <small>OK</small>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
-
-                    <!-- Actions -->
-                    <div class="d-flex justify-content-between">
-                        <div class="btn-group" role="group">
-                            <a href="{{ url_for('recommendation_details', recommendation_id=recommendation.id) }}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye me-1"></i>Details
-                            </a>
-                            <a href="{{ url_for('ai_recommendation_analysis_loading', recommendation_id=recommendation.id) }}" 
-                               class="btn btn-sm btn-primary">
-                                <i class="fas fa-robot me-1"></i>AI Analysis
-                            </a>
-                        </div>
-                        <small class="text-muted align-self-center">
-                            {% if ai_insight.get('generated_at') %}
-                                AI: {{ ai_insight.generated_at[:10] }}
-                            {% else %}
-                                Not analyzed
-                            {% endif %}
-                        </small>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="chatInput" placeholder="Ask about your AWS recommendations, security, costs..." onkeypress="handleChatKeyPress(event)">
+                        <button class="btn btn-primary" onclick="sendChatMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <!-- No Recommendations -->
-    <div class="text-center py-5">
-        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No high-priority recommendations found</h5>
-        <p class="text-muted">All your recommendations are currently in good shape!</p>
-        <a href="{{ url_for('recommendations') }}" class="btn btn-primary">
-            <i class="fas fa-list me-1"></i>View All Recommendations
-        </a>
-    </div>
-    {% endif %}
 
-    <!-- AI Capabilities Info -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card ai-dashboard-card">
+        <!-- Right Column: Insights & Recommendations -->
+        <div class="col-lg-4">
+            <!-- AI Insights -->
+            <div class="card ai-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        AI Insights
+                    </h6>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-info-circle me-2 text-info"></i>
-                        AI-Powered Features
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center p-3">
-                                <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                <h6>Smart Prioritization</h6>
-                                <small class="text-muted">AI analyzes business impact and urgency</small>
+                    {% if ai_insights %}
+                        {% for insight in ai_insights[:3] %}
+                        <div class="insight-card priority-{{ insight.priority.lower() }} mb-3" style="padding: 15px;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" style="font-size: 0.9rem;">
+                                    <i class="fas fa-{{ 'exclamation-circle' if insight.priority == 'High' else 'exclamation-triangle' if insight.priority == 'Medium' else 'info-circle' }} me-1"></i>
+                                    {{ insight.title }}
+                                </h6>
+                                <span class="badge bg-{{ 'danger' if insight.priority == 'High' else 'warning' if insight.priority == 'Medium' else 'info' }}" style="font-size: 0.7rem;">
+                                    {{ insight.priority }}
+                                </span>
+                            </div>
+                            <p class="text-muted mb-2" style="font-size: 0.8rem;">{{ insight.description[:100] }}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ insight.category }}
+                                </small>
+                                <small class="text-muted">{{ insight.confidence }}% confidence</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center p-3">
-                                <i class="fas fa-code fa-2x text-success mb-2"></i>
-                                <h6>Code Generation</h6>
-                                <small class="text-muted">Auto-generate remediation scripts</small>
-                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-robot fa-2x text-muted mb-2"></i>
+                            <p class="text-muted small">Sync data to generate insights</p>
+                            <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-sync-alt me-1"></i>Sync Data
+                            </a>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center p-3">
-                                <i class="fas fa-comments fa-2x text-warning mb-2"></i>
-                                <h6>Interactive Chat</h6>
-                                <small class="text-muted">Ask questions about recommendations</small>
-                            </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card ai-card">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h4 class="text-success mb-1">{{ dashboard_stats.cost_savings_potential }}</h4>
+                            <small class="text-muted">Potential Savings</small>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center p-3">
-                                <i class="fas fa-magic fa-2x text-info mb-2"></i>
-                                <h6>Smart Remediation</h6>
-                                <small class="text-muted">Context-aware action plans</small>
-                            </div>
+                        <div class="col-6">
+                            <h4 class="text-info mb-1">{{ dashboard_stats.security_score }}%</h4>
+                            <small class="text-muted">Security Score</small>
                         </div>
                     </div>
                 </div>
@@ -357,35 +349,508 @@
 </div>
 
 <script>
-function refreshDashboard() {
-    location.reload();
-}
-
-function analyzeRecommendation(recommendationId) {
-    const card = document.querySelector(`[data-recommendation-id="${recommendationId}"]`);
-    const loadingOverlay = card.querySelector('.loading-overlay');
+function refreshAIAnalysis() {
+    // Show loading state
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Analyzing...';
+    btn.disabled = true;
     
-    // Show loading
-    loadingOverlay.style.display = 'flex';
-    
-    // Simulate AI analysis (in real implementation, this would call the AI API)
+    // Simulate AI analysis
     setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-        
-        // Redirect to AI analysis page
-        window.location.href = `/recommendations/${recommendationId}/ai-analysis`;
+        location.reload();
     }, 2000);
 }
 
-// Auto-refresh every 5 minutes
-setInterval(refreshDashboard, 300000);
+function generateAIRemediation() {
+    const select = document.getElementById('recommendationSelect');
+    const recommendationId = select.value;
+    
+    if (!recommendationId) {
+        alert('Please select a recommendation first');
+        return;
+    }
+    
+    // Show progressive loading modal
+    showProgressiveLoadingModal();
+    
+    // Start the progressive status updates
+    updateLoadingStatus('Connecting to AWS Bedrock...', 1);
+    
+    setTimeout(() => {
+        updateLoadingStatus('Authenticating with cross-account role...', 2);
+    }, 1000);
+    
+    setTimeout(() => {
+        updateLoadingStatus('Analyzing recommendation details...', 3);
+    }, 2000);
+    
+    setTimeout(() => {
+        updateLoadingStatus('Generating AI remediation plan...', 4);
+    }, 3000);
+    
+    // Call AI remediation endpoint
+    fetch(`/ai-remediation/${recommendationId}`)
+        .then(response => {
+            updateLoadingStatus('Processing AI response...', 5);
+            return response.json();
+        })
+        .then(data => {
+            setTimeout(() => {
+                hideLoadingModal();
+                if (data.success) {
+                    showAIRemediationModal(data);
+                } else {
+                    showErrorModal(data.error || 'Failed to generate AI remediation');
+                }
+            }, 500);
+        })
+        .catch(error => {
+            hideLoadingModal();
+            showErrorModal('Error connecting to AI service: ' + error.message);
+        });
+}
 
-// Initialize tooltips
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+function handleChatKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendChatMessage();
+    }
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addChatMessage(message, 'user');
+    input.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send to AI
+    fetch('/ai-chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            context: 'aws_recommendations'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        if (data.success) {
+            addChatMessage(data.response, 'ai');
+        } else {
+            addChatMessage('Sorry, I encountered an error. Please try again.', 'ai');
+        }
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        addChatMessage('Sorry, I\'m having trouble connecting. Please try again.', 'ai');
     });
-});
+}
+
+function addChatMessage(message, sender) {
+    const chatMessages = document.getElementById('chatMessages');
+    const isUser = sender === 'user';
+    
+    // Format AI responses for better readability
+    let formattedMessage = message;
+    if (!isUser) {
+        formattedMessage = message
+            // Convert numbered lists
+            .replace(/(\d+\.\s)/g, '<br><strong>$1</strong>')
+            // Convert bullet points
+            .replace(/[-•]\s/g, '<br>• ')
+            // Convert double line breaks to paragraphs
+            .replace(/\n\n/g, '</p><p>')
+            // Convert single line breaks to <br>
+            .replace(/\n/g, '<br>')
+            // Wrap in paragraph tags
+            .replace(/^/, '<p>')
+            .replace(/$/, '</p>')
+            // Bold important terms
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Italic emphasis
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // Clean up empty paragraphs
+            .replace(/<p><\/p>/g, '')
+            .replace(/<p><br>/g, '<p>');
+    }
+    
+    const messageHtml = `
+        <div class="chat-message ${isUser ? 'user-message' : 'ai-message'} mb-3">
+            <div class="d-flex align-items-start ${isUser ? 'justify-content-end' : ''}">
+                ${!isUser ? `
+                <div class="rounded-circle p-2 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--primary-500); color: white;">
+                    <i class="fas fa-robot" style="font-size: 0.8rem;"></i>
+                </div>
+                ` : ''}
+                <div class="flex-grow-1" style="max-width: 80%;">
+                    <div class="rounded p-3 shadow-sm" style="background: ${isUser ? 'var(--primary-500)' : 'var(--bg-secondary)'}; color: ${isUser ? 'white' : 'var(--text-primary)'};">
+                        ${!isUser ? '<small class="text-muted d-block mb-2">AI Assistant</small>' : ''}
+                        <div class="message-content">${isUser ? message : formattedMessage}</div>
+                    </div>
+                </div>
+                ${isUser ? `
+                <div class="rounded-circle p-2 ms-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gray-600); color: white;">
+                    <i class="fas fa-user" style="font-size: 0.8rem;"></i>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const chatMessages = document.getElementById('chatMessages');
+    const typingHtml = `
+        <div class="chat-message ai-message mb-2" id="typingIndicator">
+            <div class="d-flex align-items-start">
+                <div class="rounded-circle p-2 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--primary-500); color: white;">
+                    <i class="fas fa-robot" style="font-size: 0.8rem;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="rounded p-2 shadow-sm" style="background: var(--bg-secondary); color: var(--text-primary);">
+                        <small class="text-muted">AI Assistant is typing...</small>
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatMessages.insertAdjacentHTML('beforeend', typingHtml);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+function showProgressiveLoadingModal() {
+    const modalHtml = `
+        <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-4">
+                        <div class="mb-4">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <h5 id="loadingTitle">AI Remediation Generator</h5>
+                        <p id="loadingStatus" class="text-muted mb-3">Initializing...</p>
+                        
+                        <!-- Progress Steps -->
+                        <div class="progress-steps mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="step-item" id="step1">
+                                    <div class="step-circle">1</div>
+                                    <small>Connect</small>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item" id="step2">
+                                    <div class="step-circle">2</div>
+                                    <small>Auth</small>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item" id="step3">
+                                    <div class="step-circle">3</div>
+                                    <small>Analyze</small>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item" id="step4">
+                                    <div class="step-circle">4</div>
+                                    <small>Generate</small>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item" id="step5">
+                                    <div class="step-circle">5</div>
+                                    <small>Complete</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress" style="height: 6px;">
+                            <div id="progressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+        .progress-steps {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .step-item {
+            text-align: center;
+            flex: 1;
+        }
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .step-item.active .step-circle {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .step-item.completed .step-circle {
+            background-color: #28a745;
+            color: white;
+        }
+        .step-line {
+            height: 2px;
+            background-color: #e9ecef;
+            flex: 1;
+            margin: 15px 10px 0;
+        }
+        .step-line.completed {
+            background-color: #28a745;
+        }
+        </style>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+}
+
+function updateLoadingStatus(message, step) {
+    const statusElement = document.getElementById('loadingStatus');
+    const progressBar = document.getElementById('progressBar');
+    
+    if (statusElement) {
+        statusElement.textContent = message;
+    }
+    
+    // Update progress bar
+    const progress = (step / 5) * 100;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    
+    // Update step indicators
+    for (let i = 1; i <= 5; i++) {
+        const stepElement = document.getElementById(`step${i}`);
+        const lineElement = stepElement?.nextElementSibling;
+        
+        if (i < step) {
+            stepElement?.classList.add('completed');
+            stepElement?.classList.remove('active');
+            lineElement?.classList.add('completed');
+        } else if (i === step) {
+            stepElement?.classList.add('active');
+            stepElement?.classList.remove('completed');
+        } else {
+            stepElement?.classList.remove('active', 'completed');
+            lineElement?.classList.remove('completed');
+        }
+    }
+}
+
+function hideLoadingModal() {
+    const modal = document.getElementById('loadingModal');
+    if (modal) {
+        bootstrap.Modal.getInstance(modal).hide();
+        modal.remove();
+    }
+}
+
+function showAIRemediationModal(data) {
+    // Convert markdown-like formatting to HTML with proper CloudFormation indentation
+    let formattedContent = data.ai_remediation
+        .replace(/## (.*)/g, '<h4 class="text-primary mt-4 mb-2">$1</h4>')
+        .replace(/### (.*)/g, '<h5 class="text-secondary mt-3 mb-2">$1</h5>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/```bash\n([\s\S]*?)\n```/g, '<div class="p-3 rounded mt-2 mb-2" style="background: var(--gray-800); color: var(--gray-100);"><pre class="mb-0" style="color: var(--gray-100);"><code>$1</code></pre></div>')
+        .replace(/```yaml\n([\s\S]*?)\n```/g, function(match, code) {
+            // Preserve YAML indentation
+            return '<div class="p-3 rounded mt-2 mb-2" style="background: var(--gray-800); color: var(--gray-100);"><pre class="mb-0" style="white-space: pre; font-family: \'Courier New\', monospace; color: var(--gray-100);"><code>' + code + '</code></pre></div>';
+        })
+        .replace(/```json\n([\s\S]*?)\n```/g, function(match, code) {
+            // Preserve JSON indentation
+            return '<div class="p-3 rounded mt-2 mb-2" style="background: var(--gray-800); color: var(--gray-100);"><pre class="mb-0" style="white-space: pre; font-family: \'Courier New\', monospace; color: var(--gray-100);"><code>' + code + '</code></pre></div>';
+        })
+        .replace(/```\n([\s\S]*?)\n```/g, function(match, code) {
+            // Preserve general code block indentation
+            return '<div class="p-3 rounded mt-2 mb-2" style="background: var(--gray-800); color: var(--gray-100);"><pre class="mb-0" style="white-space: pre; font-family: \'Courier New\', monospace; color: var(--gray-100);"><code>' + code + '</code></pre></div>';
+        })
+        .replace(/^\d+\. (.*)/gm, '<div class="mb-2"><span class="badge bg-primary me-2">$&</span></div>')
+        .replace(/^- (.*)/gm, '<div class="mb-1"><i class="fas fa-chevron-right text-primary me-2"></i>$1</div>')
+        .replace(/\n/g, '<br>');
+    
+    const modalHtml = `
+        <div class="modal fade" id="aiRemediationModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-robot me-2"></i>AI-Generated Remediation Plan
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>${data.recommendation.name}</strong> - ${data.recommendation.category}
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-magic me-2"></i>AI-Powered Remediation Analysis
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="remediation-content" style="max-height: 600px; overflow-y: auto;">
+                                    ${formattedContent}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-primary" onclick="copyAIResponse()">
+                                <i class="fas fa-copy me-1"></i>Copy Response
+                            </button>
+                            <button class="btn btn-success" onclick="downloadAIResponse('${data.recommendation.id}')">
+                                <i class="fas fa-download me-1"></i>Download Plan
+                            </button>
+                            <button class="btn btn-info" onclick="printRemediation()">
+                                <i class="fas fa-print me-1"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal and add new one
+    const existingModal = document.getElementById('aiRemediationModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Store AI response for copy/download functions
+    window.currentAIResponse = data.ai_remediation;
+    window.currentRecommendationId = data.recommendation.id;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiRemediationModal'));
+    modal.show();
+}
+
+function showErrorModal(errorMessage) {
+    const modalHtml = `
+        <div class="modal fade" id="errorModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Error
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>${errorMessage}</p>
+                        <div class="alert alert-warning">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Make sure AWS Bedrock is enabled and configured in Settings.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+    modal.show();
+}
+
+function copyAIResponse() {
+    if (window.currentAIResponse) {
+        navigator.clipboard.writeText(window.currentAIResponse).then(() => {
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-primary');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-success');
+            }, 2000);
+        });
+    }
+}
+
+function downloadAIResponse(recommendationId) {
+    if (window.currentAIResponse) {
+        const blob = new Blob([window.currentAIResponse], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ai_remediation_${recommendationId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
+
+function printRemediation() {
+    const content = document.querySelector('.remediation-content').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>AI Remediation Plan</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h4 { color: #0d6efd; margin-top: 20px; }
+                    h5 { color: #6c757d; margin-top: 15px; }
+                    code { background: #f8f9fa; padding: 10px; display: block; margin: 10px 0; }
+                    .badge { background: #0d6efd; color: white; padding: 2px 6px; border-radius: 3px; }
+                </style>
+            </head>
+            <body>
+                <h1>AI-Generated Remediation Plan</h1>
+                ${content}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
 </script>
 {% endblock %}

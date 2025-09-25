@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor Recommendations - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-lightbulb"></i> Trusted Advisor Recommendations</h2>
+                <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> Sync Data from AWS
+                </a>
+            </div>
+            
+            {% if total_recommendations > 0 %}
+            <div class="alert alert-info">
+                <strong>Total Recommendations:</strong> {{ total_recommendations }}
+            </div>
+            
+            <!-- Category Summary -->
+            <div class="row mb-4">
+                {% for category, info in category_info.items() %}
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ info.count }}</h5>
+                            <p class="card-text">{{ info.name }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Recommendations List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>All Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in recommendations %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <h6>{{ rec.name }}</h6>
+                        <p class="text-muted">{{ rec.description }}</p>
+                        <span class="badge bg-{{ 'success' if rec.status == 'ok' else 'warning' if rec.status == 'warning' else 'danger' }}">
+                            {{ rec.status|title }}
+                        </span>
+                        <span class="badge bg-secondary">{{ rec.category }}</span>
+                        {% if rec.resource_count > 0 %}
+                        <span class="badge bg-info">{{ rec.resource_count }} resources</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="alert alert-warning text-center">
+                <h5><i class="bi bi-exclamation-triangle"></i> No Recommendations Found</h5>
+                <p>Click "Sync Data from AWS" to load your Trusted Advisor recommendations.</p>
+                <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> Sync Now
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

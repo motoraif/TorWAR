@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-person-circle"></i> User Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ current_user.first_name }} {{ current_user.last_name }}</p>
+                            <p><strong>Username:</strong> {{ current_user.username }}</p>
+                            <p><strong>Email:</strong> {{ current_user.email }}</p>
+                            <p><strong>Member Since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Account Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-cloud"></i> Connected AWS Accounts</h5>
+                </div>
+                <div class="card-body">
+                    {% if aws_accounts %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Account ID</th>
+                                        <th>Name</th>
+                                        <th>Region</th>
+                                        <th>Last Accessed</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for account in aws_accounts %}
+                                    <tr>
+                                        <td>{{ account.account_id }}</td>
+                                        <td>{{ account.account_name or 'N/A' }}</td>
+                                        <td>{{ account.region }}</td>
+                                        <td>{{ account.last_accessed.strftime('%Y-%m-%d %H:%M') if account.last_accessed else 'Never' }}</td>
+                                        <td>
+                                            {% if account.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No AWS accounts connected yet.</p>
+                        <a href="{{ url_for('aws_connect') }}" class="btn btn-primary">
+                            <i class="bi bi-cloud-plus"></i> Connect AWS Account
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

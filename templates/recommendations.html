@@ -6,107 +6,154 @@
 <style>
 .recommendation-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .recommendation-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-lg);
 }
 
-.status-error {
-    border-left: 4px solid #dc3545;
+.recommendation-card.status-error {
+    border-left: 4px solid var(--error-500);
 }
 
-.status-warning {
-    border-left: 4px solid #ffc107;
+.recommendation-card.status-warning {
+    border-left: 4px solid var(--warning-500);
 }
 
-.status-ok {
-    border-left: 4px solid #198754;
-}
-
-.status-not_available {
-    border-left: 4px solid #6c757d;
-}
-
-.status-icon {
-    font-size: 1.2rem;
-}
-
-.category-badge {
-    font-size: 0.75rem;
-}
-
-.resource-count {
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.pillar-tab {
-    border-radius: 20px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-}
-
-.pillar-tab.active {
-    background-color: #0d6efd;
-    color: white;
-}
-
-.filter-section {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
+.recommendation-card.status-ok {
+    border-left: 4px solid var(--success-500);
 }
 
 .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
     color: white;
     border-radius: 15px;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-card.category-filter {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.stats-card.category-filter.active {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%) !important;
+    color: white !important;
+}
+
+.filter-section {
+    background: var(--bg-secondary) !important;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color) !important;
 }
 
 .search-box {
     border-radius: 25px;
-    border: 2px solid #e9ecef;
-    padding: 10px 20px;
+    border: 2px solid var(--border-color) !important;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
 }
 
 .search-box:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    border-color: var(--primary-500) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
 }
 
-.recommendation-grid {
-    display: grid;
-    gap: 20px;
+.category-tab {
+    border-radius: 20px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
 }
 
-@media (min-width: 768px) {
-    .recommendation-grid {
-        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-    }
+.category-tab.active {
+    background: var(--primary-500) !important;
+    color: white !important;
+    border-color: var(--primary-500) !important;
 }
 
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
+.category-section {
+    margin-bottom: 30px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+.category-header {
+    background: var(--bg-secondary) !important;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary-500);
+    color: var(--text-primary) !important;
 }
 
-.loading-spinner {
-    display: none;
+.recommendation-meta {
+    background: var(--bg-secondary) !important;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-primary) !important;
 }
 
-.loading .loading-spinner {
+.priority-badge {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.resource-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.export-section {
+    margin-bottom: 20px;
+}
+
+.recommendation-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.recommendation-card:hover .recommendation-actions {
+    opacity: 1;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
     display: inline-block;
+    margin-right: 8px;
 }
 
-.loading .loading-text {
-    display: none;
+.status-error .status-indicator {
+    background-color: var(--error-500);
+}
+
+.status-warning .status-indicator {
+    background-color: var(--warning-500);
+}
+
+.status-ok .status-indicator {
+    background-color: var(--success-500);
 }
 </style>
 {% endblock %}
@@ -119,399 +166,286 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 class="mb-1">
-                        <i class="fas fa-shield-alt me-2 text-primary"></i>
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
                         Trusted Advisor Recommendations
                     </h2>
                     <p class="text-muted mb-0">
                         AWS Well-Architected insights and optimization recommendations
-                        {% if last_updated %}
                         <small class="ms-2">
-                            <i class="fas fa-clock me-1"></i>
-                            Last updated: {{ last_updated }}
+                            <i class="fas fa-cloud me-1"></i>
+                            Account: {{ aws_account_id }} | Region: {{ aws_region }}
                         </small>
-                        {% endif %}
                     </p>
                 </div>
-                <div>
-                    <a href="/cache/status" class="btn btn-outline-secondary me-2">
-                        <i class="fas fa-tachometer-alt me-1"></i>Cache Status
+                <div class="export-section">
+                    <button class="btn btn-outline-primary me-2" onclick="exportRecommendations()">
+                        <i class="fas fa-file-export me-1"></i>Export Report
+                    </button>
+                    <button class="btn btn-outline-secondary me-2" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                    <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh Data
                     </a>
-                    <button class="btn btn-outline-primary me-2" onclick="refreshRecommendations()">
-                        <i class="fas fa-sync-alt me-1"></i>Refresh
-                    </button>
-                    <button class="btn btn-primary" onclick="generateReport()">
-                        <i class="fas fa-file-pdf me-1"></i>Generate Report
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    {% if total_recommendations > 0 %}
     <!-- Statistics Cards -->
-    {% if stats %}
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card stats-card text-center">
                 <div class="card-body">
-                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ stats.high_priority }}</h3>
-                    <small>High Priority</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-center">
-                <div class="card-body">
-                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ stats.medium_priority }}</h3>
-                    <small>Medium Priority</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white text-center">
-                <div class="card-body">
-                    <i class="fas fa-check-circle fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ stats.passing }}</h3>
-                    <small>Passing</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white text-center">
-                <div class="card-body">
-                    <i class="fas fa-list fa-2x mb-2"></i>
-                    <h3 class="mb-1">{{ stats.total }}</h3>
+                    <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ total_recommendations }}</h3>
                     <small>Total Checks</small>
                 </div>
             </div>
         </div>
+        {% for category, info in category_info.items() %}
+        <div class="col-md-2">
+            <div class="card stats-card category-filter text-center" data-category="{{ category }}">
+                <div class="card-body">
+                    <i class="fas fa-{{ 'dollar-sign' if 'cost' in category else 'shield-alt' if 'security' in category else 'tachometer-alt' if 'performance' in category else 'cogs' }} fa-2x mb-2"></i>
+                    <h4 class="mb-1">{{ info.count }}</h4>
+                    <small>{{ info.name }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    {% endif %}
 
     <!-- Filter Section -->
     <div class="filter-section">
         <div class="row">
             <div class="col-md-8">
-                <h6 class="mb-3">
-                    <i class="fas fa-filter me-2"></i>Filter by Well-Architected Pillar
-                </h6>
-                <div class="pillar-tabs">
-                    <button class="btn btn-outline-primary pillar-tab active" data-pillar="all">
-                        All Pillars
-                        <span class="badge bg-primary ms-1" id="badge-all">{{ recommendations|length }}</span>
-                    </button>
-                    {% for category, info in category_info.items() %}
-                    <button class="btn btn-outline-primary pillar-tab" data-pillar="{{ category }}">
-                        <i class="{{ info.icon }} me-1"></i>{{ info.name }}
-                        <span class="badge bg-primary ms-1" id="badge-{{ category }}">0</span>
-                    </button>
-                    {% endfor %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Filter by Status:</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="error">🔴 Error</option>
+                            <option value="warning">🟡 Warning</option>
+                            <option value="ok">🟢 OK</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Filter by Category:</label>
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            {% for category, info in category_info.items() %}
+                            <option value="{{ category }}">{{ info.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Search:</label>
+                        <input type="text" class="form-control search-box" id="searchFilter" placeholder="🔍 Search recommendations...">
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <h6 class="mb-3">
-                    <i class="fas fa-search me-2"></i>Search Recommendations
-                </h6>
-                <input type="text" class="form-control search-box" id="searchInput" 
-                       placeholder="Search by name, description, or service...">
-            </div>
-        </div>
-        
-        <div class="row mt-3">
-            <div class="col-12">
-                <h6 class="mb-2">
-                    <i class="fas fa-traffic-light me-2"></i>Filter by Status
-                </h6>
-                <div class="btn-group" role="group">
-                    <input type="checkbox" class="btn-check" id="status-error" checked>
-                    <label class="btn btn-outline-danger" for="status-error">
-                        <i class="fas fa-exclamation-circle me-1"></i>High Priority
-                    </label>
-                    
-                    <input type="checkbox" class="btn-check" id="status-warning" checked>
-                    <label class="btn btn-outline-warning" for="status-warning">
-                        <i class="fas fa-exclamation-triangle me-1"></i>Medium Priority
-                    </label>
-                    
-                    <input type="checkbox" class="btn-check" id="status-ok" checked>
-                    <label class="btn btn-outline-success" for="status-ok">
-                        <i class="fas fa-check-circle me-1"></i>Passing
-                    </label>
-                    
-                    <input type="checkbox" class="btn-check" id="status-not_available">
-                    <label class="btn btn-outline-secondary" for="status-not_available">
-                        <i class="fas fa-question-circle me-1"></i>Not Available
-                    </label>
-                </div>
-                
-                <button class="btn btn-outline-secondary ms-3" onclick="clearFilters()">
+            <div class="col-md-4 d-flex align-items-end justify-content-end">
+                <button class="btn btn-outline-secondary me-2" id="clearFilters">
                     <i class="fas fa-times me-1"></i>Clear Filters
                 </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-sort me-1"></i>Sort By
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-sort="name">Name</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="status">Status</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="category">Category</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="resources">Resource Count</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Recommendations Grid -->
+    <!-- Category Tabs -->
+    <div class="mb-3">
+        <button class="btn btn-outline-primary category-tab active" data-category="">All</button>
+        {% for category, info in category_info.items() %}
+        <button class="btn btn-outline-primary category-tab" data-category="{{ category }}">
+            {{ info.name }} ({{ info.count }})
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- Recommendations by Category -->
+    {% for category, recs in categories.items() %}
+    <div class="category-section" data-category="{{ category }}">
+        <div class="category-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-{{ 'dollar-sign' if 'cost' in category else 'shield-alt' if 'security' in category else 'tachometer-alt' if 'performance' in category else 'cogs' }} me-2"></i>
+                    {{ category_info[category].name }}
+                </h4>
+                <span class="badge bg-primary">{{ category_info[category].count }} recommendations</span>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for rec in recs %}
+            <div class="col-lg-6 col-xl-4 mb-3 recommendation-item" 
+                 data-status="{{ rec.status }}" 
+                 data-category="{{ category }}"
+                 data-name="{{ rec.name.lower() }}"
+                 data-resources="{{ rec.resources_flagged }}">
+                <div class="card recommendation-card status-{{ rec.status }}" 
+                     onclick="window.location.href='{{ url_for('recommendation_details', recommendation_id=rec.id) }}'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">
+                                <span class="status-indicator"></span>
+                                {{ rec.name }}
+                            </h6>
+                            <span class="badge bg-{{ 'danger' if rec.status == 'error' else 'warning' if rec.status == 'warning' else 'success' }}">
+                                {{ rec.status|upper }}
+                            </span>
+                        </div>
+                        
+                        <p class="card-text text-muted small mb-3">
+                            {{ rec.description[:100] }}{% if rec.description|length > 100 %}...{% endif %}
+                        </p>
+                        
+                        <div class="recommendation-meta">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary">{{ rec.category }}</span>
+                                <div class="resource-indicator">
+                                    {% if rec.resources_flagged > 0 %}
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    <span class="text-muted small">{{ rec.resources_flagged }} resources</span>
+                                    {% else %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span class="text-success small">No issues</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if rec.updated_at %}
+                            <div class="text-muted small">
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: {{ rec.updated_at }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="recommendation-actions mt-2">
+                            <small class="text-primary">
+                                <i class="fas fa-mouse-pointer me-1"></i>Click for details
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <!-- Empty State -->
     <div class="row">
         <div class="col-12">
-            <div id="recommendations-container" class="recommendation-grid">
-                {% for recommendation in recommendations %}
-                    {% include 'recommendation_card.html' %}
-                {% endfor %}
-            </div>
-            
-            <!-- No Results Message -->
-            <div id="no-results" class="text-center py-5" style="display: none;">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No recommendations found</h5>
-                <p class="text-muted">Try adjusting your filters or search terms</p>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-cloud-download-alt fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Trusted Advisor Data</h4>
+                    <p class="text-muted mb-4">
+                        Click the button below to sync your Trusted Advisor recommendations from AWS.
+                        This will analyze your AWS resources and provide optimization suggestions.
+                    </p>
+                    <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sync-alt me-1"></i>Sync Trusted Advisor Data
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Loading Indicator -->
-    <div id="loading-indicator" class="text-center py-5" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2 text-muted">Loading recommendations...</p>
-    </div>
-    
-    {% if not recommendations %}
-    <div class="text-center py-5">
-        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No recommendations available</h5>
-        <p class="text-muted">Check your AWS connection and try refreshing the page</p>
-        <button class="btn btn-primary" onclick="location.reload()">
-            <i class="fas fa-sync-alt me-1"></i>Refresh Page
-        </button>
     </div>
     {% endif %}
 </div>
 
 <script>
-// Auto-refresh functionality
-let autoRefreshInterval;
-
-function startAutoRefresh() {
-    autoRefreshInterval = setInterval(() => {
-        location.reload();
-    }, 300000); // Refresh every 5 minutes
-}
-
-function stopAutoRefresh() {
-    if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-    }
-}
-
-// Start auto-refresh when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    startAutoRefresh();
+    const statusFilter = document.getElementById('statusFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    const clearFilters = document.getElementById('clearFilters');
+    const categoryCards = document.querySelectorAll('.category-filter');
+    const categoryTabs = document.querySelectorAll('.category-tab');
     
-    // Initialize filters
-    applyFilters();
-    updateTabBadges();
-    
-    // Set up event listeners
-    setupEventListeners();
-});
-
-// Refresh individual check
-function refreshCheck(checkId) {
-    console.log('Refreshing check:', checkId);
-    // This would trigger a refresh of a specific check
-    // For now, just reload the page
-    location.reload();
-}
-
-// Filter and search functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const pillarTabs = document.querySelectorAll('.pillar-tab');
-    const statusCheckboxes = document.querySelectorAll('.btn-check');
-    const recommendationsContainer = document.getElementById('recommendations-container');
-    const noResults = document.getElementById('no-results');
-
-    let currentPillar = 'all';
-    let currentSearch = '';
-    let currentStatuses = ['error', 'warning', 'ok'];
-
-    function applyFilters() {
-        const cards = document.querySelectorAll('.recommendation-card');
-        let visibleCount = 0;
-
-        cards.forEach(card => {
-            const pillar = card.dataset.pillar;
-            const status = card.dataset.status;
-            const category = card.dataset.category;
-            const cardText = card.textContent.toLowerCase();
-
-            const pillarMatch = currentPillar === 'all' || pillar === currentPillar || category === currentPillar;
-            const statusMatch = currentStatuses.includes(status);
-            const searchMatch = currentSearch === '' || cardText.includes(currentSearch.toLowerCase());
-
-            if (pillarMatch && statusMatch && searchMatch) {
-                card.style.display = 'block';
-                card.classList.add('fade-in');
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-                card.classList.remove('fade-in');
-            }
-        });
-
-        // Show/hide no results message
-        if (visibleCount === 0) {
-            noResults.style.display = 'block';
-            recommendationsContainer.style.display = 'none';
-        } else {
-            noResults.style.display = 'none';
-            recommendationsContainer.style.display = 'grid';
-        }
-
-        updateTabBadges();
-    }
-
-    function updateTabBadges() {
-        const cards = document.querySelectorAll('.recommendation-card');
-        const counts = {
-            all: 0,
-            security: 0,
-            cost_optimizing: 0,
-            performance: 0,
-            fault_tolerance: 0,
-            service_limits: 0,
-            operational_excellence: 0
-        };
-
-        cards.forEach(card => {
-            if (card.style.display !== 'none') {
-                counts.all++;
-                const category = card.dataset.category;
-                if (counts.hasOwnProperty(category)) {
-                    counts[category]++;
-                }
-            }
-        });
-
-        // Update badges
-        Object.keys(counts).forEach(key => {
-            const badge = document.getElementById(`badge-${key}`);
-            if (badge) {
-                badge.textContent = counts[key];
-            }
-        });
-    }
-
-    function clearFilters() {
-        currentPillar = 'all';
-        currentSearch = '';
-        currentStatuses = ['error', 'warning', 'ok'];
-
-        // Reset UI
-        searchInput.value = '';
-        pillarTabs.forEach(tab => {
-            tab.classList.remove('active');
-            if (tab.dataset.pillar === 'all') {
-                tab.classList.add('active');
-            }
-        });
-
-        statusCheckboxes.forEach(checkbox => {
-            if (['status-error', 'status-warning', 'status-ok'].includes(checkbox.id)) {
-                checkbox.checked = true;
-            } else {
-                checkbox.checked = false;
-            }
-        });
-
-        applyFilters();
-    }
-
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Event listeners
-    searchInput.addEventListener('input', debounce((e) => {
-        currentSearch = e.target.value;
-        applyFilters();
-    }, 300));
-
-    pillarTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            pillarTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentPillar = tab.dataset.pillar;
-            applyFilters();
-        });
-    });
-
-    statusCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            currentStatuses = [];
-            statusCheckboxes.forEach(cb => {
-                if (cb.checked) {
-                    currentStatuses.push(cb.id.replace('status-', ''));
-                }
-            });
-            applyFilters();
-        });
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        // Ctrl/Cmd + F to focus search
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            searchInput.focus();
-        }
+    function filterRecommendations() {
+        const statusValue = statusFilter.value.toLowerCase();
+        const categoryValue = categoryFilter.value.toLowerCase();
+        const searchValue = searchFilter.value.toLowerCase();
         
-        // Escape to clear filters
-        if (e.key === 'Escape') {
-            clearFilters();
-        }
+        document.querySelectorAll('.recommendation-item').forEach(item => {
+            const itemStatus = item.dataset.status;
+            const itemCategory = item.dataset.category;
+            const itemName = item.dataset.name;
+            
+            const statusMatch = !statusValue || itemStatus === statusValue;
+            const categoryMatch = !categoryValue || itemCategory === categoryValue;
+            const searchMatch = !searchValue || itemName.includes(searchValue);
+            
+            if (statusMatch && categoryMatch && searchMatch) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show/hide category sections
+        document.querySelectorAll('.category-section').forEach(section => {
+            const visibleItems = section.querySelectorAll('.recommendation-item[style="display: block"], .recommendation-item:not([style*="none"])');
+            section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+        });
+    }
+    
+    statusFilter.addEventListener('change', filterRecommendations);
+    categoryFilter.addEventListener('change', filterRecommendations);
+    searchFilter.addEventListener('input', filterRecommendations);
+    
+    clearFilters.addEventListener('click', function() {
+        statusFilter.value = '';
+        categoryFilter.value = '';
+        searchFilter.value = '';
+        categoryCards.forEach(card => card.classList.remove('active'));
+        categoryTabs.forEach(tab => tab.classList.remove('active'));
+        categoryTabs[0].classList.add('active');
+        filterRecommendations();
+    });
+    
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const category = this.dataset.category;
+            categoryCards.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            categoryFilter.value = category;
+            filterRecommendations();
+        });
+    });
+    
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const category = this.dataset.category;
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            categoryFilter.value = category;
+            filterRecommendations();
+        });
     });
 });
 
-// Generate report function
-function generateReport() {
-    // Show loading state
-    const button = event.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
-    button.disabled = true;
-    
-    // Navigate to report page
-    window.location.href = '/recommendations/report';
-}
-
-// Refresh recommendations with loading page
-async function refreshRecommendations() {
-    const button = event.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Refreshing...';
-    button.disabled = true;
-    
-    try {
-        // Redirect to refresh with loading page
-        window.location.href = '/cache/refresh-with-loading?redirect=' + encodeURIComponent('/recommendations');
-    } catch (error) {
-        console.error('Error refreshing:', error);
-        button.innerHTML = originalText;
-        button.disabled = false;
-        alert('Error refreshing recommendations. Please try again.');
-    }
+function exportRecommendations() {
+    // Export functionality
+    window.open('/export-recommendations', '_blank');
 }
 </script>
 {% endblock %}

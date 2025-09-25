@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Connect AWS - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-cloud"></i> Connect to AWS</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="awsConnectForm">
+                        <div class="mb-3">
+                            <label for="profile" class="form-label">AWS Profile</label>
+                            <select class="form-select" name="profile" id="profile">
+                                <option value="">Use default credentials</option>
+                                {% for profile in profiles %}
+                                    <option value="{{ profile }}">{{ profile }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select an AWS CLI profile or use default</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="region" class="form-label">AWS Region</label>
+                            <select class="form-select" name="region" required>
+                                <option value="us-east-1" selected>US East (N. Virginia)</option>
+                                <option value="us-east-2">US East (Ohio)</option>
+                                <option value="us-west-1">US West (N. California)</option>
+                                <option value="us-west-2">US West (Oregon)</option>
+                                <option value="eu-central-1">Europe (Frankfurt)</option>
+                                <option value="eu-west-1">Europe (Ireland)</option>
+                                <option value="eu-west-2">Europe (London)</option>
+                                <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
+                                <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                                <option value="ap-south-1">Asia Pacific (Mumbai)</option>
+                                <option value="me-south-1">Middle East (Bahrain)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="connectBtn">
+                            <i class="bi bi-cloud-arrow-up"></i> Connect to AWS
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                    
+                    {% if profiles %}
+                    <hr class="my-3">
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Available Profiles</h6>
+                        <p class="mb-1">Found {{ profiles|length }} AWS profiles:</p>
+                        <div>
+                            {% for profile in profiles %}
+                                <span class="badge bg-secondary me-1">{{ profile }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('awsConnectForm');
+    const btn = document.getElementById('connectBtn');
+    
+    // Handle button click directly
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('AWS Connect button clicked - submitting form');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Connecting...';
+        
+        // Submit the form
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

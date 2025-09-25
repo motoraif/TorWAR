@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-speedometer2"></i> Welcome, {{ user.first_name }}!</h2>
+                    <p class="text-muted">AWS Well-Architected Review Tool Dashboard</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('aws_connect') }}" class="btn btn-primary">
+                        <i class="bi bi-cloud-plus"></i> Connect AWS Account
+                    </a>
+                    <a href="{{ url_for('sync_data') }}" class="btn btn-success" onclick="syncData(event)">
+                        <i class="bi bi-arrow-clockwise"></i> Sync Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Workload Section -->
+    {% if workload_info %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-diagram-3"></i> Selected Workload
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-2">{{ workload_info.WorkloadName }}</h4>
+                            <p class="text-muted mb-2">{{ workload_info.Description or 'No description available' }}</p>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">
+                                        <strong>Environment:</strong> {{ workload_info.Environment or 'Not specified' }}
+                                    </small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted">
+                                        <strong>Owner:</strong> {{ workload_info.Owner or 'Not specified' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('select_pillars') }}" class="btn btn-success btn-lg">
+                                <i class="bi bi-play-circle"></i> Start Review
+                            </a>
+                            <div class="mt-2">
+                                <a href="{{ url_for('list_workloads') }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-arrow-left"></i> Change Workload
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-diagram-3 text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">No Workload Selected</h5>
+                    <p class="text-muted">Select a workload to start your Well-Architected review.</p>
+                    <a href="{{ url_for('list_workloads') }}" class="btn btn-warning">
+                        <i class="bi bi-list"></i> Select Workload
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-list-check text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="card-title mt-2">Recommendations</h6>
+                    <p class="card-text small">View Trusted Advisor recommendations</p>
+                    <a href="{{ url_for('recommendations') }}" class="btn btn-sm btn-outline-primary">View</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-tools text-warning" style="font-size: 2rem;"></i>
+                    <h6 class="card-title mt-2">Remediations</h6>
+                    <p class="card-text small">Fix identified issues</p>
+                    <a href="{{ url_for('remediations') }}" class="btn btn-sm btn-outline-warning">View</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-robot text-info" style="font-size: 2rem;"></i>
+                    <h6 class="card-title mt-2">AI Dashboard</h6>
+                    <p class="card-text small">AI-powered insights</p>
+                    <a href="{{ url_for('ai_dashboard') }}" class="btn btn-sm btn-outline-info">View</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-person-circle text-secondary" style="font-size: 2rem;"></i>
+                    <h6 class="card-title mt-2">Profile</h6>
+                    <p class="card-text small">Manage your account</p>
+                    <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-secondary">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="bi bi-activity"></i> Data Sync Status</h6>
+                </div>
+                <div class="card-body">
+                    <div id="sync-status">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Checking sync status...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function syncData(event) {
+    event.preventDefault();
+    const btn = event.target.closest('a');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Syncing...';
+    btn.disabled = true;
+    
+    fetch('/sync-data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ Sync completed! ${data.message}`);
+                location.reload();
+            } else {
+                alert(`❌ Sync failed: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            alert(`❌ Sync error: ${error}`);
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+}
+
+function syncAccount(accountId, region) {
+    // Similar sync function for individual accounts
+    console.log(`Syncing account ${accountId} in ${region}`);
+}
+
+// Load sync status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/sync-status')
+        .then(response => response.json())
+        .then(data => {
+            const statusDiv = document.getElementById('sync-status');
+            if (data.status === 'never_synced') {
+                statusDiv.innerHTML = '<span class="text-muted">No data synced yet</span>';
+            } else if (data.status === 'success') {
+                statusDiv.innerHTML = `<span class="text-success">✅ Last sync: ${new Date(data.completed_at).toLocaleString()} (${data.records_synced} records)</span>`;
+            } else if (data.status === 'error') {
+                statusDiv.innerHTML = `<span class="text-danger">❌ Last sync failed: ${data.error_message}</span>`;
+            } else {
+                statusDiv.innerHTML = '<span class="text-info">🔄 Sync in progress...</span>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('sync-status').innerHTML = '<span class="text-muted">Unable to load sync status</span>';
+        });
+});
+</script>
+{% endblock %}

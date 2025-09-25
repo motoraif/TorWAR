@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Dashboard - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-tachometer-alt"></i> Performance Dashboard</h2>
+            <p class="text-muted">Monitor TorWAR application performance and system metrics</p>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Requests</h5>
+                    <h3 class="text-primary" id="total-requests">-</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Avg Response Time</h5>
+                    <h3 class="text-info" id="avg-response-time">-</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Cache Hit Rate</h5>
+                    <h3 class="text-success" id="cache-hit-rate">-</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">CPU Usage</h5>
+                    <h3 class="text-warning" id="cpu-usage">-</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools"></i> Performance Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary me-2" onclick="refreshCache()">
+                        <i class="fas fa-sync"></i> Refresh Cache
+                    </button>
+                    <button class="btn btn-warning me-2" onclick="clearCache()">
+                        <i class="fas fa-trash"></i> Clear Cache
+                    </button>
+                    <button class="btn btn-info me-2" onclick="refreshRecommendations()">
+                        <i class="fas fa-download"></i> Refresh Recommendations
+                    </button>
+                    <button class="btn btn-success" onclick="refreshWorkloads()">
+                        <i class="fas fa-building"></i> Refresh Workloads
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-server"></i> System Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Memory Usage:</strong>
+                            <div class="progress mt-1">
+                                <div class="progress-bar" id="memory-bar" style="width: 0%"></div>
+                            </div>
+                            <small id="memory-text">-</small>
+                        </div>
+                        <div class="col-6">
+                            <strong>Cache Backend:</strong>
+                            <span class="badge bg-info" id="cache-backend">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks"></i> Background Tasks</h5>
+                </div>
+                <div class="card-body">
+                    <div id="task-status">
+                        <p class="text-muted">No active tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTasks = {};
+
+function updateMetrics() {
+    fetch('/api/performance/metrics')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-requests').textContent = data.requests.total;
+            document.getElementById('avg-response-time').textContent = data.requests.avg_response_time;
+            document.getElementById('cache-hit-rate').textContent = data.cache.hit_rate;
+            document.getElementById('cpu-usage').textContent = data.system.cpu_percent;
+            document.getElementById('cache-backend').textContent = data.cache.backend;
+            
+            // Memory bar
+            const memoryPercent = parseFloat(data.system.memory_percent.replace('%', ''));
+            document.getElementById('memory-bar').style.width = memoryPercent + '%';
+            document.getElementById('memory-text').textContent = 
+                `${data.system.memory_percent} (${data.system.memory_available} available)`;
+        })
+        .catch(error => console.error('Error fetching metrics:', error));
+}
+
+function clearCache() {
+    fetch('/api/performance/cache/clear', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Cache cleared successfully');
+        updateMetrics();
+    })
+    .catch(error => alert('Error clearing cache: ' + error));
+}
+
+function refreshRecommendations() {
+    fetch('/api/tasks/refresh/recommendations', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            currentTasks[data.task_id] = 'Refreshing Recommendations';
+            updateTaskStatus();
+        });
+}
+
+function refreshWorkloads() {
+    fetch('/api/tasks/refresh/workloads', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            currentTasks[data.task_id] = 'Refreshing Workloads';
+            updateTaskStatus();
+        });
+}
+
+function updateTaskStatus() {
+    const taskDiv = document.getElementById('task-status');
+    
+    if (Object.keys(currentTasks).length === 0) {
+        taskDiv.innerHTML = '<p class="text-muted">No active tasks</p>';
+        return;
+    }
+    
+    let html = '';
+    for (const [taskId, taskName] of Object.entries(currentTasks)) {
+        fetch(`/api/tasks/${taskId}/status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed' || data.status === 'failed') {
+                    delete currentTasks[taskId];
+                }
+                
+                const statusClass = {
+                    'queued': 'secondary',
+                    'running': 'primary',
+                    'completed': 'success',
+                    'failed': 'danger'
+                }[data.status] || 'secondary';
+                
+                html += `<div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>${taskName}</span>
+                    <span class="badge bg-${statusClass}">${data.status}</span>
+                </div>`;
+                
+                taskDiv.innerHTML = html;
+            });
+    }
+}
+
+// Auto-refresh every 5 seconds
+setInterval(updateMetrics, 5000);
+setInterval(updateTaskStatus, 2000);
+
+// Initial load
+updateMetrics();
+</script>
+{% endblock %}

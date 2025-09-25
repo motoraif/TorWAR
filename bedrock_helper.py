@@ -83,7 +83,31 @@ class BedrockRecommendationAnalyzer:
                 except Exception as e:
                     print(f"DEBUG: Cross-account Bedrock access failed: {e}")
             
-            # Fallback to same-account access
+            # Force tau-dev profile for Bedrock access instead of same-account fallback
+            try:
+                print("DEBUG: Forcing tau-dev profile for Bedrock access...")
+                tau_dev_session = boto3.Session(profile_name='tau-dev', region_name=self.bedrock_region)
+                
+                # Verify we're using the correct account
+                sts_client = tau_dev_session.client('sts')
+                identity = sts_client.get_caller_identity()
+                account_id = identity.get('Account')
+                
+                if account_id == '445567094096':
+                    self.bedrock_client = tau_dev_session.client(
+                        'bedrock-runtime',
+                        region_name=self.bedrock_region
+                    )
+                    self.auth_method = 'tau-dev-profile'
+                    print(f"DEBUG: tau-dev Bedrock client initialized successfully (account: {account_id})")
+                    return
+                else:
+                    print(f"DEBUG: tau-dev profile connected to wrong account: {account_id}")
+                    
+            except Exception as e:
+                print(f"DEBUG: tau-dev profile Bedrock access failed: {e}")
+            
+            # Fallback to same-account access only if tau-dev fails
             try:
                 aws_session = get_aws_session()
                 if aws_session:
@@ -255,7 +279,11 @@ class BedrockRecommendationAnalyzer:
             prompt = self._build_chat_prompt(context, user_question)
             response = self._invoke_bedrock_model(prompt)
             
-            return response if response else self._generate_fallback_chat_response(recommendation, affected_resources, user_question)
+            if response:
+                formatted_response = self._format_response_for_display(response)
+                return formatted_response
+            else:
+                return self._generate_fallback_chat_response(recommendation, affected_resources, user_question)
             
         except Exception as e:
             print(f"DEBUG: Error in chat: {e}")
@@ -494,6 +522,89 @@ Please provide a detailed, helpful response about this specific Trusted Advisor 
 Be specific, actionable, and consider the actual resource details provided above.
 """
     
+    def _format_response_for_display(self, response_text):
+        """Format AI response for better readability in web interface."""
+        if not response_text:
+            return response_text
+        
+        # Convert markdown-style formatting to HTML-friendly format
+        formatted_text = response_text
+        
+        # Add proper line breaks for better readability
+        formatted_text = formatted_text.replace('\\n', '\n')
+        
+        # Format code blocks
+        import re
+        
+        # Handle bash/shell code blocks with proper formatting
+        formatted_text = re.sub(
+            r'```bash\s*(.*?)```', 
+            r'<div class="code-block"><pre><code class="language-bash">\1</code></pre></div>', 
+            formatted_text, 
+            flags=re.DOTALL
+        )
+        
+        # Handle shell code blocks
+        formatted_text = re.sub(
+            r'```shell\s*(.*?)```', 
+            r'<div class="code-block"><pre><code class="language-shell">\1</code></pre></div>', 
+            formatted_text, 
+            flags=re.DOTALL
+        )
+        
+        # Handle CLI code blocks
+        formatted_text = re.sub(
+            r'```cli\s*(.*?)```', 
+            r'<div class="code-block"><pre><code class="language-bash">\1</code></pre></div>', 
+            formatted_text, 
+            flags=re.DOTALL
+        )
+        
+        # Handle general code blocks
+        formatted_text = re.sub(
+            r'```(\w+)?\s*(.*?)```', 
+            r'<div class="code-block"><pre><code class="language-\1">\2</code></pre></div>', 
+            formatted_text, 
+            flags=re.DOTALL
+        )
+        
+        # Handle inline code
+        formatted_text = re.sub(r'`([^`]+)`', r'<code>\1</code>', formatted_text)
+        
+        # Format headers
+        formatted_text = re.sub(r'^### (.*?)$', r'<h4>\1</h4>', formatted_text, flags=re.MULTILINE)
+        formatted_text = re.sub(r'^## (.*?)$', r'<h3>\1</h3>', formatted_text, flags=re.MULTILINE)
+        formatted_text = re.sub(r'^# (.*?)$', r'<h2>\1</h2>', formatted_text, flags=re.MULTILINE)
+        
+        # Format bold text
+        formatted_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', formatted_text)
+        
+        # Format bullet points
+        formatted_text = re.sub(r'^- (.*?)$', r'<li>\1</li>', formatted_text, flags=re.MULTILINE)
+        formatted_text = re.sub(r'(<li>.*?</li>)', r'<ul>\1</ul>', formatted_text, flags=re.DOTALL)
+        
+        # Format numbered lists
+        formatted_text = re.sub(r'^(\d+)\. (.*?)$', r'<li>\2</li>', formatted_text, flags=re.MULTILINE)
+        
+        # Add line breaks for paragraphs (but preserve code blocks)
+        # Split by code blocks first
+        parts = re.split(r'(<div class="code-block">.*?</div>)', formatted_text, flags=re.DOTALL)
+        
+        for i in range(len(parts)):
+            if not parts[i].startswith('<div class="code-block">'):
+                # Only format paragraphs in non-code parts
+                parts[i] = re.sub(r'\n\n+', '</p><p>', parts[i])
+                if parts[i].strip():
+                    parts[i] = f'<p>{parts[i]}</p>'
+        
+        formatted_text = ''.join(parts)
+        
+        # Clean up empty paragraphs
+        formatted_text = re.sub(r'<p></p>', '', formatted_text)
+        formatted_text = re.sub(r'<p>\s*</p>', '', formatted_text)
+        
+        return formatted_text
+
     def _invoke_bedrock_model(self, prompt):
         """Invoke Bedrock model with the given prompt."""
         try:
@@ -527,17 +638,21 @@ Be specific, actionable, and consider the actual resource details provided above
             if response.strip().startswith('{'):
                 return json.loads(response)
             else:
-                # If not JSON, structure the text response
+                # If not JSON, structure the text response with formatting
+                formatted_content = self._format_response_for_display(response)
                 return {
                     'type': 'text',
-                    'content': response,
+                    'content': formatted_content,
+                    'raw_content': response,  # Keep original
                     'generated_at': datetime.now().isoformat(),
                     'source': 'bedrock_ai'
                 }
         except:
+            formatted_content = self._format_response_for_display(response)
             return {
                 'type': 'text',
-                'content': response,
+                'content': formatted_content,
+                'raw_content': response,  # Keep original
                 'generated_at': datetime.now().isoformat(),
                 'source': 'bedrock_ai'
             }
@@ -565,9 +680,11 @@ Be specific, actionable, and consider the actual resource details provided above
     
     def _parse_code_response(self, response, code_type):
         """Parse AI code generation response."""
+        formatted_response = self._format_response_for_display(response)
         return {
             'code_type': code_type,
-            'code': response,
+            'code': formatted_response,
+            'raw_code': response,  # Keep original for download/copy
             'generated_at': datetime.now().isoformat(),
             'language': code_type
         }
@@ -631,12 +748,29 @@ Be specific, actionable, and consider the actual resource details provided above
             'source': 'fallback'
         }
 
-# Global instance
-bedrock_analyzer = BedrockRecommendationAnalyzer()
+# Global instance - will be created with tau-dev profile
+bedrock_analyzer = None
 
 def get_bedrock_analyzer():
-    """Get the global Bedrock analyzer instance."""
+    """Get the global Bedrock analyzer instance, ensuring it uses tau-dev profile."""
+    global bedrock_analyzer
+    
+    if bedrock_analyzer is None:
+        print("DEBUG: Creating new Bedrock analyzer with tau-dev profile...")
+        bedrock_analyzer = BedrockRecommendationAnalyzer()
+    
+    # Verify the analyzer is using the correct account
+    if hasattr(bedrock_analyzer, 'auth_method') and bedrock_analyzer.auth_method != 'tau-dev-profile':
+        print("DEBUG: Recreating Bedrock analyzer to ensure tau-dev profile usage...")
+        bedrock_analyzer = BedrockRecommendationAnalyzer()
+    
     return bedrock_analyzer
+
+def reset_bedrock_analyzer():
+    """Reset the global analyzer instance to force reinitialization."""
+    global bedrock_analyzer
+    bedrock_analyzer = None
+    print("DEBUG: Bedrock analyzer reset - will reinitialize on next use")
 
 def configure_cross_account_bedrock(account_id, role_name='BedrockAccessRole', region='us-east-1'):
     """Configure cross-account Bedrock access globally."""

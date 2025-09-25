@@ -384,7 +384,10 @@ function generateCode() {
         codeLoading.style.display = 'none';
         
         if (data.success) {
-            generatedCode.textContent = data.code_result.code;
+            // Use innerHTML to render HTML formatting
+            generatedCode.innerHTML = data.code_result.code;
+            // Store raw code for copying
+            generatedCode.setAttribute('data-raw-code', data.code_result.raw_code || data.code_result.code);
             codeResult.style.display = 'block';
         } else {
             alert('Error generating code: ' + data.error);
@@ -397,7 +400,10 @@ function generateCode() {
 }
 
 function copyCode() {
-    const code = document.getElementById('generatedCode').textContent;
+    const codeElement = document.getElementById('generatedCode');
+    // Try to get raw code first, fallback to text content
+    const code = codeElement.getAttribute('data-raw-code') || codeElement.textContent;
+    
     navigator.clipboard.writeText(code).then(() => {
         // Show success message
         const button = event.target.closest('button');

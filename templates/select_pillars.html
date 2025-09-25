@@ -4,23 +4,13 @@
 
 {% block extra_css %}
 <style>
+    .pillar-card {
+        /* HOVER ANIMATIONS DISABLED TO PREVENT WEIRD MOVEMENT */
+    }
+    
     .progress-info {
         font-size: 0.9rem;
         margin-top: 0.5rem;
-    }
-    .pillar-card {
-        transition: all 0.3s ease;
-    }
-    .pillar-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .progress-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 0.8rem;
-        animation: fadeInScale 0.6s ease-out;
     }
     .generate-report-section {
         background-color: #f8f9fa;
@@ -45,10 +35,11 @@
         border-radius: 5px;
         position: relative;
         overflow: hidden;
+        width: 0%; /* Start at 0% width */
         transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
         background: linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.2) 75%);
         background-size: 20px 20px;
-        animation: progressStripes 1s linear infinite;
+        animation: progressStripes 1s linear infinite !important;
     }
     
     .animated-progress-bar.bg-success {
@@ -174,7 +165,7 @@
             <button type="submit" form="pillar-form" class="btn btn-primary btn-lg">
                 <i class="bi bi-play-fill"></i> Start Review
             </button>
-            <a href="/" class="btn btn-secondary ms-2">Cancel</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Cancel</a>
         </div>
     </div>
     <div class="card-body">
@@ -240,7 +231,7 @@
                                         {% else %}bg-secondary
                                         {% endif %}" 
                                         data-width="{{ stats.completion_percentage }}"
-                                        style="width: 0%;">
+                                        style="width: {{ stats.completion_percentage }}%;">
                                     </div>
                                 </div>
                                 <div class="progress-info text-muted progress-text">
@@ -272,7 +263,7 @@
                                 <!-- Quick Review Link -->
                                 {% if stats.total_questions > 0 %}
                                 <div class="mt-auto">
-                                    <a href="/review/{{ pillar_id }}" class="btn btn-outline-primary btn-sm">
+                                    <a href="{{ url_for('review_pillar', pillar_id=pillar_id) }}" class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-arrow-right"></i> Review Questions
                                     </a>
                                 </div>
@@ -301,7 +292,7 @@
                     {% endif %}
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="/generate_report" class="btn btn-success btn-lg">
+                    <a href="{{ url_for('generate_report') }}" class="btn btn-success btn-lg">
                         <i class="bi bi-file-earmark-text"></i> Generate Report
                     </a>
                 </div>
@@ -312,14 +303,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animate progress bars
+    // Force immediate progress bar animation
+    const progressBars = document.querySelectorAll('.animated-progress-bar');
+    progressBars.forEach(function(bar) {
+        const targetWidth = bar.getAttribute('data-width');
+        bar.style.width = targetWidth + '%';
+    });
+    
+    // Animate progress bars (backup)
     setTimeout(function() {
         const progressBars = document.querySelectorAll('.animated-progress-bar');
+        console.log('Found progress bars:', progressBars.length);
         progressBars.forEach(function(bar) {
             const targetWidth = bar.getAttribute('data-width');
+            console.log('Setting width to:', targetWidth + '%');
             bar.style.width = targetWidth + '%';
         });
-    }, 500);
+    }, 100);
     
     // Animate counters
     function animateCounter(element, target, duration = 2000) {

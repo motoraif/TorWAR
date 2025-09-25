@@ -314,21 +314,32 @@ def list_workloads():
 @app.route('/workloads/select/<workload_id>')
 def select_workload(workload_id):
     """Select a workload for review."""
+    print(f"DEBUG: Attempting to select workload: {workload_id}")
+    
     if 'aws_region' not in session:
+        print("DEBUG: No AWS region in session")
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
     try:
         wa_client = get_wellarchitected_client()
+        if not wa_client:
+            print("DEBUG: Failed to get WA client")
+            flash('Unable to connect to AWS Well-Architected service', 'error')
+            return redirect(url_for('list_workloads'))
+            
+        print(f"DEBUG: Getting workload details for: {workload_id}")
         response = wa_client.get_workload(WorkloadId=workload_id)
         workload = response.get('Workload', {})
         
         session['workload_id'] = workload_id
         session['workload_name'] = workload.get('WorkloadName', 'Unknown')
         
+        print(f"DEBUG: Successfully selected workload: {workload.get('WorkloadName')}")
         flash(f'Selected workload: {workload.get("WorkloadName")}', 'success')
         return redirect(url_for('index'))
     except Exception as e:
+        print(f"DEBUG: Error selecting workload: {str(e)}")
         flash(f'Error selecting workload: {str(e)}', 'danger')
         return redirect(url_for('list_workloads'))
 
@@ -1403,7 +1414,7 @@ def simple_auth():
                                 <form method="POST" action="/simple-auth">
                                     <div class="mb-3">
                                         <label class="form-label">Profile:</label>
-                                        <input type="text" class="form-control" name="profile_name" value="beyon-money-payer" readonly>
+                                        <input type="text" class="form-control" name="profile_name" value="tau-dev" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Region:</label>
@@ -1531,6 +1542,27 @@ def recommendations():
     if 'aws_region' not in session:
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
+
+    # Try to use Redis cache for faster loading
+    cache_key = f"recommendations_{session.get('aws_account_id', 'default')}_{session.get('aws_region', 'us-east-1')}"
+    cache_manager = None
+    
+    try:
+        from cache_manager import CacheManager
+        cache_manager = CacheManager()
+        
+        # Try to get cached data first
+        cached_data = cache_manager.get(cache_key)
+        if cached_data and not request.args.get('refresh', '').lower() == 'true':
+            print("🚀 Recommendations loaded from Redis cache")
+            return render_template('recommendations.html', **cached_data)
+        else:
+            print("📊 Loading fresh recommendations data...")
+    except ImportError:
+        print("📝 CacheManager not available, using legacy cache")
+    except Exception as e:
+        print(f"⚠️ Cache error: {e}")
+        cache_manager = None
     
     # Check if this is a fresh sign-in
     fresh_signin = session.pop('fresh_signin', False)
@@ -1600,11 +1632,24 @@ def recommendations():
                 'operational_excellence': {'name': 'Operational Excellence', 'icon': 'fas fa-cogs', 'color': 'primary'}
             }
         
-        return render_template('recommendations.html', 
-                             recommendations=recommendations, 
-                             categories=categories,
-                             category_info=category_info,
-                             total_count=len(recommendations))
+        # Prepare data for template and caching
+        template_data = {
+            'recommendations': recommendations,
+            'categories': categories,
+            'category_info': category_info,
+            'total_count': len(recommendations)
+        }
+        
+        # Cache the processed data for 5 minutes
+        try:
+            if cache_manager:
+                cache_manager.set(cache_key, template_data, ttl=300)
+                print("💾 Recommendations data cached for faster future access")
+        except Exception as e:
+            print(f"⚠️ Cache storage failed: {e}")
+            pass  # Don't fail if caching fails
+        
+        return render_template('recommendations.html', **template_data)
         
     except Exception as e:
         print(f"DEBUG: Error in recommendations route: {e}")
@@ -1895,6 +1940,25 @@ def remediations():
         return redirect(url_for('aws_login'))
     
     try:
+        # Try to use Redis cache for faster loading
+        cache_key = f"remediations_{session.get('aws_account_id', 'default')}_{session.get('aws_region', 'us-east-1')}"
+        cache_manager = None
+        
+        try:
+            from cache_manager import CacheManager
+            cache_manager = CacheManager()
+            
+            # Try to get cached data
+            cached_data = cache_manager.get(cache_key)
+            if cached_data:
+                print("🚀 Remediations loaded from Redis cache")
+                return render_template('remediations.html', **cached_data)
+        except ImportError:
+            print("📝 CacheManager not available, loading fresh data")
+        except Exception as e:
+            print(f"⚠️ Cache error: {e}")
+            cache_manager = None
+        
         from trusted_advisor_helper import get_all_trusted_advisor_recommendations, get_trusted_advisor_check_categories
         
         # Get all recommendations
@@ -1933,13 +1997,26 @@ def remediations():
             'total_affected_resources': sum(r.get('resource_count', 0) for r in remediation_needed)
         }
         
-        return render_template('remediations.html',
-                             recommendations=remediation_needed,
-                             remediation_by_category=remediation_by_category,
-                             categories=categories,
-                             category_info=category_info,
-                             stats=stats,
-                             last_updated=recommendations_data.get('last_updated'))
+        # Prepare data for template and caching
+        template_data = {
+            'recommendations': remediation_needed,
+            'remediation_by_category': remediation_by_category,
+            'categories': categories,
+            'category_info': category_info,
+            'stats': stats,
+            'last_updated': recommendations_data.get('last_updated')
+        }
+        
+        # Cache the processed data for 5 minutes
+        try:
+            if cache_manager:
+                cache_manager.set(cache_key, template_data, ttl=300)
+                print("💾 Remediations data cached for faster future access")
+        except Exception as e:
+            print(f"⚠️ Cache storage failed: {e}")
+            pass  # Don't fail if caching fails
+        
+        return render_template('remediations.html', **template_data)
         
     except Exception as e:
         print(f"DEBUG: Error in remediations route: {e}")
@@ -2348,6 +2425,25 @@ def ai_dashboard():
         return redirect(url_for('aws_login'))
     
     try:
+        # Try to use Redis cache for faster loading
+        cache_key = f"ai_dashboard_{session.get('aws_account_id', 'default')}_{session.get('aws_region', 'us-east-1')}"
+        cache_manager = None
+        
+        try:
+            from cache_manager import CacheManager
+            cache_manager = CacheManager()
+            
+            # Try to get cached data
+            cached_data = cache_manager.get(cache_key)
+            if cached_data:
+                print("🚀 AI Dashboard loaded from Redis cache")
+                return render_template('ai_dashboard.html', **cached_data)
+        except ImportError:
+            print("📝 CacheManager not available, loading fresh data")
+        except Exception as e:
+            print(f"⚠️ Cache error: {e}")
+            cache_manager = None
+        
         from bedrock_helper import get_bedrock_analyzer
         from trusted_advisor_helper import get_all_trusted_advisor_recommendations
         
@@ -2382,11 +2478,24 @@ def ai_dashboard():
             'ai_analyzed': len(ai_insights)
         }
         
-        return render_template('ai_dashboard.html',
-                             recommendations=high_priority_recs,
-                             ai_insights=ai_insights,
-                             stats=stats,
-                             last_updated=recommendations_data.get('last_updated'))
+        # Prepare data for template and caching
+        template_data = {
+            'recommendations': high_priority_recs,
+            'ai_insights': ai_insights,
+            'stats': stats,
+            'last_updated': recommendations_data.get('last_updated')
+        }
+        
+        # Cache the processed data for 10 minutes (AI analysis is expensive)
+        try:
+            if cache_manager:
+                cache_manager.set(cache_key, template_data, ttl=600)
+                print("💾 AI Dashboard data cached for faster future access")
+        except Exception as e:
+            print(f"⚠️ Cache storage failed: {e}")
+            pass  # Don't fail if caching fails
+        
+        return render_template('ai_dashboard.html', **template_data)
         
     except Exception as e:
         print(f"DEBUG: Error in AI dashboard: {e}")
@@ -2576,8 +2685,8 @@ def debug_setup_session():
     """Debug route to set up a basic session for testing."""
     try:
         session['aws_region'] = 'us-east-1'
-        session['aws_profile'] = 'beyon-money-payer'
-        session['aws_account_id'] = '466171249965'
+        session['aws_profile'] = 'tau-dev'
+        session['aws_account_id'] = '445567094096'
         session['aws_user_info'] = {'username': 'test-user'}
         session['aws_auth_time'] = '2025-01-01T00:00:00Z'
         
@@ -2673,8 +2782,63 @@ def cache_status():
         flash('Please connect to AWS first', 'warning')
         return redirect(url_for('aws_login'))
     
+    # Get legacy cache info
     cache_info = get_cache_status()
-    return render_template('cache_status.html', cache_info=cache_info)
+    
+    # Get Redis cache information
+    redis_info = {}
+    try:
+        from cache_manager import CacheManager
+        cache_manager = CacheManager()
+        
+        # Get Redis connection info
+        redis_client = cache_manager.redis_client
+        if redis_client:
+            info = redis_client.info()
+            redis_info = {
+                'connected': True,
+                'version': info.get('redis_version', 'Unknown'),
+                'memory_used': info.get('used_memory_human', 'Unknown'),
+                'memory_peak': info.get('used_memory_peak_human', 'Unknown'),
+                'total_keys': redis_client.dbsize(),
+                'uptime': info.get('uptime_in_seconds', 0),
+                'connected_clients': info.get('connected_clients', 0),
+                'keyspace_hits': info.get('keyspace_hits', 0),
+                'keyspace_misses': info.get('keyspace_misses', 0),
+                'hit_rate': round((info.get('keyspace_hits', 0) / max(info.get('keyspace_hits', 0) + info.get('keyspace_misses', 0), 1)) * 100, 2)
+            }
+            
+            # Get TorWAR specific cache keys
+            account_id = session.get('aws_account_id', 'default')
+            region = session.get('aws_region', 'us-east-1')
+            
+            torwar_keys = {
+                'recommendations': f"recommendations_{account_id}_{region}",
+                'remediations': f"remediations_{account_id}_{region}",
+                'ai_dashboard': f"ai_dashboard_{account_id}_{region}"
+            }
+            
+            redis_info['torwar_cache'] = {}
+            for key_name, key in torwar_keys.items():
+                try:
+                    exists = redis_client.exists(key)
+                    ttl = redis_client.ttl(key) if exists else -1
+                    redis_info['torwar_cache'][key_name] = {
+                        'exists': bool(exists),
+                        'ttl': ttl,
+                        'size': len(str(redis_client.get(key))) if exists else 0
+                    }
+                except:
+                    redis_info['torwar_cache'][key_name] = {'exists': False, 'ttl': -1, 'size': 0}
+        else:
+            redis_info = {'connected': False, 'error': 'Redis client not available'}
+            
+    except ImportError:
+        redis_info = {'connected': False, 'error': 'CacheManager not available'}
+    except Exception as e:
+        redis_info = {'connected': False, 'error': str(e)}
+    
+    return render_template('cache_status.html', cache_info=cache_info, redis_info=redis_info)
 
 @app.route('/cache/refresh', methods=['POST'])
 def refresh_cache():
@@ -2751,6 +2915,11 @@ def api_cache_info():
         return jsonify({'error': 'Not authenticated'}), 401
     
     return jsonify(get_cache_status())
+
+@app.errorhandler(404)
+def not_found_error(error):
+    print(f"DEBUG: 404 error for URL: {request.url}")
+    return render_template('errors/404.html'), 404
 
 if __name__ == '__main__':
     # Get configuration from environment variables

@@ -26,10 +26,10 @@ def get_aws_session():
         region = session['aws_region']
         profile = session.get('aws_profile')
         
-        # QUICK FIX: Use beyon-money-payer profile if no profile is specified
+        # QUICK FIX: Use tau-dev profile for Bedrock access (account 445567094096)
         if not profile or profile == 'default':
-            profile = 'beyon-money-payer'
-            print(f"DEBUG: Using beyon-money-payer profile for AWS session")
+            profile = 'tau-dev'
+            print(f"DEBUG: Using tau-dev profile for AWS session (account 445567094096)")
         
         # Create session
         aws_session = boto3.Session(profile_name=profile, region_name=region)

@@ -72,9 +72,9 @@ def register_auth_routes(app):
         profile_name = request.form.get('profile_name', 'default')
         region = request.form.get('region', 'me-south-1')
         
-        # Use beyon-money-payer as default if default is selected
+        # Use tau-dev as default if default is selected
         if profile_name == 'default':
-            profile_name = 'beyon-money-payer'
+            profile_name = 'tau-dev'
         
         try:
             # Authenticate with profile
@@ -92,9 +92,17 @@ def register_auth_routes(app):
                 
                 # Force cache refresh on sign-in to ensure fresh data
                 try:
-                    from trusted_advisor_cache import clear_trusted_advisor_cache
-                    clear_trusted_advisor_cache()
-                    print("🔄 Cache cleared on sign-in - will fetch fresh data on first page load")
+                    # Use the enhanced cache manager if available
+                    try:
+                        from cache_manager import CacheManager
+                        cache_manager = CacheManager()
+                        cache_manager.clear_all()
+                        print("🔄 Enhanced cache cleared on sign-in using CacheManager")
+                    except ImportError:
+                        # Fallback to legacy cache clearing
+                        from trusted_advisor_cache import clear_trusted_advisor_cache
+                        clear_trusted_advisor_cache()
+                        print("🔄 Legacy cache cleared on sign-in")
                     
                     # Add a flag to indicate this is a fresh sign-in
                     session['fresh_signin'] = True

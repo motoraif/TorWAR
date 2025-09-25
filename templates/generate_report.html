@@ -366,12 +366,22 @@ Report Generation Template
                             <p class="text-muted mb-0">{{ workload.WorkloadName }} - Generated on <span id="report-date-header"></span></p>
                         </div>
                         <div class="report-actions">
+                            {% if is_saved_view %}
+                            <a href="{{ url_for('saved_reports') }}" class="btn btn-secondary me-2">
+                                <i class="bi bi-arrow-left"></i> Back to Reports
+                            </a>
+                            {% endif %}
                             <button onclick="window.print()" class="btn btn-primary me-2">
                                 <i class="bi bi-printer me-1"></i> Print Report
                             </button>
+                            {% if not is_saved_view %}
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#saveReportModal">
                                 <i class="bi bi-save me-1"></i> Save Report
                             </button>
+                            <button type="button" class="btn btn-info ms-2" onclick="generateAIAnalysis()">
+                                <i class="bi bi-robot me-1"></i> AI Analysis
+                            </button>
+                            {% endif %}
                             <button type="button" class="btn btn-outline-secondary ms-2" id="toggleFullscreen">
                                 <i class="bi bi-arrows-fullscreen"></i>
                             </button>
@@ -386,33 +396,46 @@ Report Generation Template
     <div class="modal fade" id="saveReportModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="{{ url_for('save_report') }}">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-save me-2"></i>Save Report</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-save me-2"></i>Save Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveForm" method="POST" action="{{ url_for('save_report') }}">
                         <div class="mb-3">
                             <label for="custom_name" class="form-label">Report Name</label>
                             <input type="text" class="form-control" id="custom_name" name="custom_name" 
-                                placeholder="e.g., Q3 2025 Review" value="{{ workload.WorkloadName }} - {{ now.strftime('%Y-%m-%d') }}">
+                                value="{{ workload.WorkloadName }} - {{ now.strftime('%Y-%m-%d') }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="user_notes" class="form-label">Notes</label>
                             <textarea class="form-control" id="user_notes" name="user_notes" rows="3" 
                                 placeholder="Add any notes about this report version..."></textarea>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-save me-1"></i> Save Report
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="document.getElementById('saveForm').submit();">
+                        <i class="bi bi-save me-1"></i> Save Report
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    {% if is_saved_view %}
+    <!-- Saved Report Banner -->
+    <div class="row no-print">
+        <div class="col-12">
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Saved Report View</strong> - This is a saved snapshot from {{ now.strftime('%B %d, %Y at %I:%M %p') }}. 
+                <a href="{{ url_for('generate_report') }}" class="alert-link">Generate a new report</a> for current data.
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Executive Summary -->
     <div class="print-section">
@@ -836,6 +859,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (mainContent.msRequestFullscreen) { /* IE/Edge */
                     mainContent.msRequestFullscreen();
                 }
+                toggleFullscreenBtn.className = '';
+                toggleFullscreenBtn.className = 'btn btn-outline-danger ms-2';
                 toggleFullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
             } else {
                 if (document.exitFullscreen) {
@@ -847,6 +872,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (document.msExitFullscreen) {
                     document.msExitFullscreen();
                 }
+                toggleFullscreenBtn.className = '';
+                toggleFullscreenBtn.className = 'btn btn-outline-secondary ms-2';
                 toggleFullscreenBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
             }
         });
@@ -862,8 +889,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const toggleFullscreenBtn = document.getElementById('toggleFullscreen');
         if (toggleFullscreenBtn) {
             if (document.fullscreenElement) {
+                toggleFullscreenBtn.className = '';
+                toggleFullscreenBtn.className = 'btn btn-outline-danger ms-2';
                 toggleFullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
             } else {
+                toggleFullscreenBtn.className = '';
+                toggleFullscreenBtn.className = 'btn btn-outline-secondary ms-2';
                 toggleFullscreenBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
             }
         }
@@ -887,5 +918,224 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// AI Analysis function
+function generateAIAnalysis() {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiAnalysisModal'));
+    modal.show();
+    
+    // Status progression
+    showAnalysisProgress('🔍 Initializing AI analysis...');
+    
+    setTimeout(() => {
+        showAnalysisProgress('📊 Analyzing Well-Architected report data...');
+    }, 1000);
+    
+    setTimeout(() => {
+        showAnalysisProgress('🤖 Generating AI insights with Amazon Bedrock...');
+    }, 2000);
+    
+    // Call AI analysis endpoint
+    fetch('/ai_analysis', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        showAnalysisProgress('⚡ Processing AI response...');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showAnalysisResult(data.analysis);
+        } else {
+            showAnalysisError(data.error);
+        }
+    })
+    .catch(error => {
+        showAnalysisError('Failed to generate AI analysis. Please try again.');
+    });
+}
+
+function showAnalysisProgress(message) {
+    document.getElementById('aiAnalysisContent').innerHTML = `
+        <div class="text-center py-4">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <div class="typing-indicator me-3">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <p class="text-muted mb-0">${message}</p>
+        </div>
+        <style>
+            .typing-indicator {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .typing-indicator span {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background-color: #0d6efd;
+                animation: typing 1.4s infinite ease-in-out;
+            }
+            .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+            .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+            @keyframes typing {
+                0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+                40% { transform: scale(1); opacity: 1; }
+            }
+        </style>
+    `;
+}
+
+function showAnalysisResult(analysis) {
+    // Format the analysis with proper HTML structure
+    let formattedAnalysis = analysis;
+    
+    // Convert markdown-style formatting
+    formattedAnalysis = formattedAnalysis
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/## (.*?)(\n|$)/g, '<h4 class="text-primary mt-4 mb-3">$1</h4>')
+        .replace(/### (.*?)(\n|$)/g, '<h5 class="text-secondary mt-3 mb-2">$1</h5>');
+    
+    // Handle numbered lists - simpler approach
+    formattedAnalysis = formattedAnalysis.replace(/(\n|^)((?:\d+\.\s[^\n]+\n?)+)/g, (match, prefix, listBlock) => {
+        const items = listBlock.trim().split('\n').filter(line => line.match(/^\d+\./));
+        const listItems = items.map(item => {
+            const content = item.replace(/^\d+\.\s*/, '').trim();
+            return `<li class="mb-2">${content}</li>`;
+        }).join('');
+        return `${prefix}<ol class="mb-3">${listItems}</ol>`;
+    });
+    
+    // Handle bullet points
+    formattedAnalysis = formattedAnalysis.replace(/(-\s.*?)(?=\n-|\n\n|$)/gs, (match) => {
+        const items = match.split(/\n(?=-)/);
+        const listItems = items.map(item => {
+            const content = item.replace(/^-\s/, '');
+            return `<li class="mb-1">${content}</li>`;
+        }).join('');
+        return `<ul class="mb-3">${listItems}</ul>`;
+    });
+    
+    // Handle paragraphs
+    formattedAnalysis = formattedAnalysis
+        .split('\n\n')
+        .map(para => para.trim())
+        .filter(para => para && !para.match(/^<[hou]/))
+        .map(para => `<p class="mb-3">${para}</p>`)
+        .join('');
+    
+    document.getElementById('aiAnalysisContent').innerHTML = `
+        <div class="alert alert-success border-0 mb-4">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #198754; color: white;">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div>
+                    <strong>✅ Analysis Complete</strong><br>
+                    <small class="text-muted">Generated using Amazon Bedrock AI</small>
+                </div>
+            </div>
+        </div>
+        <div class="ai-analysis-content" style="line-height: 1.7; font-size: 0.95rem;">
+            ${formattedAnalysis}
+        </div>
+        <div class="mt-4 pt-3 border-top">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                This analysis is AI-generated. Please review with AWS experts for production environments.
+            </small>
+        </div>
+    `;
+    
+    // Show print button
+    document.getElementById('printBtn').style.display = 'inline-block';
+}
+
+function printAIAnalysis() {
+    const content = document.querySelector('.ai-analysis-content').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>AI Well-Architected Analysis</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                    h4 { color: #0d6efd; margin-top: 20px; }
+                    h5 { color: #6c757d; margin-top: 15px; }
+                    ul, ol { margin: 10px 0; padding-left: 20px; }
+                    li { margin-bottom: 5px; }
+                    strong { color: #212529; }
+                    p { margin-bottom: 15px; }
+                </style>
+            </head>
+            <body>
+                <h1>🤖 AI Well-Architected Analysis</h1>
+                <p><em>Generated using Amazon Bedrock AI</em></p>
+                <hr>
+                ${content}
+                <hr>
+                <p><small>This analysis is AI-generated. Please review with AWS experts for production environments.</small></p>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function showAnalysisError(error) {
+    document.getElementById('aiAnalysisContent').innerHTML = `
+        <div class="alert alert-danger border-0 mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle me-3 text-danger" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>❌ Analysis Failed</strong><br>
+                    <small>${error}</small>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <button class="btn btn-primary" onclick="generateAIAnalysis()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+            </button>
+        </div>
+    `;
+}
 </script>
+
+<!-- AI Analysis Modal -->
+<div class="modal fade" id="aiAnalysisModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-robot me-2"></i>AI Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="aiAnalysisContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Analyzing...</span>
+                        </div>
+                        <p class="mt-2">AI is analyzing your Well-Architected report...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="printAIAnalysis()" id="printBtn" style="display: none;">
+                    Print
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

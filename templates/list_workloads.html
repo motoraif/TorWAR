@@ -29,7 +29,7 @@
                                 <td>{{ workload.Environment }}</td>
                                 <td>{{ workload.ReviewOwner }}</td>
                                 <td>
-                                    <a href="/workloads/select/{{ workload.WorkloadId }}" class="btn btn-sm btn-primary">Select</a>
+                                    <a href="/workloads/select/{{ workload.WorkloadId|urlencode }}" class="btn btn-sm btn-primary">Select</a>
                                 </td>
                             </tr>
                         {% endfor %}
