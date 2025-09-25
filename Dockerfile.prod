@@ -1,0 +1,61 @@
+# Multi-stage build for production
+FROM python:3.10-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install requirements
+COPY requirements-simple.txt .
+RUN pip install --no-cache-dir -r requirements-simple.txt
+
+# Production stage
+FROM python:3.10-slim
+
+# Create non-root user
+RUN groupadd -r torwar && useradd -r -g torwar torwar
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set up application
+WORKDIR /app
+COPY --chown=torwar:torwar . .
+
+# Install Python packages
+RUN pip install --no-cache-dir -r requirements-simple.txt
+
+RUN chmod +x start-prod.sh
+
+# Create directories with proper ownership
+RUN mkdir -p data/reports logs instance \
+    && chown -R torwar:torwar /app
+
+# Fix AWS credentials permissions for non-root user
+RUN mkdir -p /home/torwar/.aws \
+    && chown -R torwar:torwar /home/torwar/.aws
+
+# Environment
+ENV PYTHONPATH=/app
+ENV FLASK_ENV=production
+ENV DATABASE_URL=postgresql://torwar:torwar123@db:5432/torwar_db
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1
+
+# Switch to non-root user (commented out for AWS access)
+# USER torwar
+
+EXPOSE 5001
+
+CMD ["./start-prod.sh"]

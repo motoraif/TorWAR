@@ -28,7 +28,7 @@ Enhanced Features:
 import os
 import json
 from datetime import datetime, timezone
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, g
 from botocore.exceptions import ClientError
 from aws_helper import get_wellarchitected_client, test_aws_connection
 from aws_auth_routes import register_auth_routes
@@ -48,9 +48,21 @@ from trusted_advisor_cache import (
     is_startup_complete
 )
 
+# Simple user class for template context
+class SimpleUser:
+    def __init__(self):
+        self.is_authenticated = True
+        self.first_name = "User"
+        self.email = "user@torwar.local"
+
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
+
+# Add context processor to provide current_user to all templates
+@app.context_processor
+def inject_user():
+    return {'current_user': SimpleUser()}
 
 # Debug control - only print DEBUG messages if explicitly enabled
 DEBUG_ENABLED = os.environ.get('DEBUG_REPORTS', 'false').lower() == 'true'
@@ -2920,6 +2932,23 @@ def api_cache_info():
 def not_found_error(error):
     print(f"DEBUG: 404 error for URL: {request.url}")
     return render_template('errors/404.html'), 404
+
+@app.route('/profile')
+def profile():
+    """Simple profile page"""
+    return render_template('profile.html')
+
+@app.route('/settings')
+def settings():
+    """Simple settings page"""
+    return render_template('settings.html')
+
+@app.route('/logout')
+def logout():
+    """Simple logout - redirect to home"""
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     # Get configuration from environment variables

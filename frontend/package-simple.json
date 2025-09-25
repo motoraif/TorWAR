@@ -1,0 +1,13 @@
+{
+  "name": "torwar-frontend-simple",
+  "version": "1.0.0",
+  "description": "TorWAR Simple Frontend",
+  "scripts": {
+    "dev": "python3 -m http.server 8080",
+    "build": "echo 'Simple build complete'",
+    "serve": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "vue": "^3.3.0"
+  }
+}

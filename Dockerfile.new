@@ -1,0 +1,29 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install requirements
+COPY requirements-simple.txt ./
+RUN pip install --no-cache-dir -r requirements-simple.txt
+
+# Copy application code
+COPY . .
+
+# Make startup script executable
+RUN chmod +x start.sh
+
+# Create directories
+RUN mkdir -p data/reports logs instance
+
+# Environment
+ENV DATABASE_URL=postgresql://torwar:torwar123@db:5432/torwar_db
+ENV SECRET_KEY=torwar-production-secret-key-change-me
+
+EXPOSE 5001
+
+CMD ["./start.sh"]

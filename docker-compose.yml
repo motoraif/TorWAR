@@ -1,0 +1,40 @@
+services:
+  torwar:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=containerized-torwar-secret-key-change-in-production
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://torwar:torwar_password@db:5432/torwar
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ~/.aws:/root/.aws:ro
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=torwar
+      - POSTGRES_USER=torwar
+      - POSTGRES_PASSWORD=torwar_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
