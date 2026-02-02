@@ -184,15 +184,8 @@ def index():
             else:
                 context['workload_count'] = 0
             
-            # Get Trusted Advisor summary
-            ta_summary = get_trusted_advisor_summary()
-            context['trusted_advisor'] = ta_summary
-            
-            if DEBUG_ENABLED:
-                print(f"DEBUG: Trusted Advisor available: {ta_summary.get('available', False)}")
-                if ta_summary.get('available'):
-                    print(f"DEBUG: TA High Priority: {ta_summary.get('high_priority_count', 0)}")
-                    print(f"DEBUG: TA Medium Priority: {ta_summary.get('medium_priority_count', 0)}")
+            # Skip Trusted Advisor on initial load - load via AJAX instead
+            context['trusted_advisor'] = {'available': False, 'loading': True}
             
         except Exception as e:
             if DEBUG_ENABLED:
