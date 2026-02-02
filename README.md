@@ -59,10 +59,36 @@
 
 ### Installation
 
+#### Option 1: Docker (Recommended)
+
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/your-username/TorWAF.git
-cd TorWAF
+git clone https://github.com/your-username/TorWAR.git
+cd TorWAR
+```
+
+2. **Configure AWS credentials:**
+```bash
+aws configure
+```
+
+3. **Build and start:**
+```bash
+./docker-manage.sh build
+./docker-manage.sh start
+```
+
+4. **Access the application:**
+   - Open your browser: `http://localhost:5000`
+
+See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
+
+#### Option 2: Local Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/your-username/TorWAR.git
+cd TorWAR
 ```
 
 2. **Install dependencies:**
@@ -89,6 +115,14 @@ cp .env.example .env
 
 ### Running the Application
 
+#### Docker
+```bash
+./docker-manage.sh start    # Start
+./docker-manage.sh logs     # View logs
+./docker-manage.sh stop     # Stop
+```
+
+#### Local
 1. **Start the server:**
 ```bash
 python3 app.py

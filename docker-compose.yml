@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  torwar:
+    build: .
+    container_name: torwar-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist data
+      - ./data:/app/data
+      - ./logs:/app/logs
+      # Mount AWS credentials (read-only)
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: torwar-network

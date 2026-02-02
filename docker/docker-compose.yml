@@ -1,6 +1,8 @@
 services:
   torwar:
-    build: .
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: torwar-app
     ports:
       - "5000:5000"

@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/*.log
+*.log
+
+# Data (keep structure, ignore content)
+data/reports/**/*.json
+data/reports/**/*.html
+data/workloads/**/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover

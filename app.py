@@ -1575,6 +1575,15 @@ def api_trusted_advisor_summary():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Docker"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'TorWAR',
+        'timestamp': datetime.now(timezone.utc).isoformat()
+    }), 200
+
 if __name__ == '__main__':
     # Get configuration from environment variables
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
