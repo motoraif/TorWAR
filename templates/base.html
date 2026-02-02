@@ -145,8 +145,10 @@ Base Template for TorWAR Application
                             <li><a class="dropdown-item" href="{{ url_for('compare_reports') }}">Compare Reports</a></li>
                         </ul>
                     </li>
+                    {% endif %}
 
-                    <!-- Trusted Advisor Recommendations -->
+                    <!-- Trusted Advisor Recommendations (separate from workloads) -->
+                    {% if is_connected %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('recommendations') }}">
                             <i class="fas fa-lightbulb"></i> Recommendations
