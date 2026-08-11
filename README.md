@@ -1,133 +1,117 @@
-# 🛡️ TorWAR - AWS Well-Architected Review Tool
+# TorWARTA - Well Architected Reviews & Trusted Advisor
 
-> **Tor**aif's **W**ell-**A**rchitected **R**eview Tool - A streamlined, user-friendly web application for conducting comprehensive AWS Well-Architected Framework reviews with advanced report generation and management capabilities.
+A modern web application for conducting AWS Well-Architected Reviews and managing Trusted Advisor recommendations with AI-powered reporting.
 
-**Author:** Mohamed Toraif  
-**Created:** 2024
-**License:** MIT
+## Features
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com)
-[![AWS](https://img.shields.io/badge/AWS-Well--Architected-orange.svg)](https://aws.amazon.com/architecture/well-architected)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
+### 1. Well Architected Reviews (WAR)
+- 🔍 Interact with AWS Well-Architected Tool APIs
+- 📝 Answer questions and generate comprehensive reports
+- 💾 Store all data locally for offline access
+- 📊 Track progress across multiple workloads
 
-## 🌟 Features
+### 2. Trusted Advisor (TA) Management
+- 🛡️ Fetch all TA recommendations automatically
+- 🤖 AI-powered remediation plans using Amazon Bedrock
+- 📋 Prioritize and track remediation efforts
+- 📈 Monitor improvement over time
 
-### 🔐 **Authentication & Security**
-- **AWS Profile Authentication**: Secure authentication using AWS CLI profiles
-- **Session Management**: Persistent sessions with automatic timeout
-- **Multi-Account Support**: Switch between different AWS accounts seamlessly
+### 3. AI-Powered Reporting
+- 🧠 Generate reports using Amazon Bedrock (cross-account)
+- 📄 Executive summaries and detailed findings
+- 🔄 Version control for report comparison
+- 📊 Track improvements between assessments
 
-### 🏗️ **Workload Management**
-- **Create Workloads**: Set up new Well-Architected workloads
-- **Workload Selection**: Easy workload switching and management
-- **Account Integration**: Direct integration with AWS Well-Architected Tool
+### 4. Modern UI/UX
+- 🎨 Modern design with Tailwind CSS
+- 📱 Responsive design for all devices
+- 🌙 Dark/light mode support
+- ⚡ Real-time updates with Vue.js
 
-### 📋 **Review Process**
-- **Interactive Questionnaire**: User-friendly interface for framework questions
-- **Pillar-based Reviews**: Comprehensive coverage of all 6 Well-Architected pillars:
-  - 🏛️ Operational Excellence
-  - 🔒 Security
-  - 🛡️ Reliability
-  - ⚡ Performance Efficiency
-  - 💰 Cost Optimization
-  - ♻️ Sustainability
-- **Progress Tracking**: Real-time completion status and progress indicators
-- **Risk Assessment**: Automatic risk level calculation and categorization
-
-### 📊 **Report Generation & Management**
-- **Professional Reports**: Clean, print-ready reports with comprehensive analysis
-- **Multiple Formats**: Optimized for both web viewing and printing
-- **Report Versioning**: Track changes and improvements over time
-- **Report Comparison**: Side-by-side comparison of different report versions
-- **Export Options**: Print-friendly layouts with professional styling
-
-### 🎨 **User Experience**
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Intuitive Navigation**: Clean, organized interface with logical flow
-- **Real-time Feedback**: Instant validation and progress updates
-- **Accessibility**: WCAG-compliant design for inclusive access
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
+- Docker and Docker Compose
+- AWS credentials configured
+- Access to AWS Well-Architected Tool and Support APIs
+- Amazon Bedrock access (for AI reporting)
 
-- **Python 3.8+** installed on your system
-- **AWS CLI** configured with valid credentials
-- **AWS Account** with Well-Architected Tool access
-- **Modern Web Browser** (Chrome, Firefox, Safari, Edge)
+### Deployment
 
-### Installation
+1. **Clone and navigate to the project:**
+   ```bash
+   cd TorWAR
+   ```
 
-1. **Clone the repository:**
-```bash
-git clone https://github.com/your-username/TorWAF.git
-cd TorWAF
-```
+2. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your AWS credentials and settings
+   ```
 
-2. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
+3. **Deploy with Docker Compose:**
+   ```bash
+   docker-compose up -d
+   ```
 
-3. **Configure AWS credentials:**
-```bash
-# Option 1: Using AWS CLI
-aws configure --profile torwar-profile
+4. **Access the application:**
+   - Web Interface: http://localhost
+   - API: http://localhost/api/
+   - Default login: admin / password
 
-# Option 2: Using environment variables
-export AWS_ACCESS_KEY_ID=your-access-key
-export AWS_SECRET_ACCESS_KEY=your-secret-key
-export AWS_DEFAULT_REGION=us-east-1
-```
+## Architecture
 
-4. **Set up environment (optional):**
-```bash
-cp .env.example .env
-# Edit .env with your preferred settings
-```
+### Services
+- **TorWARTA App**: Flask application with Vue.js frontend
+- **MongoDB**: Document database for storing reports and data
+- **Redis**: Caching layer for performance
+- **Nginx**: Reverse proxy with rate limiting and security headers
 
-### Running the Application
+### Initialization Process
+1. **Database Setup**: Creates indexes and collections
+2. **Cache Initialization**: Configures Redis connections
+3. **Admin User Creation**: Sets up default admin account
+4. **Service Health Checks**: Ensures all components are ready
 
-1. **Start the server:**
-```bash
-python3 app.py
-```
+## API Endpoints
 
-2. **Access the application:**
-   - Open your browser and navigate to: `http://localhost:5000`
-   - Or access via network: `http://your-ip:5000`
+### Authentication
+- `POST /login` - User authentication
+- `GET /logout` - User logout
 
-3. **Begin your review:**
-   - Authenticate with your AWS profile
-   - Create or select a workload
-   - Start your Well-Architected review
+### Well Architected Reviews
+- `GET /api/war/workloads` - List all workloads
+- `GET /api/war/workload/<id>/answers` - Get workload answers
+- `POST /api/war/answer` - Update workload answer
 
-## 🔧 Configuration
+### Trusted Advisor
+- `GET /api/ta/recommendations` - Get all TA recommendations
+- `POST /api/ta/remediation-plan` - Create AI remediation plan
+
+### Reports
+- `POST /api/reports/generate` - Generate AI-powered report
+- `GET /api/reports/versions` - List report versions
+- `POST /api/reports/compare` - Compare two report versions
+
+## Configuration
 
 ### Environment Variables
-
-Create a `.env` file in the root directory:
-
 ```bash
-# Application Settings
-SECRET_KEY=your-secret-key-here
-DEBUG=False
-PORT=5000
+# Database
+MONGODB_URI=mongodb://mongodb:27017/torwarta
+REDIS_HOST=redis
 
-# AWS Settings (optional - can use AWS CLI profiles instead)
-AWS_DEFAULT_REGION=us-east-1
-AWS_PROFILE=torwar-profile
+# AWS Configuration
+AWS_REGION=us-east-1
+BEDROCK_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
 
-# Application Behavior
-AUTO_SAVE_INTERVAL=300  # Auto-save every 5 minutes
-MAX_REPORTS_PER_WORKLOAD=10
+# Application
+SECRET_KEY=your_secret_key
 ```
 
-### AWS Permissions
-
-Your AWS user/role needs the following permissions:
-
+### AWS Permissions Required
 ```json
 {
     "Version": "2012-10-17",
@@ -135,15 +119,10 @@ Your AWS user/role needs the following permissions:
         {
             "Effect": "Allow",
             "Action": [
-                "wellarchitected:*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sts:GetCallerIdentity",
-                "iam:ListAccountAliases"
+                "wellarchitected:*",
+                "support:DescribeTrustedAdvisorChecks",
+                "support:DescribeTrustedAdvisorCheckResult",
+                "bedrock:InvokeModel"
             ],
             "Resource": "*"
         }
@@ -151,162 +130,78 @@ Your AWS user/role needs the following permissions:
 }
 ```
 
-## 📁 Project Structure
+## Data Storage
 
-```
-TorWAF/
-├── 📄 app.py                      # Main Flask application
-├── 🔐 aws_auth.py                 # AWS authentication logic
-├── 🛣️ aws_auth_routes.py          # Authentication routes
-├── 🔧 aws_helper.py               # AWS session management
-├── 📊 report_manager.py           # Report generation & management
-├── 📋 requirements.txt            # Python dependencies
-├── ⚙️ .env.example                # Environment configuration template
-├── 🎨 templates/                  # HTML templates
-│   ├── 🏠 index.html              # Homepage
-│   ├── 📝 answer_question.html    # Question interface
-│   ├── 📊 generate_report.html    # Report generation
-│   ├── 💾 saved_reports.html      # Report management
-│   ├── 🔍 compare_reports.html    # Report comparison
-│   └── 🎯 base.html               # Base template
-├── 🎨 static/                     # Static assets
-│   └── 🖼️ logo.svg               # TorWAR logo
-├── 💾 data/                       # Application data
-│   ├── 📊 reports/                # Saved reports
-│   │   ├── metadata/              # Report metadata
-│   │   └── workloads/             # Workload data
-│   └── 🏗️ workloads/             # Workload configurations
-├── 🧪 testing/                    # Test files and documentation
-└── 📝 logs/                       # Application logs
-```
+### Offline Access
+- All WAR data stored in MongoDB
+- TA recommendations cached locally
+- Reports versioned for historical comparison
+- Redis caching for performance
 
-## 🎯 Usage Guide
+### Version Control
+- Automatic versioning of all reports
+- Compare reports across different time periods
+- Track improvements and changes
+- Export capabilities for external use
 
-### 1. **Initial Setup**
-- Launch the application and navigate to the homepage
-- Click "AWS Login" to authenticate with your AWS credentials
-- Select your preferred AWS region and profile
+## Monitoring
 
-### 2. **Workload Management**
-- Create a new workload or select an existing one
-- Provide workload details (name, description, environment)
-- Configure workload-specific settings
+### Health Checks
+- Application health: `/health`
+- Database connectivity monitoring
+- Cache performance metrics
+- API response time tracking
 
-### 3. **Conducting Reviews**
-- Select pillars to review (or choose "All Pillars")
-- Answer questions for each pillar systematically
-- Use the help hints and best practices provided
-- Save progress automatically or manually
+### Logging
+- Application logs in `/app/logs`
+- Access logs via Nginx
+- Error tracking and alerting
+- Performance monitoring
 
-### 4. **Report Generation**
-- Generate comprehensive reports after completing reviews
-- Customize report names and add notes
-- View reports in clean, professional format
-- Print or export reports as needed
+## Security
 
-### 5. **Report Management**
-- Access all saved reports from the Reports menu
-- Compare different versions of reports
-- Track improvements and changes over time
-- Delete outdated reports when needed
+### Features
+- Rate limiting on API endpoints
+- Security headers (XSS, CSRF protection)
+- Input validation and sanitization
+- Secure session management
 
-## 🔍 Key Features Explained
+### Best Practices
+- Regular security updates
+- Encrypted data transmission
+- Access control and authentication
+- Audit logging
 
-### **Simplified Report Viewing**
-- Clean, chart-free interface for easy reading
-- Color-coded risk indicators (Red=High, Yellow=Medium, Blue=Low, Green=None)
-- Print-optimized layouts
-- No auto-scrolling or animations
+## Development
 
-### **Report Comparison**
-- Side-by-side comparison of any two reports
-- Highlight changes and improvements
-- Track risk reduction over time
-- Identify areas needing attention
-
-### **Responsive Design**
-- Works on all device sizes
-- Touch-friendly interface for tablets
-- Keyboard navigation support
-- High contrast mode available
-
-## 🛠️ Development
-
-### **Running in Development Mode**
-
+### Local Development
 ```bash
-# Enable debug mode
-export FLASK_ENV=development
-export DEBUG=True
-python3 app.py
+# Install dependencies
+pip install -r requirements.txt
+
+# Run initialization
+python init.py
+
+# Start application
+python app.py
 ```
 
-### **Testing**
-
+### Testing
 ```bash
-# Run basic functionality tests
-cd testing/
-python3 -m pytest
+# Run health check
+curl http://localhost/health
 
-# Manual testing endpoints
-curl http://localhost:5000/health
-curl http://localhost:5000/saved_reports
+# Test API endpoints
+curl -X GET http://localhost/api/war/workloads
 ```
 
-### **Contributing**
+## Support
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and test thoroughly
-4. Commit your changes: `git commit -m 'Add amazing feature'`
-5. Push to the branch: `git push origin feature/amazing-feature`
-6. Open a Pull Request
+For issues and questions:
+1. Check the logs: `docker-compose logs torwarta`
+2. Verify AWS credentials and permissions
+3. Ensure all services are healthy: `docker-compose ps`
 
-## 🐛 Troubleshooting
+## License
 
-### **Common Issues**
-
-**Q: "Error loading saved reports" or template errors**
-- **A:** All template issues have been resolved in the latest version. Ensure you're using the updated codebase.
-
-**Q: AWS authentication fails**
-- **A:** Check your AWS credentials and permissions. Ensure the Well-Architected service is available in your region.
-
-**Q: Reports not saving**
-- **A:** Verify write permissions to the `data/reports/` directory.
-
-**Q: Page keeps scrolling or charts not loading**
-- **A:** The UI has been simplified to remove problematic animations and charts.
-
-### **Getting Help**
-
-- 📧 **Issues**: Open an issue on GitHub
-- 📖 **Documentation**: Check the `testing/` directory for detailed guides
-- 🔧 **Configuration**: Review the `.env.example` file for all options
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **AWS Well-Architected Framework** for the comprehensive review methodology
-- **Flask Community** for the excellent web framework
-- **Bootstrap Team** for the responsive UI components
-- **Contributors** who helped improve and test the application
-
-## 🚀 What's Next?
-
-- 📊 Enhanced analytics and trending
-- 🔄 Automated report scheduling
-- 👥 Multi-user collaboration features
-- 📱 Mobile app companion
-- 🔗 Integration with other AWS services
-
----
-
-**Created by Mohamed Toraif with ❤️ in Bahrain 🇧🇭**
-
-*TorWAR - Making AWS Well-Architected Reviews Simple and Effective*
-
-**© 2024 Mohamed Toraif. Licensed under MIT License.**
+MIT License - see LICENSE file for details.

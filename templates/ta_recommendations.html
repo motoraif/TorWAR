@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trusted Advisor - TorWARTA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/dashboard" class="text-2xl font-bold text-blue-600">TorWARTA</a>
+                    <span class="ml-2 text-sm text-gray-500">Trusted Advisor</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="refreshRecommendations()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        <i class="fas fa-sync mr-2"></i>Refresh
+                    </button>
+                    <a href="/dashboard" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-1"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4">
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex flex-wrap gap-4">
+                <select id="categoryFilter" class="border rounded px-3 py-2">
+                    <option value="">All Categories</option>
+                    <option value="cost_optimizing">Cost Optimizing</option>
+                    <option value="security">Security</option>
+                    <option value="fault_tolerance">Fault Tolerance</option>
+                    <option value="performance">Performance</option>
+                    <option value="service_limits">Service Limits</option>
+                </select>
+                <select id="statusFilter" class="border rounded px-3 py-2">
+                    <option value="">All Status</option>
+                    <option value="error">Error</option>
+                    <option value="warning">Warning</option>
+                    <option value="ok">OK</option>
+                </select>
+                <button onclick="applyFilters()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div id="recommendationsContainer" class="space-y-4">
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                <p class="text-gray-500 mt-2">Loading recommendations...</p>
+            </div>
+        </div>
+
+        <!-- Remediation Plan Modal -->
+        <div id="planModal" class="fixed inset-0 bg-black bg-opacity-50 hidden">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">AI Remediation Plan</h3>
+                            <button onclick="closePlanModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        <div id="planContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRecommendations = [];
+
+        async function refreshRecommendations() {
+            const container = document.getElementById('recommendationsContainer');
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i><p class="text-gray-500 mt-2">Fetching latest recommendations...</p></div>';
+            
+            try {
+                const response = await fetch('/api/ta/recommendations');
+                const data = await response.json();
+                
+                if (data.recommendations) {
+                    allRecommendations = data.recommendations;
+                    displayRecommendations(allRecommendations);
+                } else {
+                    container.innerHTML = `<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        <strong>Note:</strong> ${data.error || 'No recommendations available. This may be due to missing AWS credentials or insufficient permissions.'}
+                    </div>`;
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Network error occurred</div>';
+            }
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsContainer');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No recommendations match the current filters</div>';
+                return;
+            }
+
+            const html = recommendations.map(rec => `
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold mb-2">${rec.name}</h3>
+                            <p class="text-gray-600 mb-3">${rec.description}</p>
+                            <div class="flex items-center space-x-3">
+                                <span class="status-badge status-${rec.status}">${rec.status.toUpperCase()}</span>
+                                <span class="text-sm text-gray-500">${rec.category}</span>
+                                <span class="text-sm text-gray-500">${rec.resources ? rec.resources.length : 0} resources</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="createRemediationPlan('${rec.check_id}')" 
+                                    class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                                <i class="fas fa-robot mr-1"></i>AI Plan
+                            </button>
+                            <button onclick="toggleDetails('${rec.check_id}')" 
+                                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                                <i class="fas fa-eye mr-1"></i>Details
+                            </button>
+                        </div>
+                    </div>
+                    <div id="details-${rec.check_id}" class="hidden">
+                        <div class="border-t pt-4">
+                            <h4 class="font-semibold mb-2">Affected Resources:</h4>
+                            <div class="space-y-2 max-h-40 overflow-y-auto">
+                                ${rec.resources && rec.resources.length > 0 ? 
+                                    rec.resources.map(resource => `
+                                        <div class="bg-gray-50 p-2 rounded text-sm">
+                                            <strong>Resource:</strong> ${resource.resourceId || 'N/A'}<br>
+                                            <strong>Region:</strong> ${resource.region || 'N/A'}<br>
+                                            <strong>Status:</strong> ${resource.status || 'N/A'}
+                                        </div>
+                                    `).join('') : 
+                                    '<p class="text-gray-500">No specific resources identified</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function applyFilters() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filtered = allRecommendations;
+            
+            if (categoryFilter) {
+                filtered = filtered.filter(rec => rec.category === categoryFilter);
+            }
+            
+            if (statusFilter) {
+                filtered = filtered.filter(rec => rec.status === statusFilter);
+            }
+            
+            displayRecommendations(filtered);
+        }
+
+        function toggleDetails(checkId) {
+            const details = document.getElementById(`details-${checkId}`);
+            details.classList.toggle('hidden');
+        }
+
+        async function createRemediationPlan(checkId) {
+            const modal = document.getElementById('planModal');
+            const content = document.getElementById('planContent');
+            
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-robot fa-spin text-2xl text-purple-600"></i><p class="text-gray-500 mt-2">AI is generating your remediation plan...</p></div>';
+            modal.classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/ta/remediation-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ check_id: checkId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.plan) {
+                    content.innerHTML = `
+                        <div class="prose max-w-none">
+                            <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                <h4 class="text-purple-800 font-semibold mb-2">
+                                    <i class="fas fa-robot mr-2"></i>AI-Generated Remediation Plan
+                                </h4>
+                                <p class="text-purple-700 text-sm">This plan was generated using Amazon Bedrock AI</p>
+                            </div>
+                            <div class="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">${data.plan}</div>
+                            <div class="mt-4 flex space-x-2">
+                                <button onclick="exportPlan('${checkId}')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                    <i class="fas fa-download mr-1"></i>Export Plan
+                                </button>
+                                <button onclick="markAsImplemented('${checkId}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                    <i class="fas fa-check mr-1"></i>Mark as Implemented
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        Error generating plan: ${data.error || 'Unknown error'}
+                    </div>`;
+                }
+            } catch (error) {
+                content.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Network error occurred</div>';
+            }
+        }
+
+        function closePlanModal() {
+            document.getElementById('planModal').classList.add('hidden');
+        }
+
+        function exportPlan(checkId) {
+            // Implementation for exporting plan
+            alert('Plan export functionality would be implemented here');
+        }
+
+        function markAsImplemented(checkId) {
+            // Implementation for marking as implemented
+            alert('Mark as implemented functionality would be implemented here');
+        }
+
+        // Load recommendations on page load
+        document.addEventListener('DOMContentLoaded', refreshRecommendations);
+    </script>
+
+    <style>
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-error { background-color: #fee2e2; color: #dc2626; }
+        .status-warning { background-color: #fef3c7; color: #d97706; }
+        .status-ok { background-color: #dcfce7; color: #16a34a; }
+    </style>
+</body>
+</html>

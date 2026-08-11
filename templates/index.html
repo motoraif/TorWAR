@@ -1,449 +1,76 @@
-<!--
-TorWAR - AWS Well-Architected Review Tool
-Author: Mohamed Toraif
-Simplified Homepage Template
--->
 {% extends "base.html" %}
 
-{% block title %}Home - TorWAR{% endblock %}
-
 {% block content %}
-<!-- Hero Section -->
-<div class="jumbotron bg-primary text-white p-4 rounded mb-4">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="display-4 fw-bold mb-3">
-                    <i class="fas fa-shield-alt me-3"></i>TorWAR
-                </h1>
-                <p class="lead mb-3">AWS Well-Architected Review Tool</p>
-                <p class="mb-3">Streamlined AWS Well-Architected Framework reviews with enhanced report management and comparison tools.</p>
-                {% if aws_connected %}
-                <div class="d-flex gap-2">
-                    <button class="btn btn-light btn-sm" onclick="refreshDashboard()">
-                        <i class="fas fa-sync-alt me-1"></i>Refresh Dashboard
-                    </button>
-                    <a href="/cache/status" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-tachometer-alt me-1"></i>Cache Status
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-            <div class="col-lg-4 text-center">
-                <i class="fas fa-columns fa-4x mb-2"></i>
-                <h4>6 Pillars</h4>
-                <p>Complete Coverage</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Connection Status -->
-{% if is_connected %}
-    <div class="alert alert-success">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h5 class="mb-2">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <strong>Connected to AWS</strong>
-                </h5>
-                <div class="mb-2">
-                    <span class="badge bg-success me-2">
-                        <i class="fas fa-user me-1"></i>{{ aws_account_id }}
-                    </span>
-                    <span class="badge bg-info me-2">
-                        <i class="fas fa-globe me-1"></i>{{ aws_region }}
-                    </span>
-                    <span class="badge bg-secondary">
-                        <i class="fas fa-cog me-1"></i>{{ session.get('aws_profile', 'default') }}
-                    </span>
-                </div>
-            </div>
-            <div class="col-md-4 text-end">
-                <a href="{{ url_for('aws_status') }}" class="btn btn-outline-success">
-                    <i class="fas fa-info-circle me-1"></i>View Details
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    {% if workload_id %}
-        <div class="alert alert-info">
-            <h5 class="mb-1">
-                <i class="fas fa-briefcase me-2"></i>
-                <strong>Selected Workload:</strong> {{ workload_name }}
-            </h5>
-            <small class="text-muted">ID: {{ workload_id }}</small>
-        </div>
-    {% endif %}
-{% else %}
-    <div class="alert alert-warning">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h5 class="mb-2">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Not connected to AWS</strong>
-                </h5>
-                <p class="mb-0">Please authenticate with AWS to start using TorWAR</p>
-            </div>
-            <div class="col-md-4 text-end">
-                <a href="{{ url_for('aws_login') }}" class="btn btn-warning">
-                    <i class="fas fa-shield-alt me-1"></i>AWS Login
-                </a>
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-<!-- Main Dashboard -->
-<div class="row mt-4">
-    {% if is_connected %}
-        <!-- Workload Management -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-sitemap fa-3x text-primary"></i>
-                    </div>
-                    <h5 class="card-title">Workload Management</h5>
-                    <p class="card-text">Manage your AWS workloads and select one for comprehensive review.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('list_workloads') }}" class="btn btn-primary">
-                            <i class="fas fa-list me-2"></i>List Workloads
-                        </a>
-                        <a href="{{ url_for('create_workload') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-plus-circle me-2"></i>Create Workload
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trusted Advisor Recommendations - Always show when connected -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-lightbulb fa-3x text-warning"></i>
-                    </div>
-                    <h5 class="card-title">Trusted Advisor</h5>
-                    <p class="card-text">AWS recommendations for cost optimization, performance, security, and more.</p>
-                    
-                    {% if trusted_advisor.available %}
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <div class="bg-danger text-white rounded p-2">
-                                    <div class="fw-bold">{{ trusted_advisor.high_priority_count or 0 }}</div>
-                                    <small>High Priority</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="bg-warning text-dark rounded p-2">
-                                    <div class="fw-bold">{{ trusted_advisor.medium_priority_count or 0 }}</div>
-                                    <small>Medium Priority</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-grid">
-                            <a href="{{ url_for('recommendations') }}" class="btn btn-warning">
-                                <i class="fas fa-lightbulb me-2"></i>View Recommendations
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <small>
-                                <i class="fas fa-info-circle me-1"></i>
-                                {% if trusted_advisor.error %}
-                                    {{ trusted_advisor.error }}
-                                {% else %}
-                                    Requires Business or Enterprise support plan
-                                {% endif %}
-                            </small>
-                        </div>
-                        <div class="d-grid">
-                            <a href="{{ url_for('recommendations') }}" class="btn btn-outline-warning">
-                                <i class="fas fa-lightbulb me-2"></i>Check Availability
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Reports - Always show when connected -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-chart-line fa-3x text-info"></i>
-                    </div>
-                    <h5 class="card-title">Reports</h5>
-                    <p class="card-text">View and compare saved Well-Architected reports.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('saved_reports') }}" class="btn btn-info">
-                            <i class="fas fa-folder me-2"></i>Saved Reports
-                        </a>
-                        <a href="{{ url_for('compare_reports') }}" class="btn btn-outline-info">
-                            <i class="fas fa-balance-scale me-2"></i>Compare Reports
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Trusted Advisor API Test -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-vial fa-3x text-purple"></i>
-                    </div>
-                    <h5 class="card-title">Trusted Advisor API Test</h5>
-                    <p class="card-text">Test and diagnose Trusted Advisor API functionality.</p>
-                    <div class="d-grid gap-2">
-                        <a href="/check-ta" class="btn btn-primary">
-                            <i class="fas fa-vial me-2"></i>Check TA APIs
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {% if workload_id %}
-        <!-- Review Process -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-clipboard-check fa-3x text-success"></i>
-                    </div>
-                    <h5 class="card-title">Well-Architected Review</h5>
-                    <p class="card-text">Conduct comprehensive reviews across all six pillars of the framework.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('select_pillars') }}" class="btn btn-success">
-                            <i class="fas fa-play-circle me-2"></i>Start Review
-                        </a>
-                        <small class="text-muted mt-2">Current: {{ workload_name }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Generate Report Card -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-file-alt fa-3x text-success"></i>
-                    </div>
-                    <h5 class="card-title">Generate Report</h5>
-                    <p class="card-text">Generate a comprehensive Well-Architected report for your workload.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('generate_report') }}" class="btn btn-success">
-                            <i class="fas fa-file-alt me-2"></i>Generate Report
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <!-- No additional cards when no workload is selected -->
-        {% endif %}
-    {% else %}
-        <!-- Not Connected -->
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <div class="mb-3">
-                        <i class="fas fa-cloud fa-4x text-primary"></i>
-                    </div>
-                    <h5 class="card-title">Get Started with TorWAR</h5>
-                    <p class="card-text mb-4">Connect to your AWS account to begin conducting Well-Architected reviews and unlock powerful insights.</p>
-                    <a href="{{ url_for('aws_login') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-shield-alt me-2"></i>Connect to AWS
-                    </a>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-</div>
-
-<!-- Features Overview -->
-<div class="row mt-5">
-    <div class="col-12 text-center mb-4">
-        <h3>
-            <i class="fas fa-star text-warning me-2"></i>TorWAR Features
-        </h3>
-        <p class="text-muted">Streamlined for enhanced report management and comparison</p>
-    </div>
-</div>
-
 <div class="row">
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100">
+    <div class="col-lg-8 mx-auto text-center">
+        <div class="hero-section py-5">
+            <h1 class="display-4 fw-bold text-primary mb-4">
+                <i class="fas fa-shield-alt me-3"></i>TorWAR
+            </h1>
+            <p class="lead mb-4">
+                Trusted Advisor Recommendations - AWS Resource Optimization Made Simple
+            </p>
+            <p class="mb-4">
+                Monitor your AWS infrastructure with Trusted Advisor recommendations, 
+                optimize costs, improve security, and enhance performance.
+            </p>
+            
+            {% if not current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+            {% else %}
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-list me-2"></i>View Recommendations
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
             <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-shield-check fa-2x text-primary"></i>
-                </div>
-                <h6 class="card-title">Comprehensive Reviews</h6>
-                <p class="card-text small text-muted">
-                    Conduct thorough Well-Architected reviews across all six pillars with guided questionnaires and best practices.
+                <i class="fas fa-dollar-sign fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Cost Optimization</h5>
+                <p class="card-text">
+                    Identify unused resources and optimize your AWS spending with actionable recommendations.
                 </p>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
             <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-file-chart-line fa-2x text-success"></i>
-                </div>
-                <h6 class="card-title">Advanced Report Management</h6>
-                <p class="card-text small text-muted">
-                    Save reports with custom names, notes, and version tracking for better organization and historical analysis.
+                <i class="fas fa-lock fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Security</h5>
+                <p class="card-text">
+                    Enhance your security posture with recommendations for IAM, security groups, and more.
                 </p>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
             <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-balance-scale fa-2x text-info"></i>
-                </div>
-                <h6 class="card-title">Report Comparison</h6>
-                <p class="card-text small text-muted">
-                    Compare different report versions to track improvements and identify changes over time with detailed analytics.
+                <i class="fas fa-tachometer-alt fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Performance</h5>
+                <p class="card-text">
+                    Optimize performance with recommendations for EC2, RDS, and other AWS services.
                 </p>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Quick Actions (if connected and workload selected) -->
-{% if is_connected and workload_id %}
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h6 class="mb-0">
-                    <i class="fas fa-bolt text-warning me-2"></i>Quick Actions
-                </h6>
-                <small class="text-muted">Jump to common tasks</small>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="btn-group flex-wrap" role="group">
-                    <a href="{{ url_for('select_pillars') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-play me-1"></i>Continue Review
-                    </a>
-                    <a href="{{ url_for('generate_report') }}" class="btn btn-outline-success btn-sm">
-                        <i class="fas fa-file-alt me-1"></i>Generate Report
-                    </a>
-                    <a href="{{ url_for('saved_reports') }}" class="btn btn-outline-info btn-sm">
-                        <i class="fas fa-folder me-1"></i>View Reports
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Statistics Dashboard (if connected) -->
-{% if is_connected %}
-<div class="row mt-4">
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-primary">6</h3>
-                <small class="text-muted">Pillars Available</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-success">{{ '1' if workload_id else '0' }}</h3>
-                <small class="text-muted">Active Workloads</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-info">∞</h3>
-                <small class="text-muted">Reports Possible</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="text-warning">24/7</h3>
-                <small class="text-muted">Available</small>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<style>
-.jumbotron {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    transition: background 0.3s ease;
-}
-
-[data-theme="dark"] .jumbotron {
-    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
-}
-
-.card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    border: 1px solid var(--border-color, #dee2e6);
-    background-color: var(--card-bg, #ffffff);
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color, rgba(0,0,0,0.1));
-}
-
-.btn-group .btn {
-    margin: 0 0.25rem;
-}
-
-/* Dark mode specific improvements */
-[data-theme="dark"] .text-muted {
-    color: var(--text-muted) !important;
-}
-
-[data-theme="dark"] .badge {
-    color: white;
-}
-
-/* Ensure icons maintain proper colors */
-.fas, .far, .fab, .bi {
-    transition: color 0.3s ease;
-}
-</style>
-
-<script>
-// Refresh dashboard with loading page
-function refreshDashboard() {
-    const button = event.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Refreshing...';
-    button.disabled = true;
-    
-    try {
-        // Redirect to refresh with loading page
-        window.location.href = '/cache/refresh-with-loading?redirect=' + encodeURIComponent('/');
-    } catch (error) {
-        console.error('Error refreshing dashboard:', error);
-        button.innerHTML = originalText;
-        button.disabled = false;
-        alert('Error refreshing dashboard. Please try again.');
-    }
-}
-</script>
 {% endblock %}

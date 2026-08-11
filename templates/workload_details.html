@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workload Details - TorWARTA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/dashboard" class="text-2xl font-bold text-blue-600">TorWARTA</a>
+                    <span class="ml-2 text-sm text-gray-500">Workload Review</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/dashboard" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
+                    </a>
+                    <a href="/logout" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">{{ workload.WorkloadName }}</h2>
+            <p class="text-gray-600 mb-4">{{ workload.Description }}</p>
+            <div class="flex space-x-4">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded">{{ workload.Environment }}</span>
+                <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded">{{ workload.Industry }}</span>
+            </div>
+        </div>
+
+        <!-- Pillars -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {% for pillar in pillars %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-3">{{ pillar.PillarName }}</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Risk Level:</span>
+                        <span class="text-sm font-medium risk-{{ pillar.RiskLevel|lower }}">{{ pillar.RiskLevel }}</span>
+                    </div>
+                    <button onclick="loadQuestions('{{ pillar.PillarId }}')" 
+                            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                        Review Questions
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Questions Modal -->
+        <div id="questionsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Review Questions</h3>
+                            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        <div id="questionsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadQuestions(pillarId) {
+            const modal = document.getElementById('questionsModal');
+            const content = document.getElementById('questionsContent');
+            
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>';
+            modal.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`/api/war/workload/{{ workload_id }}/pillar/${pillarId}/questions`);
+                const data = await response.json();
+                
+                if (data.questions) {
+                    let html = '';
+                    data.questions.forEach((q, index) => {
+                        html += `
+                            <div class="border rounded-lg p-4 mb-4">
+                                <h4 class="font-semibold mb-2">${q.QuestionTitle}</h4>
+                                <p class="text-gray-600 mb-3">${q.QuestionDescription}</p>
+                                <div class="space-y-2">
+                                    ${q.Choices.map(choice => `
+                                        <label class="flex items-start space-x-2">
+                                            <input type="checkbox" name="q${index}" value="${choice.ChoiceId}" 
+                                                   ${q.SelectedChoices && q.SelectedChoices.includes(choice.ChoiceId) ? 'checked' : ''}>
+                                            <span class="text-sm">${choice.Title}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                                <textarea placeholder="Notes (optional)" class="w-full mt-3 p-2 border rounded" 
+                                          id="notes${index}">${q.Notes || ''}</textarea>
+                                <button onclick="saveAnswer('${q.QuestionId}', ${index})" 
+                                        class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                    Save Answer
+                                </button>
+                            </div>
+                        `;
+                    });
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = '<p class="text-red-600">Error loading questions</p>';
+                }
+            } catch (error) {
+                content.innerHTML = '<p class="text-red-600">Network error</p>';
+            }
+        }
+
+        async function saveAnswer(questionId, index) {
+            const selectedChoices = Array.from(document.querySelectorAll(`input[name="q${index}"]:checked`))
+                .map(cb => cb.value);
+            const notes = document.getElementById(`notes${index}`).value;
+            
+            try {
+                const response = await fetch('/api/war/answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workload_id: '{{ workload_id }}',
+                        lens_alias: 'wellarchitected',
+                        question_id: questionId,
+                        selected_choices: selectedChoices,
+                        notes: notes
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Answer saved successfully!');
+                } else {
+                    alert('Error saving answer');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('questionsModal').classList.add('hidden');
+        }
+    </script>
+
+    <style>
+        .risk-high { color: #dc2626; }
+        .risk-medium { color: #d97706; }
+        .risk-low { color: #16a34a; }
+        .risk-none { color: #6b7280; }
+    </style>
+</body>
+</html>

@@ -1,90 +1,68 @@
 from datetime import datetime
-from database_models import db, AWSAccount, TrustedAdvisorRecommendation, DataSyncLog
-from trusted_advisor_helper import get_all_trusted_advisor_recommendations
 import json
+import redis
+from flask import current_app
+from models import db, AWSAccount, TrustedAdvisorRecommendation
+from trusted_advisor_helper import get_all_trusted_advisor_recommendations
+
+# Redis configuration
+try:
+    redis_client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+    redis_client.ping()
+    print("✅ Redis connected successfully")
+except Exception as e:
+    print(f"⚠️ Redis connection failed: {e}")
+    redis_client = None
 
 class DataService:
     def __init__(self):
         pass
     
-    def get_or_create_aws_account(self, user_id, account_id, region, account_name=None, profile_name=None):
+    def get_or_create_aws_account(self, user_id, account_id, region):
         """Get or create AWS account record"""
-        aws_account = AWSAccount.query.filter_by(
-            user_id=user_id,
-            account_id=account_id,
-            region=region
-        ).first()
-        
-        if not aws_account:
-            aws_account = AWSAccount(
+        with current_app.app_context():
+            aws_account = db.session.query(AWSAccount).filter_by(
                 user_id=user_id,
                 account_id=account_id,
-                region=region,
-                account_name=account_name,
-                profile_name=profile_name
-            )
-            db.session.add(aws_account)
-            db.session.commit()
-            print(f"✅ Created AWS account record: {account_id} in {region}")
-        else:
-            # Update last accessed
-            aws_account.last_accessed = datetime.utcnow()
-            if account_name:
-                aws_account.account_name = account_name
-            if profile_name:
-                aws_account.profile_name = profile_name
-            db.session.commit()
-        
-        return aws_account
+                region=region
+            ).first()
+            
+            if not aws_account:
+                aws_account = AWSAccount(
+                    user_id=user_id,
+                    account_id=account_id,
+                    region=region,
+                    account_name=f"Account {account_id}",
+                    created_at=datetime.utcnow()
+                )
+                db.session.add(aws_account)
+                db.session.commit()
+                print(f"✅ Created new AWS account record: {account_id}")
+            
+            return aws_account
     
-    def sync_trusted_advisor_data(self, user_id, account_id, region):
-        """Sync Trusted Advisor data from AWS API to database"""
-        # Get or create AWS account
-        aws_account = self.get_or_create_aws_account(user_id, account_id, region)
-        
-        # Create sync log
-        sync_log = DataSyncLog(
-            aws_account_id=aws_account.id,
-            sync_type='trusted_advisor',
-            status='in_progress'
-        )
-        db.session.add(sync_log)
-        db.session.commit()
-        
+    def sync_trusted_advisor_data(self, user_id, account_id, region, manual_sync=False):
+        """Fast sync - only Trusted Advisor endpoint"""
         try:
-            # Get data from AWS API
-            print(f"🔄 Syncing Trusted Advisor data for {account_id} in {region}")
-            recommendations_data = get_all_trusted_advisor_recommendations()
-            
-            if 'error' in recommendations_data:
-                raise Exception(recommendations_data['error'])
-            
-            recommendations = recommendations_data.get('recommendations', [])
-            synced_count = 0
-            
-            for rec in recommendations:
-                # Update or create recommendation
-                existing = TrustedAdvisorRecommendation.query.filter_by(
-                    aws_account_id=aws_account.id,
-                    check_id=rec.get('id', rec.get('checkId', ''))
-                ).first()
+            with current_app.app_context():
+                aws_account = self.get_or_create_aws_account(user_id, account_id, region)
+                print(f"🚀 Fast sync for {account_id} in {region}")
                 
-                if existing:
-                    # Update existing
-                    existing.name = rec.get('name', '')
-                    existing.category = rec.get('category', '')
-                    existing.pillar = rec.get('pillar', '')
-                    existing.status = rec.get('status', '')
-                    existing.description = rec.get('description', '')
-                    existing.resource_count = rec.get('resource_count', 0)
-                    existing.resources_data = rec.get('resources', [])
-                    existing.check_metadata = {
-                        'last_updated': rec.get('last_updated'),
-                        'check_metadata': rec.get('metadata', {})
-                    }
-                    existing.updated_at = datetime.utcnow()
-                else:
-                    # Create new
+                # Get fresh data from AWS API only
+                recommendations_data = get_all_trusted_advisor_recommendations()
+                
+                if 'error' in recommendations_data:
+                    return {'success': False, 'error': recommendations_data['error']}
+                
+                recommendations = recommendations_data.get('recommendations', [])
+                
+                # Clear existing and add new in one transaction
+                db.session.query(TrustedAdvisorRecommendation).filter_by(aws_account_id=aws_account.id).delete()
+                
+                synced_count = 0
+                now = datetime.utcnow()
+                
+                for rec in recommendations:
                     new_rec = TrustedAdvisorRecommendation(
                         aws_account_id=aws_account.id,
                         check_id=rec.get('id', rec.get('checkId', '')),
@@ -95,177 +73,43 @@ class DataService:
                         description=rec.get('description', ''),
                         resource_count=rec.get('resource_count', 0),
                         resources_data=rec.get('resources', []),
-                        check_metadata={
-                            'last_updated': rec.get('last_updated'),
-                            'check_metadata': rec.get('metadata', {})
-                        }
+                        check_metadata=rec.get('check_metadata', {}),
+                        created_at=now,
+                        updated_at=now
                     )
                     db.session.add(new_rec)
+                    synced_count += 1
                 
-                synced_count += 1
-            
-            # Update sync log
-            sync_log.status = 'success'
-            sync_log.records_synced = synced_count
-            sync_log.completed_at = datetime.utcnow()
-            
-            db.session.commit()
-            print(f"✅ Synced {synced_count} Trusted Advisor recommendations")
-            
-            return {
-                'success': True,
-                'synced_count': synced_count,
-                'message': f'Successfully synced {synced_count} recommendations'
-            }
-            
+                db.session.commit()
+                print(f"✅ Fast sync complete: {synced_count} recommendations")
+                
+                return {
+                    'success': True,
+                    'synced_count': synced_count,
+                    'message': f'Successfully synced {synced_count} recommendations'
+                }
+                
         except Exception as e:
-            # Update sync log with error
-            sync_log.status = 'error'
-            sync_log.error_message = str(e)
-            sync_log.completed_at = datetime.utcnow()
-            db.session.commit()
-            
-            print(f"❌ Error syncing Trusted Advisor data: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
+            with current_app.app_context():
+                db.session.rollback()
+            print(f"❌ Fast sync error: {e}")
+            return {'success': False, 'error': str(e)}
     
-    def get_trusted_advisor_recommendations(self, user_id, account_id, region, force_refresh=False):
-        """Get Trusted Advisor recommendations from database or sync from AWS"""
-        aws_account = AWSAccount.query.filter_by(
-            user_id=user_id,
-            account_id=account_id,
-            region=region
-        ).first()
-        
-        if not aws_account:
-            # No account found, sync data first
-            sync_result = self.sync_trusted_advisor_data(user_id, account_id, region)
-            if not sync_result['success']:
-                return {'error': sync_result['error']}
-            aws_account = AWSAccount.query.filter_by(
-                user_id=user_id,
-                account_id=account_id,
-                region=region
-            ).first()
-        
-        # Check if we need to refresh data
-        if force_refresh:
-            sync_result = self.sync_trusted_advisor_data(user_id, account_id, region)
-            if not sync_result['success']:
-                return {'error': sync_result['error']}
-        
-        # Get recommendations from database
-        recommendations = TrustedAdvisorRecommendation.query.filter_by(
-            aws_account_id=aws_account.id
-        ).order_by(TrustedAdvisorRecommendation.updated_at.desc()).all()
-        
-        # Format for frontend
-        formatted_recommendations = []
-        categories = {}
-        
-        for rec in recommendations:
-            formatted_rec = {
-                'id': rec.check_id,
-                'name': rec.name,
-                'category': rec.category,
-                'pillar': rec.pillar,
-                'status': rec.status,
-                'description': rec.description,
-                'resource_count': rec.resource_count,
-                'resources': rec.resources_data or [],
-                'last_updated': rec.updated_at.isoformat() if rec.updated_at else None,
-                'metadata': rec.check_metadata or {}
-            }
-            formatted_recommendations.append(formatted_rec)
+    def get_trusted_advisor_data(self, user_id, account_id, region, force_refresh=False):
+        """Get Trusted Advisor data with Redis caching"""
+        with current_app.app_context():
+            # Check Redis cache first
+            if redis_client and not force_refresh:
+                try:
+                    cache_key = f"trusted_advisor_data:{user_id}:{account_id}:{region}"
+                    cached_data = redis_client.get(cache_key)
+                    if cached_data:
+                        print("✅ Returning cached data from Redis")
+                        return json.loads(cached_data)
+                except Exception as cache_error:
+                    print(f"⚠️ Redis cache read error: {cache_error}")
             
-            # Group by category
-            if rec.category not in categories:
-                categories[rec.category] = []
-            categories[rec.category].append(formatted_rec)
-        
-        return {
-            'recommendations': formatted_recommendations,
-            'categories': categories,
-            'total_checks': len(formatted_recommendations),
-            'last_updated': aws_account.last_accessed.isoformat() if aws_account.last_accessed else None,
-            'from_database': True
-        }
-    
-    def get_sync_status(self, user_id, account_id, region):
-        """Get latest sync status for an AWS account"""
-        aws_account = AWSAccount.query.filter_by(
-            user_id=user_id,
-            account_id=account_id,
-            region=region
-        ).first()
-        
-        if not aws_account:
-            return {'status': 'no_account'}
-        
-        latest_sync = DataSyncLog.query.filter_by(
-            aws_account_id=aws_account.id,
-            sync_type='trusted_advisor'
-        ).order_by(DataSyncLog.started_at.desc()).first()
-        
-        if not latest_sync:
-            return {'status': 'never_synced'}
-        
-        return {
-            'status': latest_sync.status,
-            'started_at': latest_sync.started_at.isoformat(),
-            'completed_at': latest_sync.completed_at.isoformat() if latest_sync.completed_at else None,
-            'records_synced': latest_sync.records_synced,
-            'error_message': latest_sync.error_message
-        }
-    
-    def save_trusted_advisor_recommendation(self, user_id, recommendation_data):
-        """Save Trusted Advisor recommendation to database"""
-        try:
-            # Get or create AWS account first
-            aws_account = self.get_or_create_aws_account(
-                user_id, 
-                recommendation_data['account_id'], 
-                recommendation_data['region']
-            )
-            
-            # Create or update recommendation
-            recommendation = TrustedAdvisorRecommendation.query.filter_by(
-                aws_account_id=aws_account.id,
-                check_id=recommendation_data['check_id']
-            ).first()
-            
-            if not recommendation:
-                recommendation = TrustedAdvisorRecommendation(
-                    aws_account_id=aws_account.id,
-                    check_id=recommendation_data['check_id']
-                )
-                db.session.add(recommendation)
-            
-            # Update fields
-            recommendation.name = recommendation_data['name']
-            recommendation.category = recommendation_data['category']
-            recommendation.description = recommendation_data['description']
-            recommendation.status = recommendation_data['status']
-            recommendation.resource_count = recommendation_data['resources_flagged']
-            recommendation.updated_at = datetime.utcnow()
-            
-            db.session.commit()
-            return True
-            
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error saving recommendation: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-    
-    def get_trusted_advisor_recommendations(self, user_id, account_id, region):
-        """Get Trusted Advisor recommendations from database"""
-        try:
-            # Get AWS account
-            aws_account = AWSAccount.query.filter_by(
+            aws_account = db.session.query(AWSAccount).filter_by(
                 user_id=user_id,
                 account_id=account_id,
                 region=region
@@ -274,64 +118,86 @@ class DataService:
             if not aws_account:
                 return {
                     'recommendations': [],
-                    'categories': {},
-                    'category_info': {},
                     'total_recommendations': 0,
-                    'aws_account_id': account_id,
-                    'aws_region': region
+                    'last_updated': None
                 }
             
-            # Get all recommendations for this AWS account
+            if force_refresh:
+                sync_result = self.sync_trusted_advisor_data(user_id, account_id, region)
+                if not sync_result['success']:
+                    return {'error': sync_result['error']}
+            
+            # Get recommendations from database
             recommendations = TrustedAdvisorRecommendation.query.filter_by(
                 aws_account_id=aws_account.id
             ).all()
             
-            # Group by category
-            categories = {}
-            category_info = {}
-            
+            # Convert to dict format
+            recommendations_data = []
             for rec in recommendations:
-                category = rec.category.lower().replace(' ', '_')
-                
-                if category not in categories:
-                    categories[category] = []
-                    category_info[category] = {
-                        'name': rec.category,
-                        'count': 0
-                    }
-                
-                categories[category].append({
+                recommendations_data.append({
                     'id': rec.check_id,
                     'name': rec.name,
-                    'description': rec.description,
-                    'status': rec.status,
-                    'resources_flagged': rec.resource_count,
                     'category': rec.category,
-                    'check_id': rec.check_id,
+                    'pillar': rec.pillar,
+                    'status': rec.status,
+                    'description': rec.description,
                     'resource_count': rec.resource_count,
-                    'updated_at': rec.updated_at.strftime('%Y-%m-%d %H:%M:%S') if rec.updated_at else None
+                    'resources': rec.resources_data,
+                    'check_metadata': rec.check_metadata
                 })
+            
+            result = {
+                'recommendations': recommendations_data,
+                'total_recommendations': len(recommendations_data),
+                'last_updated': aws_account.updated_at.isoformat() if aws_account.updated_at else None
+            }
+            
+            # Cache the result
+            if redis_client:
+                try:
+                    cache_key = f"trusted_advisor_data:{user_id}:{account_id}:{region}"
+                    redis_client.setex(cache_key, 3600, json.dumps(result))
+                    print(f"✅ Cached data in Redis")
+                except Exception as cache_error:
+                    print(f"⚠️ Redis cache write error: {cache_error}")
+            
+            return result
+    
+    def get_sync_status(self, user_id, account_id, region):
+        """Get sync status for an account"""
+        with current_app.app_context():
+            try:
+                aws_account = db.session.query(AWSAccount).filter_by(
+                    user_id=user_id,
+                    account_id=account_id,
+                    region=region
+                ).first()
                 
-                category_info[category]['count'] += 1
-            
-            return {
-                'recommendations': recommendations,
-                'categories': categories,
-                'category_info': category_info,
-                'total_recommendations': len(recommendations),
-                'aws_account_id': account_id,
-                'aws_region': region
-            }
-            
-        except Exception as e:
-            print(f"Error getting recommendations: {e}")
-            import traceback
-            traceback.print_exc()
-            return {
-                'recommendations': [],
-                'categories': {},
-                'category_info': {},
-                'total_recommendations': 0,
-                'aws_account_id': account_id,
-                'aws_region': region
-            }
+                if not aws_account:
+                    return {
+                        'status': 'not_synced',
+                        'last_sync': None,
+                        'records_synced': 0,
+                        'error_message': None
+                    }
+                
+                # Get recommendation count
+                rec_count = db.session.query(TrustedAdvisorRecommendation).filter_by(
+                    aws_account_id=aws_account.id
+                ).count()
+                
+                return {
+                    'status': 'completed' if rec_count > 0 else 'not_synced',
+                    'last_sync': aws_account.updated_at.isoformat() if aws_account.updated_at else None,
+                    'records_synced': rec_count,
+                    'error_message': None,
+                    'completed_at': aws_account.updated_at.isoformat() if aws_account.updated_at else None
+                }
+            except Exception as e:
+                return {
+                    'status': 'error',
+                    'last_sync': None,
+                    'records_synced': 0,
+                    'error_message': str(e)
+                }

@@ -1,85 +1,275 @@
 {% extends "base.html" %}
 
-{% block title %}Connect AWS - TorWAR{% endblock %}
+{% block title %}AWS Connect - TorWAR{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="bi bi-cloud"></i> Connect to AWS</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" id="awsConnectForm">
-                        <div class="mb-3">
-                            <label for="profile" class="form-label">AWS Profile</label>
-                            <select class="form-select" name="profile" id="profile">
-                                <option value="">Use default credentials</option>
-                                {% for profile in profiles %}
-                                    <option value="{{ profile }}">{{ profile }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Select an AWS CLI profile or use default</div>
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-cloud me-2"></i>Connect to AWS
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="awsConnectForm">
+                    <div class="mb-3">
+                        <label for="profile_name" class="form-label">Profile Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-tag"></i>
+                            </span>
+                            <input type="text" class="form-control" id="profile_name" name="profile_name" 
+                                   placeholder="e.g., Production, Development" required>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="region" class="form-label">AWS Region</label>
-                            <select class="form-select" name="region" required>
-                                <option value="us-east-1" selected>US East (N. Virginia)</option>
-                                <option value="us-east-2">US East (Ohio)</option>
-                                <option value="us-west-1">US West (N. California)</option>
-                                <option value="us-west-2">US West (Oregon)</option>
-                                <option value="eu-central-1">Europe (Frankfurt)</option>
-                                <option value="eu-west-1">Europe (Ireland)</option>
-                                <option value="eu-west-2">Europe (London)</option>
-                                <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
-                                <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                                <option value="ap-south-1">Asia Pacific (Mumbai)</option>
-                                <option value="me-south-1">Middle East (Bahrain)</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary" id="connectBtn">
-                            <i class="bi bi-cloud-arrow-up"></i> Connect to AWS
-                        </button>
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Cancel</a>
-                    </form>
-                    
-                    {% if profiles %}
-                    <hr class="my-3">
-                    <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle"></i> Available Profiles</h6>
-                        <p class="mb-1">Found {{ profiles|length }} AWS profiles:</p>
-                        <div>
-                            {% for profile in profiles %}
-                                <span class="badge bg-secondary me-1">{{ profile }}</span>
-                            {% endfor %}
+                        <div class="form-text">A friendly name for this AWS connection</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="auth_type" class="form-label">Authentication Method</label>
+                        <select class="form-select" id="auth_type" name="auth_type" required>
+                            <option value="">Select authentication method</option>
+                            <option value="access_key">Access Key & Secret</option>
+                            <option value="iam_role">IAM Role (Current Account)</option>
+                            <option value="cross_account">Cross-Account Role</option>
+                        </select>
+                    </div>
+
+                    <!-- Access Key Fields -->
+                    <div id="access_key_fields" class="auth-fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="access_key" class="form-label">AWS Access Key ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-key"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="access_key" name="access_key">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="secret_key" class="form-label">AWS Secret Access Key</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="secret_key" name="secret_key">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
+
+                    <!-- IAM Role Fields -->
+                    <div id="iam_role_fields" class="auth-fields" style="display: none;">
+                        {% if existing_profiles %}
+                        <div class="mb-3">
+                            <label for="source_profile_id" class="form-label">Source Profile</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <select class="form-select" id="source_profile_id" name="source_profile_id">
+                                    <option value="">Select source profile with access keys</option>
+                                    {% for profile in existing_profiles %}
+                                    <option value="{{ profile._id }}">{{ profile.profile_name }} ({{ profile.region }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-text">Choose an existing access key profile to use for role assumption</div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>No Source Profiles Available:</strong> You need to create an Access Key profile first to use as the source for IAM role assumption.
+                            <br><a href="{{ url_for('aws_connect') }}" class="btn btn-sm btn-outline-primary mt-2">Add Access Key Profile First</a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="role_arn" class="form-label">IAM Role ARN</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user-shield"></i>
+                                </span>
+                                <input type="text" class="form-control" id="role_arn" name="role_arn" 
+                                       placeholder="arn:aws:iam::123456789012:role/TrustedAdvisorRole">
+                            </div>
+                            <div class="form-text">The ARN of the IAM role to assume</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="external_id" class="form-label">External ID (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-fingerprint"></i>
+                                </span>
+                                <input type="text" class="form-control" id="external_id" name="external_id" 
+                                       placeholder="Optional external ID for additional security">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cross Account Fields -->
+                    <div id="cross_account_fields" class="auth-fields" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Cross-Account Access:</strong> Use your base AWS credentials to assume a role in another account.
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cross_access_key" class="form-label">Base Access Key ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-key"></i>
+                                    </span>
+                                    <input type="text" class="form-control" name="access_key">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cross_secret_key" class="form-label">Base Secret Access Key</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" name="secret_key">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cross_role_arn" class="form-label">Target Role ARN</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user-shield"></i>
+                                </span>
+                                <input type="text" class="form-control" name="role_arn" 
+                                       placeholder="arn:aws:iam::987654321098:role/CrossAccountRole">
+                            </div>
+                            <div class="form-text">The ARN of the role in the target account</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cross_external_id" class="form-label">External ID (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-fingerprint"></i>
+                                </span>
+                                <input type="text" class="form-control" name="external_id" 
+                                       placeholder="External ID for cross-account trust">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="region" class="form-label">AWS Region</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-globe"></i>
+                            </span>
+                            <select class="form-select" id="region" name="region">
+                                <option value="us-east-1">US East (N. Virginia)</option>
+                                <option value="us-west-2">US West (Oregon)</option>
+                                <option value="eu-west-1">Europe (Ireland)</option>
+                                <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                                <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Security Note:</strong> Your AWS credentials are encrypted and stored securely. 
+                        They are only used to fetch Trusted Advisor recommendations.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plug me-2"></i>Test & Connect
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-question-circle me-2"></i>Authentication Methods</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-key text-primary me-2"></i>Access Key & Secret</h6>
+                        <p class="small text-muted">Direct authentication using AWS access keys. Best for single account access.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-user-shield text-success me-2"></i>IAM Role</h6>
+                        <p class="small text-muted">Assume an IAM role in the same account. More secure than access keys.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-exchange-alt text-warning me-2"></i>Cross-Account Role</h6>
+                        <p class="small text-muted">Use base credentials to assume a role in another AWS account.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('awsConnectForm');
-    const btn = document.getElementById('connectBtn');
+    const authTypeSelect = document.getElementById('auth_type');
+    const authFields = document.querySelectorAll('.auth-fields');
     
-    // Handle button click directly
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('AWS Connect button clicked - submitting form');
+    authTypeSelect.addEventListener('change', function() {
+        // Hide all auth fields
+        authFields.forEach(field => {
+            field.style.display = 'none';
+            // Remove required attributes
+            field.querySelectorAll('input').forEach(input => {
+                input.removeAttribute('required');
+            });
+        });
         
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Connecting...';
+        // Show relevant fields based on selection
+        const selectedType = this.value;
+        if (selectedType === 'access_key') {
+            document.getElementById('access_key_fields').style.display = 'block';
+            document.getElementById('access_key').setAttribute('required', '');
+            document.getElementById('secret_key').setAttribute('required', '');
+        } else if (selectedType === 'iam_role') {
+            document.getElementById('iam_role_fields').style.display = 'block';
+            const sourceProfileSelect = document.querySelector('#iam_role_fields select[name="source_profile_id"]');
+            const roleArnInput = document.querySelector('#iam_role_fields input[name="role_arn"]');
+            
+            if (sourceProfileSelect) {
+                sourceProfileSelect.setAttribute('required', '');
+            }
+            if (roleArnInput) {
+                roleArnInput.setAttribute('required', '');
+            }
+        } else if (selectedType === 'cross_account') {
+            document.getElementById('cross_account_fields').style.display = 'block';
+            document.querySelector('#cross_account_fields input[name="access_key"]').setAttribute('required', '');
+            document.querySelector('#cross_account_fields input[name="secret_key"]').setAttribute('required', '');
+            document.querySelector('#cross_account_fields input[name="role_arn"]').setAttribute('required', '');
+        }
+    });
+    
+    // Form submission with loading state
+    document.getElementById('awsConnectForm').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing Connection...';
+        submitBtn.disabled = true;
         
-        // Submit the form
-        form.submit();
+        // Re-enable button after 10 seconds as fallback
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 10000);
     });
 });
 </script>

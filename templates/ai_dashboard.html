@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}AI Dashboard - TorWAR{% endblock %}
+{% block title %}AI Dashboard - TorWARTA{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -168,7 +168,7 @@
             <div class="card metric-card text-center">
                 <div class="card-body">
                     <i class="fas fa-clipboard-check fa-2x text-primary mb-2"></i>
-                    <h3 class="text-primary">{{ dashboard_stats.total_recommendations }}</h3>
+                    <h3 class="text-primary">{{ total_recommendations }}</h3>
                     <small class="text-muted">Total Recommendations</small>
                 </div>
             </div>
@@ -177,7 +177,7 @@
             <div class="card metric-card text-center">
                 <div class="card-body">
                     <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
-                    <h3 class="text-danger">{{ dashboard_stats.error_count }}</h3>
+                    <h3 class="text-danger">{{ error_count }}</h3>
                     <small class="text-muted">Critical Issues</small>
                 </div>
             </div>
@@ -186,7 +186,7 @@
             <div class="card metric-card text-center">
                 <div class="card-body">
                     <i class="fas fa-exclamation-circle fa-2x text-warning mb-2"></i>
-                    <h3 class="text-warning">{{ dashboard_stats.warning_count }}</h3>
+                    <h3 class="text-warning">{{ warning_count }}</h3>
                     <small class="text-muted">Warnings</small>
                 </div>
             </div>
@@ -194,8 +194,8 @@
         <div class="col-lg-3 col-md-6">
             <div class="card metric-card text-center">
                 <div class="card-body">
-                    <div class="score-circle score-{{ 'excellent' if dashboard_stats.optimization_score > 90 else 'good' if dashboard_stats.optimization_score > 70 else 'warning' if dashboard_stats.optimization_score > 50 else 'danger' }}" style="width: 60px; height: 60px; font-size: 1rem; margin: 0 auto 10px;">
-                        {{ dashboard_stats.optimization_score }}%
+                    <div class="score-circle score-{{ 'excellent' if security_score > 90 else 'good' if security_score > 70 else 'warning' if security_score > 50 else 'danger' }}" style="width: 60px; height: 60px; font-size: 1rem; margin: 0 auto 10px;">
+                        {{ security_score }}%
                     </div>
                     <small class="text-muted">Health Score</small>
                 </div>
@@ -216,7 +216,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% set error_warning_recs = recommendations_data.recommendations | selectattr('status', 'in', ['error', 'warning']) | list %}
+                    {% set error_warning_recs = ai_recommendations | selectattr('status', 'in', ['error', 'warning']) | list %}
                     {% if error_warning_recs %}
                         <div class="row">
                             <div class="col-md-8">
@@ -316,7 +316,7 @@
                         <div class="text-center py-4">
                             <i class="fas fa-robot fa-2x text-muted mb-2"></i>
                             <p class="text-muted small">Sync data to generate insights</p>
-                            <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-sm btn-primary">
+                            <a href="{{ url_for('sync_trusted_advisor') }}" class="btn btn-sm btn-primary sync-data-btn">
                                 <i class="fas fa-sync-alt me-1"></i>Sync Data
                             </a>
                         </div>
@@ -334,11 +334,11 @@
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6 border-end">
-                            <h4 class="text-success mb-1">{{ dashboard_stats.cost_savings_potential }}</h4>
+                            <h4 class="text-success mb-1">$0/month</h4>
                             <small class="text-muted">Potential Savings</small>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-info mb-1">{{ dashboard_stats.security_score }}%</h4>
+                            <h4 class="text-info mb-1">{{ security_score }}%</h4>
                             <small class="text-muted">Security Score</small>
                         </div>
                     </div>

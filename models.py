@@ -1,116 +1,185 @@
-#!/usr/bin/env python3
-"""
-TorWAR Database Models
-Author: Mohamed Toraif
-"""
-
-from flask_sqlalchemy import SQLAlchemy
+import os, bcrypt, redis
+from pymongo import MongoClient
 from datetime import datetime
-import json
-import uuid
+from bson import ObjectId
 
-db = SQLAlchemy()
+# Database connections
+mongo_client = MongoClient(os.getenv('MONGODB_URI', 'mongodb://mongodb:27017/'))
+mongo = mongo_client.torwarta
+redis_client = redis.Redis(host=os.getenv('REDIS_HOST', 'redis'), port=6379, decode_responses=True)
 
-class Workload(db.Model):
-    """AWS Well-Architected Workload model."""
-    __tablename__ = 'workloads'
+class User:
+    def __init__(self, username, email, password_hash):
+        self.username = username
+        self.email = email
+        self.password_hash = password_hash
+        self.created_at = datetime.utcnow()
+        self._id = None
     
-    id = db.Column(db.String(50), primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    aws_account_id = db.Column(db.String(20))
-    aws_region = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    def save(self):
+        result = mongo.users.insert_one({
+            'username': self.username,
+            'email': self.email,
+            'password_hash': self.password_hash,
+            'created_at': self.created_at
+        })
+        self._id = result.inserted_id
+        return self
     
-    # Relationships
-    reports = db.relationship('Report', backref='workload', lazy=True, cascade='all, delete-orphan')
+    @staticmethod
+    def create(username, email, password):
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        user = User(username, email, password_hash)
+        return user.save()
     
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'aws_account_id': self.aws_account_id,
-            'aws_region': self.aws_region,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'report_count': len(self.reports)
-        }
-
-class Report(db.Model):
-    """Well-Architected Report model."""
-    __tablename__ = 'reports'
-    
-    id = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
-    workload_id = db.Column(db.String(50), db.ForeignKey('workloads.id'), nullable=False)
-    name = db.Column(db.String(200), nullable=False)
-    user_notes = db.Column(db.Text)
-    report_data = db.Column(db.JSON)  # Store complete report as JSON
-    risk_summary = db.Column(db.JSON)  # Cache risk counts
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'workload_id': self.workload_id,
-            'name': self.name,
-            'user_notes': self.user_notes,
-            'risk_summary': self.risk_summary,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-
-class RecommendationCache(db.Model):
-    """Cache for Trusted Advisor recommendations."""
-    __tablename__ = 'recommendation_cache'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    cache_key = db.Column(db.String(100), unique=True, nullable=False)
-    data = db.Column(db.JSON)
-    expires_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    @classmethod
-    def get_cached(cls, key):
-        """Get cached data if not expired."""
-        cache_entry = cls.query.filter_by(cache_key=key).first()
-        if cache_entry and cache_entry.expires_at > datetime.utcnow():
-            return cache_entry.data
+    @staticmethod
+    def authenticate(username, password):
+        user_data = mongo.users.find_one({'username': username})
+        if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data['password_hash']):
+            user = User(user_data['username'], user_data['email'], user_data['password_hash'])
+            user._id = user_data['_id']
+            return user
         return None
     
-    @classmethod
-    def set_cache(cls, key, data, ttl_seconds=3600):
-        """Set cache data with TTL."""
-        expires_at = datetime.utcnow().timestamp() + ttl_seconds
-        expires_at = datetime.fromtimestamp(expires_at)
-        
-        cache_entry = cls.query.filter_by(cache_key=key).first()
-        if cache_entry:
-            cache_entry.data = data
-            cache_entry.expires_at = expires_at
-        else:
-            cache_entry = cls(cache_key=key, data=data, expires_at=expires_at)
-            db.session.add(cache_entry)
-        
-        db.session.commit()
+    @staticmethod
+    def get_by_id(user_id):
+        user_data = mongo.users.find_one({'_id': ObjectId(user_id)})
+        if user_data:
+            user = User(user_data['username'], user_data['email'], user_data['password_hash'])
+            user._id = user_data['_id']
+            return user
+        return None
 
-class UserSession(db.Model):
-    """User session tracking."""
-    __tablename__ = 'user_sessions'
+class WARReport:
+    def __init__(self, user_id, workload_id, data):
+        self.user_id = user_id
+        self.workload_id = workload_id
+        self.data = data
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+        self._id = None
     
-    id = db.Column(db.String(50), primary_key=True)
-    aws_profile = db.Column(db.String(50))
-    aws_region = db.Column(db.String(20))
-    aws_account_id = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
+    def save(self):
+        result = mongo.war_reports.update_one(
+            {'user_id': self.user_id, 'workload_id': self.workload_id},
+            {'$set': {
+                'data': self.data,
+                'updated_at': self.updated_at
+            }, '$setOnInsert': {
+                'user_id': self.user_id,
+                'workload_id': self.workload_id,
+                'created_at': self.created_at
+            }},
+            upsert=True
+        )
+        self._id = result.upserted_id or result.matched_count
+        return self
+    
+    @staticmethod
+    def create_or_update(user_id, workload_id, data):
+        report = WARReport(user_id, workload_id, data)
+        return report.save()
+    
+    @staticmethod
+    def update_answer(user_id, workload_id, answer_data):
+        mongo.war_reports.update_one(
+            {'user_id': user_id, 'workload_id': workload_id},
+            {'$push': {'data.answers': answer_data}, '$set': {'updated_at': datetime.utcnow()}}
+        )
+    
+    @staticmethod
+    def get_by_user(user_id):
+        return list(mongo.war_reports.find({'user_id': user_id}))
+
+class TARecommendation:
+    def __init__(self, user_id, check_id, data):
+        self.user_id = user_id
+        self.check_id = check_id
+        self.data = data
+        self.remediation_plan = None
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+        self._id = None
+    
+    def save(self):
+        result = mongo.ta_recommendations.update_one(
+            {'user_id': self.user_id, 'check_id': self.check_id},
+            {'$set': {
+                'data': self.data,
+                'updated_at': self.updated_at
+            }, '$setOnInsert': {
+                'user_id': self.user_id,
+                'check_id': self.check_id,
+                'created_at': self.created_at
+            }},
+            upsert=True
+        )
+        self._id = result.upserted_id or result.matched_count
+        return self
+    
+    @staticmethod
+    def create_or_update(user_id, data):
+        rec = TARecommendation(user_id, data['check_id'], data)
+        return rec.save()
+    
+    @staticmethod
+    def get_by_check_id(user_id, check_id):
+        return mongo.ta_recommendations.find_one({'user_id': user_id, 'check_id': check_id})
+    
+    @staticmethod
+    def update_remediation_plan(user_id, check_id, plan):
+        mongo.ta_recommendations.update_one(
+            {'user_id': user_id, 'check_id': check_id},
+            {'$set': {'remediation_plan': plan, 'updated_at': datetime.utcnow()}}
+        )
+    
+    @staticmethod
+    def get_by_user(user_id):
+        return list(mongo.ta_recommendations.find({'user_id': user_id}))
+
+class ReportVersion:
+    def __init__(self, user_id, report_type, content, data_snapshot):
+        self.user_id = user_id
+        self.report_type = report_type
+        self.content = content
+        self.data_snapshot = data_snapshot
+        self.created_at = datetime.utcnow()
+        self._id = None
+    
+    def save(self):
+        result = mongo.report_versions.insert_one({
+            'user_id': self.user_id,
+            'report_type': self.report_type,
+            'content': self.content,
+            'data_snapshot': self.data_snapshot,
+            'created_at': self.created_at
+        })
+        self._id = result.inserted_id
+        return self
+    
+    @staticmethod
+    def create(user_id, report_type, content, data_snapshot):
+        version = ReportVersion(user_id, report_type, content, data_snapshot)
+        return version.save()
+    
+    @staticmethod
+    def get_by_user(user_id):
+        return list(mongo.report_versions.find({'user_id': user_id}).sort('created_at', -1))
+    
+    @staticmethod
+    def get_by_id(version_id):
+        data = mongo.report_versions.find_one({'_id': ObjectId(version_id)})
+        if data:
+            version = ReportVersion(data['user_id'], data['report_type'], data['content'], data['data_snapshot'])
+            version._id = data['_id']
+            version.created_at = data['created_at']
+            return version
+        return None
     
     def to_dict(self):
         return {
-            'id': self.id,
-            'aws_profile': self.aws_profile,
-            'aws_region': self.aws_region,
-            'aws_account_id': self.aws_account_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'last_activity': self.last_activity.isoformat() if self.last_activity else None
+            'id': str(self._id),
+            'report_type': self.report_type,
+            'created_at': self.created_at.isoformat(),
+            'content_preview': self.content[:200] + '...' if len(self.content) > 200 else self.content
         }

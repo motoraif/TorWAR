@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Reports - TorWARTA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/dashboard" class="text-2xl font-bold text-blue-600">TorWARTA</a>
+                    <span class="ml-2 text-sm text-gray-500">AI Reports</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showGenerateModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                        <i class="fas fa-plus mr-2"></i>Generate Report
+                    </button>
+                    <a href="/dashboard" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-1"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4">
+        <!-- Report Generation -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">AI-Powered Report Generation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Well-Architected Report</h3>
+                    <p class="text-gray-600 text-sm mb-3">Comprehensive analysis of your architecture against AWS best practices</p>
+                    <button onclick="generateReport('war')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+                        <i class="fas fa-brain mr-2"></i>Generate WAR Report
+                    </button>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Trusted Advisor Report</h3>
+                    <p class="text-gray-600 text-sm mb-3">Detailed remediation strategies and priority recommendations</p>
+                    <button onclick="generateReport('ta')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">
+                        <i class="fas fa-brain mr-2"></i>Generate TA Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Versions -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Report History</h2>
+                <div class="flex space-x-2">
+                    <button onclick="enableComparisonMode()" id="compareBtn" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                        <i class="fas fa-balance-scale mr-2"></i>Compare Reports
+                    </button>
+                    <button onclick="refreshReports()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                        <i class="fas fa-sync mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="reportsContainer" class="space-y-4">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                    <p class="text-gray-500 mt-2">Loading reports...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div id="comparisonSection" class="bg-white rounded-xl shadow-lg p-6 hidden">
+            <h2 class="text-xl font-bold mb-4">Report Comparison</h2>
+            <div id="comparisonContent"></div>
+        </div>
+    </div>
+
+    <!-- Report View Modal -->
+    <div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-6xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">Report Details</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="exportReport()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                <i class="fas fa-download mr-1"></i>Export
+                            </button>
+                            <button onclick="closeReportModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="reportContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let reportVersions = [];
+        let comparisonMode = false;
+        let selectedReports = [];
+
+        async function refreshReports() {
+            const container = document.getElementById('reportsContainer');
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i><p class="text-gray-500 mt-2">Loading reports...</p></div>';
+            
+            try {
+                const response = await fetch('/api/reports/versions');
+                const data = await response.json();
+                
+                if (data.versions) {
+                    reportVersions = data.versions;
+                    displayReports(reportVersions);
+                } else {
+                    container.innerHTML = '<div class="text-center py-8 text-gray-500">No reports generated yet</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error loading reports</div>';
+            }
+        }
+
+        function displayReports(reports) {
+            const container = document.getElementById('reportsContainer');
+            
+            if (reports.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No reports available</div>';
+                return;
+            }
+
+            const html = reports.map(report => `
+                <div class="border rounded-lg p-4 ${comparisonMode ? 'cursor-pointer hover:bg-gray-50' : ''}" 
+                     ${comparisonMode ? `onclick="selectForComparison('${report.id}')"` : ''}>
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="font-semibold">${report.report_type.toUpperCase()} Report</h3>
+                                <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">${formatDate(report.created_at)}</span>
+                                ${comparisonMode ? `<input type="checkbox" id="select-${report.id}" class="ml-2">` : ''}
+                            </div>
+                            <p class="text-gray-600 text-sm">${report.content_preview}</p>
+                        </div>
+                        ${!comparisonMode ? `
+                            <div class="flex space-x-2">
+                                <button onclick="viewReport('${report.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button onclick="downloadReport('${report.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                                    <i class="fas fa-download mr-1"></i>Download
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        async function generateReport(type) {
+            const container = document.getElementById('reportsContainer');
+            const originalContent = container.innerHTML;
+            
+            container.innerHTML = `
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
+                    <i class="fas fa-brain fa-spin text-3xl text-purple-600 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-purple-800 mb-2">AI is generating your ${type.toUpperCase()} report...</h3>
+                    <p class="text-purple-600">This may take a few moments. Using Amazon Bedrock for analysis.</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/reports/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                
+                const data = await response.json();
+                
+                if (data.report) {
+                    await refreshReports();
+                    showNotification('Report generated successfully!', 'success');
+                } else {
+                    container.innerHTML = originalContent;
+                    showNotification(`Error: ${data.error || 'Failed to generate report'}`, 'error');
+                }
+            } catch (error) {
+                container.innerHTML = originalContent;
+                showNotification('Network error occurred', 'error');
+            }
+        }
+
+        async function viewReport(reportId) {
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('reportContent');
+            
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>';
+            modal.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`/api/reports/${reportId}`);
+                const data = await response.json();
+                
+                if (data.report) {
+                    content.innerHTML = `
+                        <div class="prose max-w-none">
+                            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                                <h4 class="text-blue-800 font-semibold mb-2">${data.report.report_type.toUpperCase()} Report</h4>
+                                <p class="text-blue-600 text-sm">Generated: ${formatDate(data.report.created_at)}</p>
+                            </div>
+                            <div class="whitespace-pre-wrap bg-gray-50 p-6 rounded-lg">${data.report.content}</div>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = '<p class="text-red-600">Error loading report</p>';
+                }
+            } catch (error) {
+                content.innerHTML = '<p class="text-red-600">Network error</p>';
+            }
+        }
+
+        function enableComparisonMode() {
+            comparisonMode = !comparisonMode;
+            const btn = document.getElementById('compareBtn');
+            
+            if (comparisonMode) {
+                btn.innerHTML = '<i class="fas fa-times mr-2"></i>Cancel Comparison';
+                btn.className = 'bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700';
+                selectedReports = [];
+            } else {
+                btn.innerHTML = '<i class="fas fa-balance-scale mr-2"></i>Compare Reports';
+                btn.className = 'bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700';
+                document.getElementById('comparisonSection').classList.add('hidden');
+            }
+            
+            displayReports(reportVersions);
+        }
+
+        function selectForComparison(reportId) {
+            const checkbox = document.getElementById(`select-${reportId}`);
+            
+            if (checkbox.checked) {
+                if (selectedReports.length < 2) {
+                    selectedReports.push(reportId);
+                } else {
+                    checkbox.checked = false;
+                    showNotification('You can only compare 2 reports at a time', 'warning');
+                }
+            } else {
+                selectedReports = selectedReports.filter(id => id !== reportId);
+            }
+            
+            if (selectedReports.length === 2) {
+                compareReports();
+            }
+        }
+
+        async function compareReports() {
+            const section = document.getElementById('comparisonSection');
+            const content = document.getElementById('comparisonContent');
+            
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-balance-scale fa-spin text-2xl text-purple-600"></i><p class="text-gray-500 mt-2">AI is comparing your reports...</p></div>';
+            section.classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/reports/compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        version1_id: selectedReports[0],
+                        version2_id: selectedReports[1]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.comparison) {
+                    content.innerHTML = `
+                        <div class="prose max-w-none">
+                            <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                                <h4 class="text-purple-800 font-semibold mb-2">
+                                    <i class="fas fa-brain mr-2"></i>AI Report Comparison
+                                </h4>
+                                <p class="text-purple-600 text-sm">Powered by Amazon Bedrock</p>
+                            </div>
+                            <div class="whitespace-pre-wrap bg-gray-50 p-6 rounded-lg">${data.comparison}</div>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = '<p class="text-red-600">Error comparing reports</p>';
+                }
+            } catch (error) {
+                content.innerHTML = '<p class="text-red-600">Network error</p>';
+            }
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        function exportReport() {
+            showNotification('Export functionality would be implemented here', 'info');
+        }
+
+        function downloadReport(reportId) {
+            showNotification('Download functionality would be implemented here', 'info');
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+                type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                'bg-blue-100 text-blue-800 border border-blue-200'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
+
+        // Load reports on page load
+        document.addEventListener('DOMContentLoaded', refreshReports);
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Archived Recommendations v{{ version }} - TorWAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-archive me-2"></i>Archived Recommendations <span class="badge bg-secondary">v{{ version }}</span></h2>
+                <a href="{{ url_for('archived_versions') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Versions
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="recommendationsContainer">
+        {% if recommendations %}
+            {% for rec in recommendations %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm border-warning">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <h6 class="mb-0">{{ rec.category|title }}</h6>
+                        <span class="badge bg-{{ 'success' if rec.status == 'ok' else 'warning' if rec.status == 'warning' else 'danger' }}">
+                            {{ rec.status|upper }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">{{ rec.name }}</h6>
+                        <p class="card-text text-muted small">{{ rec.description[:100] }}...</p>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Created: {{ rec.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            <br>
+                            <i class="fas fa-archive me-1"></i>
+                            Archived: {{ rec.archived_at.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-archive fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Archived Recommendations</h4>
+                    <p class="text-muted">This version contains no recommendations.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

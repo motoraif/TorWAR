@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubscriptionRequiredException Fix Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .error-box { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .success-box { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .code-block { background: #f8f9fa; border: 1px solid #e9ecef; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>🔧 SubscriptionRequiredException Fix</h1>
+        <p class="lead">Demonstration of how the application now handles AWS Premium Support requirements</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5>❌ Before Fix</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="error-box p-3 rounded mb-3">
+                            <strong>Error:</strong> Sync failed: An error occurred (SubscriptionRequiredException) when calling the DescribeTrustedAdvisorChecks operation: Amazon Web Services Premium Support Subscription is required to use this service.
+                        </div>
+                        <p><strong>Issues:</strong></p>
+                        <ul>
+                            <li>Raw AWS error message shown to user</li>
+                            <li>No guidance on how to resolve</li>
+                            <li>Poor user experience</li>
+                            <li>Application may crash or behave unexpectedly</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>✅ After Fix</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="success-box p-3 rounded mb-3">
+                            <strong>Info:</strong> AWS Premium Support (Business or Enterprise) is required to access Trusted Advisor API. Please upgrade your support plan or use the AWS Console.
+                        </div>
+                        <p><strong>Improvements:</strong></p>
+                        <ul>
+                            <li>User-friendly error message</li>
+                            <li>Clear guidance on resolution</li>
+                            <li>Link to upgrade support plan</li>
+                            <li>Graceful error handling</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>🔧 Technical Implementation</h3>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6>1. Exception Detection</h6>
+                </div>
+                <div class="card-body">
+                    <div class="code-block p-3 rounded">
+if 'SubscriptionRequiredException' in str(e):
+    flash('AWS Premium Support subscription is required to use Trusted Advisor API', 'warning')
+else:
+    flash(f'Sync failed: {str(e)}', 'error')
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6>2. Support Level Check</h6>
+                </div>
+                <div class="card-body">
+                    <div class="code-block p-3 rounded">
+support_info = get_support_subscription_level()
+if not support_info.get('success'):
+    if 'SubscriptionRequiredException' in str(support_info.get('error', '')):
+        flash('AWS Premium Support (Business or Enterprise) is required...', 'warning')
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6>3. UI Warning for Basic Support Users</h6>
+                </div>
+                <div class="card-body">
+                    <div class="code-block p-3 rounded">
+{% if session.support_level == 'basic' %}
+&lt;div class="alert alert-info"&gt;
+    &lt;strong&gt;Premium Support Required:&lt;/strong&gt; 
+    &lt;a href="https://aws.amazon.com/support/" target="_blank"&gt;Upgrade to Business/Enterprise&lt;/a&gt; 
+    for API access
+&lt;/div&gt;
+{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>🎯 Benefits</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h5>🛡️ Stability</h5>
+                            <p>Application no longer crashes on sync failures</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h5>👥 User Experience</h5>
+                            <p>Clear, actionable error messages</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h5>🔄 Compatibility</h5>
+                            <p>Works for both Basic and Premium support users</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

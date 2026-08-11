@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Remediations - TorWAR{% endblock %}
+{% block title %}Remediations - TorWARTA{% endblock %}
 
 {% block extra_head %}
 <script>
 // Show loading indicator when page starts loading fresh data
 document.addEventListener('DOMContentLoaded', function() {
     // Always hide loading indicator when page is ready
-    if (window.TorWAR) {
-        TorWAR.hideLoading();
+    if (window.TorWARTA) {
+        TorWARTA.hideLoading();
     }
     
     const fromCache = {{ 'true' if recommendations else 'false' }};

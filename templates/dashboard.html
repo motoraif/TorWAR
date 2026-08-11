@@ -1,206 +1,450 @@
-{% extends "base.html" %}
-
-{% block title %}Dashboard - TorWAR{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2><i class="bi bi-speedometer2"></i> Welcome, {{ user.first_name }}!</h2>
-                    <p class="text-muted">AWS Well-Architected Review Tool Dashboard</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TorWARTA - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1e40af',
+                        accent: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg border-b-2 border-blue-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        TorWARTA
+                    </h1>
+                    <span class="hidden md:block text-sm text-gray-600">Toraif Well Architected Reviews & Trusted Advisor</span>
                 </div>
-                <div>
-                    <a href="{{ url_for('aws_connect') }}" class="btn btn-primary">
-                        <i class="bi bi-cloud-plus"></i> Connect AWS Account
-                    </a>
-                    <a href="{{ url_for('sync_data') }}" class="btn btn-success" onclick="syncData(event)">
-                        <i class="bi bi-arrow-clockwise"></i> Sync Data
-                    </a>
+                
+                <!-- Account & Region Selectors -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Account:</label>
+                        <select id="accountSelector" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 min-w-[150px]">
+                            <option value="">Select Account</option>
+                            {% for account in accounts %}
+                            <option value="{{ account.profile_name }}" {% if account.profile_name == active_account %}selected{% endif %}>
+                                {{ account.profile_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Region:</label>
+                        <select id="regionSelector" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 min-w-[120px]">
+                            <option value="us-east-1" {% if active_region == 'us-east-1' %}selected{% endif %}>us-east-1</option>
+                            <option value="us-east-2" {% if active_region == 'us-east-2' %}selected{% endif %}>us-east-2</option>
+                            <option value="us-west-1" {% if active_region == 'us-west-1' %}selected{% endif %}>us-west-1</option>
+                            <option value="us-west-2" {% if active_region == 'us-west-2' %}selected{% endif %}>us-west-2</option>
+                            <option value="eu-west-1" {% if active_region == 'eu-west-1' %}selected{% endif %}>eu-west-1</option>
+                            <option value="eu-central-1" {% if active_region == 'eu-central-1' %}selected{% endif %}>eu-central-1</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="showSettings()" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                        <a href="/logout" class="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Workloads</p>
+                        <p class="text-2xl font-bold text-gray-900" id="workloadCount">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">TA Issues</p>
+                        <p class="text-2xl font-bold text-gray-900" id="taIssueCount">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Reports</p>
+                        <p class="text-2xl font-bold text-gray-900" id="reportCount">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Accounts</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ accounts|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-xl shadow-sm border">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6">
+                    <button onclick="showTab('war')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" id="war-tab">
+                        Well-Architected Reviews
+                    </button>
+                    <button onclick="showTab('ta')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700" id="ta-tab">
+                        Trusted Advisor
+                    </button>
+                    <button onclick="showTab('reports')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700" id="reports-tab">
+                        Reports & Analysis
+                    </button>
+                </nav>
+            </div>
+
+            <!-- WAR Tab -->
+            <div id="war-content" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Well-Architected Workloads</h3>
+                    <button onclick="createWorkload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                        Create Workload
+                    </button>
+                </div>
+                <div id="workloadsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- TA Tab -->
+            <div id="ta-content" class="tab-content p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Trusted Advisor Recommendations</h3>
+                    <button onclick="refreshTA()" id="refreshBtn" class="bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">
+                        <span id="refreshText">Refresh Recommendations</span>
+                    </button>
+                </div>
+                <div id="taRecommendations" class="space-y-4"></div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-content" class="tab-content p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Generated Reports</h3>
+                    <button onclick="generateReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700">
+                        Generate Report
+                    </button>
+                </div>
+                <div id="reportsList" class="space-y-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload AWS Credentials File</h3>
+                <p class="text-sm text-gray-600 mb-4">Upload your AWS credentials file (similar to ~/.aws/credentials)</p>
+                
+                <div class="mb-4">
+                    <input type="file" id="credentialsFile" accept=".txt,.ini,.credentials" 
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="hideSettings()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button onclick="uploadCredentials()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        Upload & Import
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Selected Workload Section -->
-    {% if workload_info %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-diagram-3"></i> Selected Workload
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h4 class="mb-2">{{ workload_info.WorkloadName }}</h4>
-                            <p class="text-muted mb-2">{{ workload_info.Description or 'No description available' }}</p>
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <small class="text-muted">
-                                        <strong>Environment:</strong> {{ workload_info.Environment or 'Not specified' }}
-                                    </small>
-                                </div>
-                                <div class="col-sm-6">
-                                    <small class="text-muted">
-                                        <strong>Owner:</strong> {{ workload_info.Owner or 'Not specified' }}
-                                    </small>
-                                </div>
+    <script>
+        // Account and Region switching
+        document.getElementById('accountSelector').addEventListener('change', function() {
+            const region = document.getElementById('regionSelector').value;
+            if (this.value && region) {
+                switchAccount(this.value, region);
+            }
+        });
+
+        document.getElementById('regionSelector').addEventListener('change', function() {
+            const account = document.getElementById('accountSelector').value;
+            if (account && this.value) {
+                switchAccount(account, this.value);
+            }
+        });
+
+        function switchAccount(accountId, region) {
+            fetch('/api/switch-account', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({account_id: accountId, region: region})
+            }).then(() => location.reload());
+        }
+
+        // Tab management
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-blue-500', 'text-blue-600');
+                el.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.getElementById(tab + '-content').classList.remove('hidden');
+            document.getElementById(tab + '-tab').classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById(tab + '-tab').classList.add('border-blue-500', 'text-blue-600');
+            
+            if (tab === 'war') loadWorkloads();
+            if (tab === 'ta') loadTARecommendations();
+            if (tab === 'reports') loadReports();
+        }
+
+        // Settings modal
+        function showSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
+        function hideSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+        function uploadCredentials() {
+            const file = document.getElementById('credentialsFile').files[0];
+            if (!file) {
+                alert('Please select a credentials file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('credentials_file', file);
+            
+            fetch('/api/upload-credentials', {method: 'POST', body: formData})
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(err => alert('Upload failed: ' + err.message));
+            
+            hideSettings();
+        }
+
+        // Load functions
+        function loadWorkloads() {
+            fetch('/api/war/workloads')
+                .then(r => r.json())
+                .then(workloads => {
+                    document.getElementById('workloadCount').textContent = workloads.length;
+                    document.getElementById('workloadsList').innerHTML = workloads.map(w => 
+                        `<div class="bg-gray-50 border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <h4 class="font-semibold text-gray-900">${w.name}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${w.description}</p>
+                            <div class="mt-3 flex space-x-2">
+                                <button onclick="reviewWorkload('${w._id}')" class="text-blue-600 text-sm hover:text-blue-800">Start Review</button>
                             </div>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <a href="{{ url_for('select_pillars') }}" class="btn btn-success btn-lg">
-                                <i class="bi bi-play-circle"></i> Start Review
-                            </a>
-                            <div class="mt-2">
-                                <a href="{{ url_for('list_workloads') }}" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-arrow-left"></i> Change Workload
+                        </div>`
+                    ).join('');
+                });
+        }
+
+        function loadTARecommendations() {
+            const container = document.getElementById('taRecommendations');
+            const activeAccount = document.getElementById('accountSelector').value;
+            
+            if (!activeAccount) {
+                container.innerHTML = `<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p class="text-yellow-800">⚠️ Please select an account first using the dropdown above.</p>
+                </div>`;
+                return;
+            }
+            
+            container.innerHTML = '<div class="text-center py-8 text-gray-500">Loading recommendations...</div>';
+            
+            fetch(`/api/ta/recommendations?account=${activeAccount}`)
+                .then(r => r.json())
+                .then(recommendations => {
+                    if (recommendations.error) {
+                        let errorHtml = `<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p class="text-red-800 font-medium">Error: ${recommendations.error}</p>`;
+                        
+                        if (recommendations.details) {
+                            errorHtml += `<p class="text-sm text-red-700 mt-2">${recommendations.details}</p>`;
+                        }
+                        
+                        if (recommendations.support_info) {
+                            errorHtml += `<div class="mt-3">
+                                <a href="${recommendations.support_info}" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline">
+                                    Upgrade AWS Support Plan →
                                 </a>
+                            </div>`;
+                        }
+                        
+                        if (recommendations.error.includes('credentials') || recommendations.error.includes('not found')) {
+                            errorHtml += `<div class="mt-3">
+                                <p class="text-sm text-red-700">To fix this:</p>
+                                <ol class="list-decimal list-inside text-sm text-red-700 mt-1">
+                                    <li>Click the settings icon (⚙️) in the top right</li>
+                                    <li>Upload your AWS credentials file</li>
+                                    <li>Select the account from the dropdown</li>
+                                    <li>Try refreshing recommendations again</li>
+                                </ol>
+                            </div>`;
+                        }
+                        
+                        errorHtml += '</div>';
+                        container.innerHTML = errorHtml;
+                        document.getElementById('taIssueCount').textContent = '0';
+                        return;
+                    }
+                    
+                    document.getElementById('taIssueCount').textContent = recommendations.length;
+                    
+                    if (recommendations.length === 0) {
+                        container.innerHTML = `<div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-green-800">✅ No Trusted Advisor issues found! Your AWS account is following best practices.</p>
+                        </div>`;
+                        return;
+                    }
+                    
+                    container.innerHTML = recommendations.map(rec => 
+                        `<div class="bg-gray-50 border rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-semibold text-gray-900">${rec.name}</h4>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rec.status === 'error' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${rec.status}</span>
                             </div>
+                            <p class="text-sm text-gray-600 mt-1">${rec.category}</p>
+                            <p class="text-xs text-gray-500 mt-2">${rec.resource_count || 0} resources affected</p>
+                        </div>`
+                    ).join('');
+                })
+                .catch(err => {
+                    container.innerHTML = `<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-red-800 font-medium">Failed to load recommendations</p>
+                        <p class="text-sm text-red-700 mt-1">Error: ${err.message}</p>
+                        <div class="mt-3">
+                            <p class="text-sm text-red-700">Common issues:</p>
+                            <ul class="list-disc list-inside text-sm text-red-700 mt-1">
+                                <li>Account needs AWS Premium Support subscription</li>
+                                <li>Invalid or expired AWS credentials</li>
+                                <li>Insufficient IAM permissions</li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% else %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-warning">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-diagram-3 text-warning" style="font-size: 3rem;"></i>
-                    <h5 class="mt-3">No Workload Selected</h5>
-                    <p class="text-muted">Select a workload to start your Well-Architected review.</p>
-                    <a href="{{ url_for('list_workloads') }}" class="btn btn-warning">
-                        <i class="bi bi-list"></i> Select Workload
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+                    </div>`;
+                    document.getElementById('taIssueCount').textContent = '0';
+                });
+        }
 
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="bi bi-list-check text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="card-title mt-2">Recommendations</h6>
-                    <p class="card-text small">View Trusted Advisor recommendations</p>
-                    <a href="{{ url_for('recommendations') }}" class="btn btn-sm btn-outline-primary">View</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="bi bi-tools text-warning" style="font-size: 2rem;"></i>
-                    <h6 class="card-title mt-2">Remediations</h6>
-                    <p class="card-text small">Fix identified issues</p>
-                    <a href="{{ url_for('remediations') }}" class="btn btn-sm btn-outline-warning">View</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="bi bi-robot text-info" style="font-size: 2rem;"></i>
-                    <h6 class="card-title mt-2">AI Dashboard</h6>
-                    <p class="card-text small">AI-powered insights</p>
-                    <a href="{{ url_for('ai_dashboard') }}" class="btn btn-sm btn-outline-info">View</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="bi bi-person-circle text-secondary" style="font-size: 2rem;"></i>
-                    <h6 class="card-title mt-2">Profile</h6>
-                    <p class="card-text small">Manage your account</p>
-                    <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-secondary">View</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sync Status -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6><i class="bi bi-activity"></i> Data Sync Status</h6>
-                </div>
-                <div class="card-body">
-                    <div id="sync-status">
-                        <div class="text-center">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
+        function loadReports() {
+            fetch('/api/reports')
+                .then(r => r.json())
+                .then(reports => {
+                    document.getElementById('reportCount').textContent = reports.length;
+                    document.getElementById('reportsList').innerHTML = reports.map(rep => 
+                        `<div class="bg-gray-50 border rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-semibold text-gray-900">${rep.title}</h4>
+                                <span class="text-xs text-gray-500">v${rep.version}</span>
                             </div>
-                            <span class="ms-2">Checking sync status...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                            <p class="text-sm text-gray-600">Created: ${new Date(rep.created_at).toLocaleDateString()}</p>
+                        </div>`
+                    ).join('');
+                });
+        }
 
-<script>
-function syncData(event) {
-    event.preventDefault();
-    const btn = event.target.closest('a');
-    const originalText = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Syncing...';
-    btn.disabled = true;
-    
-    fetch('/sync-data')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`✅ Sync completed! ${data.message}`);
-                location.reload();
-            } else {
-                alert(`❌ Sync failed: ${data.error}`);
+        // Action functions
+        function createWorkload() {
+            const name = prompt('Workload name:');
+            const description = prompt('Description:');
+            if (name) {
+                fetch('/api/war/workloads', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name, description})
+                }).then(() => loadWorkloads());
             }
-        })
-        .catch(error => {
-            alert(`❌ Sync error: ${error}`);
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-}
+        }
 
-function syncAccount(accountId, region) {
-    // Similar sync function for individual accounts
-    console.log(`Syncing account ${accountId} in ${region}`);
-}
+        function refreshTA() {
+            const btn = document.getElementById('refreshBtn');
+            const text = document.getElementById('refreshText');
+            const activeAccount = document.getElementById('accountSelector').value;
+            
+            console.log('Refresh TA clicked, active account:', activeAccount);
+            
+            btn.disabled = true;
+            text.textContent = 'Refreshing...';
+            btn.classList.add('opacity-50');
+            
+            loadTARecommendations();
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                text.textContent = 'Refresh Recommendations';
+                btn.classList.remove('opacity-50');
+            }, 2000);
+        }
 
-// Load sync status on page load
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/sync-status')
-        .then(response => response.json())
-        .then(data => {
-            const statusDiv = document.getElementById('sync-status');
-            if (data.status === 'never_synced') {
-                statusDiv.innerHTML = '<span class="text-muted">No data synced yet</span>';
-            } else if (data.status === 'success') {
-                statusDiv.innerHTML = `<span class="text-success">✅ Last sync: ${new Date(data.completed_at).toLocaleString()} (${data.records_synced} records)</span>`;
-            } else if (data.status === 'error') {
-                statusDiv.innerHTML = `<span class="text-danger">❌ Last sync failed: ${data.error_message}</span>`;
-            } else {
-                statusDiv.innerHTML = '<span class="text-info">🔄 Sync in progress...</span>';
+        function generateReport() {
+            const title = prompt('Report title:');
+            if (title) {
+                fetch('/api/reports', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({title, analysis_data: {}})
+                }).then(() => loadReports());
             }
-        })
-        .catch(error => {
-            document.getElementById('sync-status').innerHTML = '<span class="text-muted">Unable to load sync status</span>';
-        });
-});
-</script>
-{% endblock %}
+        }
+
+        // Initialize
+        showTab('war');
+    </script>
+</body>
+</html>

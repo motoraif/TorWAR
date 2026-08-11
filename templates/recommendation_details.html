@@ -1,222 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}{{ recommendation.name }} - Recommendation Details{% endblock %}
+{% block title %}{{ recommendation.name }} - TorWAR{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Header -->
+<div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('recommendations') }}">Recommendations</a></li>
-                    <li class="breadcrumb-item active">{{ recommendation.name }}</li>
-                </ol>
-            </nav>
-            
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h2 class="mb-2">
-                        <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }} me-2">
-                            {{ recommendation.status|upper }}
-                        </span>
-                        {{ recommendation.name }}
-                    </h2>
-                    <p class="text-muted">{{ recommendation.category }} | Check ID: {{ recommendation.id }}</p>
-                </div>
-                <div>
-                    <a href="{{ url_for('recommendations') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Recommendations
-                    </a>
-                </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-info-circle me-2"></i>Recommendation Details</h2>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="row">
         <div class="col-lg-8">
-            <!-- Description -->
-            <div class="card mb-4">
+            <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-info-circle"></i> Description</h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">{{ recommendation.name }}</h4>
+                        <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }}">
+                            {{ recommendation.status.upper() }}
+                        </span>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <p>{{ recommendation.description }}</p>
-                </div>
-            </div>
-
-            <!-- Resources -->
-            {% if recommendation.resource_count > 0 %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-exclamation-triangle text-warning"></i> Affected Resources ({{ recommendation.resource_count }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if recommendation.resources_data %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Resource</th>
-                                        <th>Status</th>
-                                        <th>Details</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for resource in recommendation.resources_data[:10] %}
-                                    <tr>
-                                        <td>{{ resource.get('resourceId', 'N/A') }}</td>
-                                        <td>{{ resource.get('status', 'Flagged') }}</td>
-                                        <td>{{ resource.get('metadata', {}).get('description', 'No details available') }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% if recommendation.resources_data|length > 10 %}
-                            <p class="text-muted">Showing first 10 of {{ recommendation.resources_data|length }} resources.</p>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            {{ recommendation.resource_count }} resources are flagged for this recommendation. 
-                            Detailed resource information is not available.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Remediation Steps -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-tools"></i> Recommended Actions</h5>
-                </div>
-                <div class="card-body">
-                    {% if recommendation.status == 'error' %}
-                    <div class="alert alert-danger">
-                        <strong>High Priority:</strong> This recommendation requires immediate attention.
-                    </div>
-                    {% elif recommendation.status == 'warning' %}
-                    <div class="alert alert-warning">
-                        <strong>Medium Priority:</strong> Consider addressing this recommendation.
-                    </div>
-                    {% else %}
-                    <div class="alert alert-success">
-                        <strong>Good:</strong> No action required for this check.
-                    </div>
-                    {% endif %}
-
-                    <h6>Suggested Steps:</h6>
-                    <ol>
-                        <li>Review the affected resources listed above</li>
-                        <li>Analyze the impact on your AWS environment</li>
-                        <li>Implement the recommended changes</li>
-                        <li>Monitor the results after implementation</li>
-                        <li>Re-run Trusted Advisor to verify the fix</li>
-                    </ol>
+                    <h6><i class="fas fa-file-text me-2"></i>Description</h6>
+                    <p class="text-muted">{{ recommendation.description }}</p>
+                    
+                    <h6><i class="fas fa-tag me-2"></i>Category</h6>
+                    <p>{{ recommendation.category }}</p>
+                    
+                    <h6><i class="fas fa-key me-2"></i>Check ID</h6>
+                    <p><code>{{ recommendation.check_id }}</code></p>
+                    
+                    <h6><i class="fas fa-clock me-2"></i>Created</h6>
+                    <p>{{ recommendation.created_at.strftime('%Y-%m-%d %H:%M:%S') if recommendation.created_at else 'N/A' }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Sidebar -->
+        
         <div class="col-lg-4">
-            <!-- Quick Info -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6><i class="fas fa-chart-bar"></i> Quick Info</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h4 class="text-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }}">
-                                    {{ recommendation.resource_count }}
-                                </h4>
-                                <small class="text-muted">Resources</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-primary">{{ recommendation.category }}</h4>
-                            <small class="text-muted">Category</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Metadata -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6><i class="fas fa-tags"></i> Details</h6>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-5">Check ID:</dt>
-                        <dd class="col-sm-7"><code>{{ recommendation.id }}</code></dd>
-                        
-                        <dt class="col-sm-5">Category:</dt>
-                        <dd class="col-sm-7">{{ recommendation.category }}</dd>
-                        
-                        <dt class="col-sm-5">Pillar:</dt>
-                        <dd class="col-sm-7">{{ recommendation.pillar }}</dd>
-                        
-                        <dt class="col-sm-5">Status:</dt>
-                        <dd class="col-sm-7">
-                            <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }}">
-                                {{ recommendation.status|title }}
-                            </span>
-                        </dd>
-                        
-                        {% if recommendation.updated_at %}
-                        <dt class="col-sm-5">Last Updated:</dt>
-                        <dd class="col-sm-7">{{ recommendation.updated_at }}</dd>
-                        {% endif %}
-                    </dl>
-                </div>
-            </div>
-
-            <!-- Actions -->
             <div class="card">
                 <div class="card-header">
-                    <h6><i class="fas fa-cogs"></i> Actions</h6>
+                    <h5><i class="fas fa-chart-bar me-2"></i>Quick Stats</h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('remediations') }}" class="btn btn-primary">
-                            <i class="fas fa-tools"></i> View Remediations
-                        </a>
-                        <button class="btn btn-outline-secondary" onclick="window.print()">
-                            <i class="fas fa-print"></i> Print Details
-                        </button>
-                        <button class="btn btn-outline-info" onclick="exportRecommendation()">
-                            <i class="fas fa-download"></i> Export
-                        </button>
+                    <div class="mb-3">
+                        <strong>Status:</strong>
+                        <span class="badge bg-{{ 'danger' if recommendation.status == 'error' else 'warning' if recommendation.status == 'warning' else 'success' }} ms-2">
+                            {{ recommendation.status.upper() }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Category:</strong><br>
+                        <span class="text-muted">{{ recommendation.category }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-function exportRecommendation() {
-    const data = {
-        name: "{{ recommendation.name }}",
-        category: "{{ recommendation.category }}",
-        status: "{{ recommendation.status }}",
-        description: "{{ recommendation.description }}",
-        resource_count: {{ recommendation.resource_count }},
-        check_id: "{{ recommendation.id }}"
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'recommendation_{{ recommendation.id }}.json';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-</script>
 {% endblock %}

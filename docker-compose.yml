@@ -1,40 +1,64 @@
 services:
-  torwar:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - SECRET_KEY=containerized-torwar-secret-key-change-in-production
-      - FLASK_ENV=production
-      - DATABASE_URL=postgresql://torwar:torwar_password@db:5432/torwar
-      - REDIS_URL=redis://redis:6379/0
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ~/.aws:/root/.aws:ro
-    depends_on:
-      - db
-      - redis
+  mongodb:
+    image: mongo:7
+    container_name: torwarta-mongodb
     restart: unless-stopped
-
-  db:
-    image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=torwar
-      - POSTGRES_USER=torwar
-      - POSTGRES_PASSWORD=torwar_password
+      MONGO_INITDB_DATABASE: torwarta
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: unless-stopped
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes
+    container_name: torwarta-redis
+    restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  torwarta:
+    build: .
+    container_name: torwarta-app
     restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - SECRET_KEY=torwarta-production-secret-key-change-in-production
+      - FLASK_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: torwarta-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - torwarta
 
 volumes:
-  postgres_data:
+  mongodb_data:
   redis_data:

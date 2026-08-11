@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}AI Configuration - TorWAR{% endblock %}
+{% block title %}AI Configuration - TorWARTA{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -159,7 +159,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-4">
-                        Configure TorWAR to access Bedrock from any AWS account with Bedrock enabled. Choose your preferred authentication method.
+                        Configure TorWARTA to access Bedrock from any AWS account with Bedrock enabled. Choose your preferred authentication method.
                     </p>
                     
                     <!-- Authentication Method Selection -->
@@ -261,8 +261,8 @@
                                 <div class="col-md-4">
                                     <label for="roleName" class="form-label">IAM Role Name</label>
                                     <input type="text" class="form-control" id="roleName" 
-                                           placeholder="TorWAR-BedrockAccess"
-                                           value="TorWAR-BedrockAccess">
+                                           placeholder="TorWARTA-BedrockAccess"
+                                           value="TorWARTA-BedrockAccess">
                                     <div class="form-text">Role name in beyon-marketplace</div>
                                 </div>
                                 <div class="col-md-4">
@@ -308,8 +308,8 @@
                         <div class="step-card">
                             <h6><i class="fas fa-user-plus me-2 text-primary"></i>Step 1: Create IAM User in Bedrock Account</h6>
                             <p>In your Bedrock-enabled AWS account, create a dedicated IAM user:</p>
-                            <div class="code-block">aws iam create-user --user-name TorWAR-BedrockUser</div>
-                            <p><strong>User Name:</strong> <code>TorWAR-BedrockUser</code></p>
+                            <div class="code-block">aws iam create-user --user-name TorWARTA-BedrockUser</div>
+                            <p><strong>User Name:</strong> <code>TorWARTA-BedrockUser</code></p>
                         </div>
                         
                         <div class="step-card">
@@ -334,12 +334,12 @@
                         <div class="step-card">
                             <h6><i class="fas fa-download me-2 text-primary"></i>Step 3: Generate Access Keys</h6>
                             <p>Create access keys for the user:</p>
-                            <div class="code-block">aws iam create-access-key --user-name TorWAR-BedrockUser</div>
+                            <div class="code-block">aws iam create-access-key --user-name TorWARTA-BedrockUser</div>
                             <p>Save the <strong>Access Key ID</strong> and <strong>Secret Access Key</strong> securely.</p>
                         </div>
                         
                         <div class="step-card">
-                            <h6><i class="fas fa-cog me-2 text-primary"></i>Step 4: Configure TorWAR</h6>
+                            <h6><i class="fas fa-cog me-2 text-primary"></i>Step 4: Configure TorWARTA</h6>
                             <p>Use the form above with the <strong>Access Keys</strong> method:</p>
                             <ul>
                                 <li><strong>Account ID:</strong> 12-digit ID of your Bedrock account</li>
@@ -374,7 +374,7 @@
       "Action": "sts:AssumeRole",
       "Condition": {
         "StringEquals": {
-          "sts:ExternalId": "TorWAR-Bedrock-Access"
+          "sts:ExternalId": "TorWARTA-Bedrock-Access"
         }
       }
     }
@@ -879,7 +879,7 @@ function testApiConnection() {
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-circle me-2"></i>
                 API Connection Failed: ${error.message}
-                <br><small>This indicates a problem with the TorWAR server or network connectivity.</small>
+                <br><small>This indicates a problem with the TorWARTA server or network connectivity.</small>
             </div>
         `;
     });
@@ -894,7 +894,7 @@ function clearConfig() {
     
     // Clear role form
     document.getElementById('accountId').value = '766188184180';
-    document.getElementById('roleName').value = 'TorWAR-BedrockAccess';
+    document.getElementById('roleName').value = 'TorWARTA-BedrockAccess';
     document.getElementById('roleRegion').value = 'us-east-1';
     
     document.getElementById('configResult').style.display = 'none';

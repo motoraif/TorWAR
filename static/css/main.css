@@ -1,0 +1,217 @@
+/* TorWAR Optimized Main Styles */
+/* Consolidated from multiple CSS files for better performance */
+
+/* ===== CSS VARIABLES (WCAG AA COMPLIANT) ===== */
+:root {
+    /* Light mode (default) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --border-color: #dee2e6;
+    --card-bg: #ffffff;
+    --navbar-bg: #343a40;
+    
+    /* Risk colors (accessible in both modes) */
+    --risk-high: #dc3545;
+    --risk-medium: #fd7e14;
+    --risk-low: #ffc107;
+    --risk-none: #198754;
+    --risk-na: #6c757d;
+    
+    /* Interactive elements */
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+[data-theme="dark"] {
+    /* Dark mode variables with enhanced contrast */
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --border-color: #404040;
+    --card-bg: #1e1e1e;
+    --navbar-bg: #0d1117;
+    
+    /* Enhanced risk colors for dark mode */
+    --risk-high: #ff6b6b;
+    --risk-medium: #ffa726;
+    --risk-low: #ffeb3b;
+    --risk-none: #4caf50;
+    --risk-na: #9e9e9e;
+    
+    --primary-color: #58a6ff;
+    --success-color: #4caf50;
+    --warning-color: #ffeb3b;
+    --danger-color: #ff6b6b;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+}
+
+/* ===== LAYOUT COMPONENTS ===== */
+.navbar {
+    background-color: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+/* ===== RISK STYLING ===== */
+.risk-high { color: var(--risk-high) !important; }
+.risk-medium { color: var(--risk-medium) !important; }
+.risk-low { color: var(--risk-low) !important; }
+.risk-none { color: var(--risk-none) !important; }
+.risk-na { color: var(--risk-na) !important; }
+
+.badge.risk-high { background-color: var(--risk-high); }
+.badge.risk-medium { background-color: var(--risk-medium); }
+.badge.risk-low { background-color: var(--risk-low); }
+.badge.risk-none { background-color: var(--risk-none); }
+.badge.risk-na { background-color: var(--risk-na); }
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Lazy loading placeholder */
+img[data-src] {
+    background: var(--bg-secondary);
+    min-height: 100px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0 10px;
+    }
+    
+    .theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus indicators */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* ===== NOTIFICATION STYLES ===== */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 15px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    border-left: 4px solid var(--success-color);
+}
+
+.notification.error {
+    border-left: 4px solid var(--danger-color);
+}
+
+.notification.warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.notification.info {
+    border-left: 4px solid var(--primary-color);
+}

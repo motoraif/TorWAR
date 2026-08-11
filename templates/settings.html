@@ -1,509 +1,420 @@
-{% extends "base.html" %}
-
-{% block title %}Settings - TorWAR{% endblock %}
-
-{% block extra_head %}
-<style>
-.settings-card {
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.settings-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0;
-    padding: 20px;
-}
-
-.bedrock-config {
-    border-left: 4px solid #0d6efd;
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 20px;
-}
-
-.status-badge {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative;
-    overflow: hidden;
-}
-
-.status-badge::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s;
-}
-
-.status-badge:hover::before {
-    left: 100%;
-}
-
-.status-badge.connected {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    border: 2px solid #28a745;
-    color: #155724;
-}
-
-.status-badge.testing {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 2px solid #ffc107;
-    color: #856404;
-}
-
-.status-badge.disconnected {
-    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-    border: 2px solid #dc3545;
-    color: #721c24;
-}
-
-.pulse-animation {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.status-icon {
-    font-size: 1.1rem;
-    margin-right: 8px;
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.connection-glow {
-    box-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
-}
-
-.testing-glow {
-    box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
-}
-
-.error-glow {
-    box-shadow: 0 0 20px rgba(220, 53, 69, 0.4);
-}
-
-.dot-pulse {
-    position: relative;
-    left: -9999px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #ffc107;
-    color: #ffc107;
-    box-shadow: 9999px 0 0 -5px;
-    animation: dot-pulse 1.5s infinite linear;
-    animation-delay: 0.25s;
-}
-
-.dot-pulse::before, .dot-pulse::after {
-    content: '';
-    display: inline-block;
-    position: absolute;
-    top: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #ffc107;
-    color: #ffc107;
-}
-
-.dot-pulse::before {
-    box-shadow: 9984px 0 0 -5px;
-    animation: dot-pulse-before 1.5s infinite linear;
-    animation-delay: 0s;
-}
-
-.dot-pulse::after {
-    box-shadow: 10014px 0 0 -5px;
-    animation: dot-pulse-after 1.5s infinite linear;
-    animation-delay: 0.5s;
-}
-
-@keyframes dot-pulse-before {
-    0%, 15%, 85%, 100% { box-shadow: 9984px 0 0 -5px; }
-    40%, 60% { box-shadow: 9984px 0 0 2px; }
-}
-
-@keyframes dot-pulse {
-    0%, 15%, 85%, 100% { box-shadow: 9999px 0 0 -5px; }
-    40%, 60% { box-shadow: 9999px 0 0 2px; }
-}
-
-@keyframes dot-pulse-after {
-    0%, 15%, 85%, 100% { box-shadow: 10014px 0 0 -5px; }
-    40%, 60% { box-shadow: 10014px 0 0 2px; }
-}
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="settings-header">
-                <h2 class="mb-1">
-                    <i class="fas fa-cogs me-2"></i>Settings
-                </h2>
-                <p class="mb-0 opacity-75">Configure TorWAR application settings and integrations</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - TorWARTA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/dashboard" class="text-2xl font-bold text-blue-600">TorWARTA</a>
+                    <span class="ml-2 text-sm text-gray-500">Settings</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/dashboard" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-1"></i>Dashboard
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Bedrock Configuration -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-robot me-2"></i>AWS Bedrock Configuration
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="bedrock-config">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">Cross-Account Bedrock Access</h6>
-                            <span id="bedrockStatus" class="badge bg-secondary">
-                                <span class="status-indicator status-disconnected"></span>Not Configured
-                            </span>
-                        </div>
-                        <p class="text-muted">Configure cross-account access to AWS Bedrock for AI-powered remediation generation.</p>
+    <div class="max-w-4xl mx-auto py-6 px-4">
+        <!-- Account Management -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Account Management</h2>
+            
+            <!-- Current Active Account -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold text-blue-800">Active Account</h3>
+                        <p class="text-blue-600" id="activeAccount">No account selected</p>
                     </div>
+                    <button onclick="refreshAccounts()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                        <i class="fas fa-sync mr-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
 
-                    <form id="bedrockConfigForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Bedrock Account ID</label>
-                                    <input type="text" class="form-control" id="bedrockAccountId" 
-                                           placeholder="123456789012" maxlength="12">
-                                    <div class="form-text">AWS account ID where Bedrock is enabled</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Bedrock Region</label>
-                                    <select class="form-select" id="bedrockRegion">
-                                        <option value="us-east-1">US East (N. Virginia)</option>
-                                        <option value="us-west-2">US West (Oregon)</option>
-                                        <option value="eu-west-1">Europe (Ireland)</option>
-                                        <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Parent Credentials Profile</label>
-                            <input type="text" class="form-control" id="parentCredentials" 
-                                   placeholder="beyon-marketplace">
-                            <div class="form-text">AWS credentials profile for parent account (e.g., beyon-marketplace for tau-dev access)</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Cross-Account Role ARN</label>
-                            <input type="text" class="form-control" id="bedrockRoleArn" 
-                                   placeholder="arn:aws:iam::123456789012:role/TorWAR-BedrockAccess">
-                            <div class="form-text">IAM role ARN with Bedrock permissions in the target account</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Model ID</label>
-                            <select class="form-select" id="bedrockModelId">
-                                <option value="anthropic.claude-3-sonnet-20240229-v1:0">Claude 3 Sonnet</option>
-                                <option value="anthropic.claude-3-haiku-20240307-v1:0">Claude 3 Haiku</option>
-                                <option value="amazon.titan-text-express-v1">Amazon Titan Text Express</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="enableBedrock">
-                                <label class="form-check-label" for="enableBedrock">
-                                    Enable Bedrock AI Integration
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-primary" onclick="saveBedrockConfig()">
-                                <i class="fas fa-save me-1"></i>Save Configuration
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="testBedrockConnection()">
-                                <i class="fas fa-vial me-1"></i>Test Connection
-                            </button>
-                            <button type="button" class="btn btn-outline-info" onclick="generateRolePolicy()">
-                                <i class="fas fa-file-code me-1"></i>Generate IAM Policy
-                            </button>
-                        </div>
-                    </form>
+            <!-- Imported Accounts List -->
+            <div id="accountsList" class="space-y-2">
+                <h3 class="font-semibold mb-2">Imported Accounts</h3>
+                <div id="accountsContainer" class="space-y-2">
+                    <p class="text-gray-500 text-sm">No accounts imported yet</p>
                 </div>
             </div>
         </div>
 
-        <!-- Configuration Help -->
-        <div class="col-lg-4">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-question-circle me-2"></i>Setup Instructions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6>1. Create Cross-Account Role</h6>
-                        <p class="small text-muted">Create an IAM role in your Bedrock account with the necessary permissions.</p>
+        <!-- AWS Credentials File Upload -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">AWS Credentials Upload</h2>
+            
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-4"></i>
+                    <div class="mb-4">
+                        <input type="file" id="credentialsFile" class="hidden" accept=".txt,.ini,.credentials" onchange="handleFileUpload(event)">
+                        <button type="button" onclick="document.getElementById('credentialsFile').click()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            <i class="fas fa-upload mr-2"></i>Upload Credentials File
+                        </button>
                     </div>
-                    <div class="mb-3">
-                        <h6>2. Configure Trust Policy</h6>
-                        <p class="small text-muted">Allow your current AWS account to assume the Bedrock role.</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6>3. Test Connection</h6>
-                        <p class="small text-muted">Use the test button to verify the configuration works.</p>
-                    </div>
-                    <div class="alert alert-info">
-                        <small>
-                            <i class="fas fa-info-circle me-1"></i>
-                            Bedrock must be enabled and models must be available in the target account.
-                        </small>
-                    </div>
+                    <p class="text-sm text-gray-600">
+                        Upload your AWS credentials file (~/.aws/credentials)<br>
+                        Supports multiple profiles and accounts
+                    </p>
                 </div>
-            </div>
-
-            <!-- Current Configuration -->
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-info me-2"></i>Current Configuration
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-6">Status:</dt>
-                        <dd class="col-sm-6" id="currentStatus">Not Configured</dd>
-                        
-                        <dt class="col-sm-6">Account:</dt>
-                        <dd class="col-sm-6" id="currentAccount">-</dd>
-                        
-                        <dt class="col-sm-6">Region:</dt>
-                        <dd class="col-sm-6" id="currentRegion">-</dd>
-                        
-                        <dt class="col-sm-6">Model:</dt>
-                        <dd class="col-sm-6" id="currentModel">-</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- IAM Policy Modal -->
-<div class="modal fade" id="policyModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-file-code me-2"></i>IAM Role Policy
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Use this IAM policy for your cross-account Bedrock role:</p>
-                <pre class="bg-dark text-light p-3 rounded" id="iamPolicy"></pre>
-                <button class="btn btn-primary" onclick="copyPolicy()">
-                    <i class="fas fa-copy me-1"></i>Copy Policy
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// Load current configuration on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadBedrockConfig();
-});
-
-function loadBedrockConfig() {
-    fetch('/api/bedrock-config')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('bedrockAccountId').value = data.config.account_id || '';
-                document.getElementById('bedrockRegion').value = data.config.region || 'us-east-1';
-                document.getElementById('parentCredentials').value = data.config.parent_credentials || '';
-                document.getElementById('bedrockRoleArn').value = data.config.role_arn || '';
-                document.getElementById('bedrockModelId').value = data.config.model_id || 'anthropic.claude-3-sonnet-20240229-v1:0';
-                document.getElementById('enableBedrock').checked = data.config.enabled || false;
                 
-                updateStatus(data.config.status || 'disconnected');
-                updateCurrentConfig(data.config);
-            }
-        })
-        .catch(error => console.error('Error loading config:', error));
-}
-
-function saveBedrockConfig() {
-    const config = {
-        account_id: document.getElementById('bedrockAccountId').value,
-        region: document.getElementById('bedrockRegion').value,
-        parent_credentials: document.getElementById('parentCredentials').value,
-        role_arn: document.getElementById('bedrockRoleArn').value,
-        model_id: document.getElementById('bedrockModelId').value,
-        enabled: document.getElementById('enableBedrock').checked
-    };
-    
-    fetch('/api/bedrock-config', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Configuration saved successfully!');
-            loadBedrockConfig();
-        } else {
-            alert('Error saving configuration: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving configuration');
-    });
-}
-
-function testBedrockConnection() {
-    updateStatus('testing');
-    
-    fetch('/api/test-bedrock')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateStatus('connected');
-                alert('Bedrock connection successful!');
-            } else {
-                updateStatus('disconnected');
-                alert('Connection failed: ' + data.error);
-            }
-        })
-        .catch(error => {
-            updateStatus('disconnected');
-            alert('Connection test failed: ' + error.message);
-        });
-}
-
-function generateRolePolicy() {
-    const policy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": [
-                    "bedrock:InvokeModel",
-                    "bedrock:ListFoundationModels"
-                ],
-                "Resource": "*"
-            }
-        ]
-    };
-    
-    document.getElementById('iamPolicy').textContent = JSON.stringify(policy, null, 2);
-    const modal = new bootstrap.Modal(document.getElementById('policyModal'));
-    modal.show();
-}
-
-function copyPolicy() {
-    const policy = document.getElementById('iamPolicy').textContent;
-    navigator.clipboard.writeText(policy).then(() => {
-        alert('Policy copied to clipboard!');
-    });
-}
-
-function updateStatus(status) {
-    const statusElement = document.getElementById('bedrockStatus');
-    
-    // Remove all existing classes
-    statusElement.className = 'status-badge';
-    
-    switch(status) {
-        case 'connected':
-            statusElement.className = 'status-badge connected connection-glow pulse-animation';
-            statusElement.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-shield-check status-icon text-success"></i>
-                    <span class="me-2">Securely Connected</span>
-                    <i class="fas fa-check-circle text-success"></i>
-                </div>
-            `;
-            // Add success sound effect (optional)
-            setTimeout(() => {
-                statusElement.classList.remove('pulse-animation');
-            }, 3000);
-            break;
-            
-        case 'testing':
-            statusElement.className = 'status-badge testing testing-glow';
-            statusElement.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    <span class="me-2">Establishing Connection</span>
-                    <div class="d-flex">
-                        <div class="dot-pulse"></div>
+                <div id="filePreview" class="hidden mt-4">
+                    <h4 class="font-semibold mb-2">File Content:</h4>
+                    <pre id="fileContent" class="bg-gray-100 p-3 rounded text-sm max-h-40 overflow-y-auto mb-4"></pre>
+                    <div class="flex space-x-4">
+                        <button onclick="importAllAccounts()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                            <i class="fas fa-download mr-2"></i>Import All Accounts
+                        </button>
+                        <button onclick="clearFile()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                            <i class="fas fa-times mr-2"></i>Clear
+                        </button>
                     </div>
                 </div>
-            `;
-            break;
+            </div>
+        </div>
+
+        <!-- Manual Entry -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Manual Entry</h2>
+            <form id="manualForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Profile Name</label>
+                        <input type="text" id="profileName" class="w-full border rounded px-3 py-2" placeholder="default" value="default">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">AWS Region</label>
+                        <select id="region" class="w-full border rounded px-3 py-2">
+                            <option value="us-east-1">US East (N. Virginia)</option>
+                            <option value="us-west-2">US West (Oregon)</option>
+                            <option value="eu-west-1">Europe (Ireland)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">AWS Access Key ID</label>
+                        <input type="text" id="accessKey" class="w-full border rounded px-3 py-2" placeholder="AKIA...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">AWS Secret Access Key</label>
+                        <input type="password" id="secretKey" class="w-full border rounded px-3 py-2" placeholder="Enter secret key">
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    <i class="fas fa-save mr-2"></i>Save Account
+                </button>
+            </form>
+        </div>
+
+        <!-- Data Management -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Data Management</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 border rounded-lg">
+                    <div>
+                        <h3 class="font-semibold">Export All Data</h3>
+                        <p class="text-sm text-gray-600">Download all your reports and recommendations</p>
+                    </div>
+                    <button onclick="exportData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+                <div class="flex justify-between items-center p-4 border rounded-lg">
+                    <div>
+                        <h3 class="font-semibold">Clear Cache</h3>
+                        <p class="text-sm text-gray-600">Clear all cached data and force refresh</p>
+                    </div>
+                    <button onclick="clearCache()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                        <i class="fas fa-trash mr-2"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedCredentials = null;
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadImportedAccounts();
+            loadActiveAccount();
+        });
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('fileContent').textContent = content;
+                document.getElementById('filePreview').classList.remove('hidden');
+                
+                // Parse credentials
+                uploadedCredentials = parseCredentialsFile(content);
+                const profileCount = Object.keys(uploadedCredentials).length;
+                showNotification(`File uploaded! Found ${profileCount} profiles.`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCredentialsFile(content) {
+            const credentials = {};
+            const lines = content.split('\n');
+            let currentProfile = null;
             
-        default:
-            statusElement.className = 'status-badge disconnected error-glow';
-            statusElement.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-exclamation-triangle status-icon text-danger"></i>
-                    <span class="me-2">Connection Required</span>
-                    <i class="fas fa-plug text-danger"></i>
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith('#')) continue;
+                
+                if (line.startsWith('[') && line.endsWith(']')) {
+                    currentProfile = line.slice(1, -1);
+                    credentials[currentProfile] = {};
+                } else if (currentProfile && line.includes('=')) {
+                    const equalIndex = line.indexOf('=');
+                    const key = line.substring(0, equalIndex).trim();
+                    const value = line.substring(equalIndex + 1).trim();
+                    credentials[currentProfile][key] = value;
+                }
+            }
+            
+            return credentials;
+        }
+
+        function clearFile() {
+            document.getElementById('credentialsFile').value = '';
+            document.getElementById('filePreview').classList.add('hidden');
+            uploadedCredentials = null;
+            showNotification('File cleared', 'info');
+        }
+
+        async function importAllAccounts() {
+            if (!uploadedCredentials) {
+                showNotification('Please upload a credentials file first', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/accounts/import-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credentials: uploadedCredentials })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Successfully imported ${data.imported_count} accounts`, 'success');
+                    await loadImportedAccounts();
+                } else {
+                    showNotification('Error importing accounts: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Network error occurred', 'error');
+            }
+        }
+
+        async function loadImportedAccounts() {
+            try {
+                const response = await fetch('/api/accounts/list');
+                const data = await response.json();
+                
+                if (data.accounts) {
+                    displayAccounts(data.accounts);
+                }
+            } catch (error) {
+                console.error('Error loading accounts:', error);
+            }
+        }
+
+        async function loadActiveAccount() {
+            try {
+                const response = await fetch('/api/accounts/active');
+                const data = await response.json();
+                
+                if (data.account) {
+                    document.getElementById('activeAccount').textContent = 
+                        `${data.account.profile} (${data.account.aws_region})`;
+                }
+            } catch (error) {
+                console.error('Error loading active account:', error);
+            }
+        }
+
+        function displayAccounts(accounts) {
+            const container = document.getElementById('accountsContainer');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">No accounts imported yet</p>';
+                return;
+            }
+
+            const html = accounts.map(account => `
+                <div class="flex justify-between items-center p-3 border rounded-lg ${account.is_active ? 'bg-green-50 border-green-200' : 'bg-gray-50'}">
+                    <div>
+                        <h4 class="font-semibold">${account.profile}</h4>
+                        <p class="text-sm text-gray-600">Region: ${account.aws_region}</p>
+                        <p class="text-sm text-gray-600">Key: ${account.aws_access_key ? account.aws_access_key.substring(0, 8) + '...' : 'Not set'}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        ${account.is_active ? 
+                            '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>' :
+                            `<button onclick="activateAccount('${account.profile}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Activate</button>`
+                        }
+                        <button onclick="deleteAccount('${account.profile}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        async function activateAccount(profile) {
+            try {
+                const response = await fetch('/api/accounts/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile })
+                });
+
+                if (response.ok) {
+                    showNotification(`Activated account: ${profile}`, 'success');
+                    await loadImportedAccounts();
+                    await loadActiveAccount();
+                } else {
+                    showNotification('Error activating account', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error occurred', 'error');
+            }
+        }
+
+        async function deleteAccount(profile) {
+            if (!confirm(`Delete account "${profile}"?`)) return;
+
+            try {
+                const response = await fetch('/api/accounts/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile })
+                });
+
+                if (response.ok) {
+                    showNotification(`Account "${profile}" deleted`, 'success');
+                    await loadImportedAccounts();
+                } else {
+                    showNotification('Error deleting account', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error occurred', 'error');
+            }
+        }
+
+        async function refreshAccounts() {
+            await loadImportedAccounts();
+            await loadActiveAccount();
+            showNotification('Accounts refreshed', 'success');
+        }
+
+        // Manual form submission
+        document.getElementById('manualForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                profile: document.getElementById('profileName').value,
+                access_key: document.getElementById('accessKey').value,
+                secret_key: document.getElementById('secretKey').value,
+                region: document.getElementById('region').value
+            };
+            
+            try {
+                const response = await fetch('/api/settings/aws-credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    showNotification('Account saved successfully!', 'success');
+                    await loadImportedAccounts();
+                    document.getElementById('manualForm').reset();
+                } else {
+                    showNotification('Error saving account', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error occurred', 'error');
+            }
+        });
+
+        async function exportData() {
+            try {
+                const response = await fetch('/api/data/export');
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `torwarta-export-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('Data exported successfully!', 'success');
+            } catch (error) {
+                showNotification('Export failed', 'error');
+            }
+        }
+
+        async function clearCache() {
+            if (confirm('Clear all cached data?')) {
+                try {
+                    const response = await fetch('/api/cache/clear', { method: 'POST' });
+                    if (response.ok) {
+                        showNotification('Cache cleared successfully!', 'success');
+                    } else {
+                        showNotification('Error clearing cache', 'error');
+                    }
+                } catch (error) {
+                    showNotification('Network error occurred', 'error');
+                }
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+                type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                'bg-blue-100 text-blue-800 border border-blue-200'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `;
-    }
-    
-    // Add entrance animation
-    statusElement.style.transform = 'scale(0.8)';
-    statusElement.style.opacity = '0';
-    
-    setTimeout(() => {
-        statusElement.style.transform = 'scale(1)';
-        statusElement.style.opacity = '1';
-    }, 100);
-}
-
-function updateCurrentConfig(config) {
-    document.getElementById('currentStatus').textContent = config.enabled ? 'Enabled' : 'Disabled';
-    document.getElementById('currentAccount').textContent = config.account_id || '-';
-    document.getElementById('currentRegion').textContent = config.region || '-';
-    document.getElementById('currentModel').textContent = config.model_id ? config.model_id.split('.')[1] : '-';
-}
-</script>
-{% endblock %}
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+
+{% block title %}Trusted Advisor Recommendations - TorWARTA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-shield-alt me-2 text-primary"></i>
+                        Trusted Advisor Recommendations
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-cloud me-1"></i>
+                        Account: {{ session.aws_account_id }} | Region: {{ session.aws_region }} | 
+                        <span id="supportLevelDisplay">
+                            <i class="fas fa-spinner fa-spin me-1"></i>Checking support level...
+                        </span>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="syncData()">
+                        <i class="fas fa-sync-alt me-1"></i>Sync Data
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
+                        <i class="fas fa-filter me-1"></i>Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Level Check Alert -->
+    <div id="supportLevelAlert" class="alert alert-warning d-none" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+                <strong>Support Subscription Notice:</strong>
+                <span id="supportLevelMessage"></span>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-list-alt text-primary fs-4"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1">{{ total_recommendations }}</h4>
+                    <small class="text-muted">Total Recommendations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-exclamation-circle text-danger fs-4"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1 text-danger">{{ status_counts.error }}</h4>
+                    <small class="text-muted">Critical Issues</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-exclamation-triangle text-warning fs-4"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1 text-warning">{{ status_counts.warning }}</h4>
+                    <small class="text-muted">Warnings</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-check-circle text-success fs-4"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1 text-success">{{ status_counts.ok }}</h4>
+                    <small class="text-muted">Healthy</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and View Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="searchInput" 
+                                       placeholder="Search recommendations..." onkeyup="filterRecommendations()">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="categoryFilter" onchange="filterRecommendations()">
+                                <option value="">All Categories</option>
+                                {% for category, info in category_info.items() %}
+                                <option value="{{ category }}">{{ info.name }} ({{ info.count }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex justify-content-end">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary active" id="cardView" onclick="switchView('card')">
+                                        <i class="fas fa-th"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="listView" onclick="switchView('list')">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Recommendations Display -->
+    <div id="recommendationsContainer">
+        <!-- Card View -->
+        <div id="cardViewContainer" class="row">
+            {% for category, recs in categories.items() %}
+                {% for rec in recs %}
+                <div class="col-lg-4 col-md-6 mb-4 recommendation-item" 
+                     data-category="{{ rec.category }}" 
+                     data-status="{{ rec.status }}"
+                     data-name="{{ rec.name.lower() }}">
+                    <div class="card border-0 shadow-sm h-100 recommendation-card status-{{ rec.status }}">
+                        <div class="card-header bg-transparent border-0 pb-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="badge bg-{{ 'danger' if rec.status == 'error' else 'warning' if rec.status == 'warning' else 'success' }}">
+                                    {{ rec.status.upper() }}
+                                </span>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('recommendation_details', recommendation_id=rec.id) }}">
+                                            <i class="fas fa-eye me-2"></i>View Details
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="investigateWithAI('{{ rec.id }}')">
+                                            <i class="fas fa-robot me-2"></i>AI Investigation
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-2">
+                            <h6 class="card-title mb-2">{{ rec.name }}</h6>
+                            <p class="card-text text-muted small mb-3">
+                                {{ rec.description[:120] }}{% if rec.description|length > 120 %}...{% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ rec.category.replace('_', ' ').title() }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-server me-1"></i>{{ rec.resource_count }} resources
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <button class="btn btn-primary btn-sm w-100" 
+                                    onclick="window.location.href='{{ url_for('recommendation_details', recommendation_id=rec.id) }}'">
+                                <i class="fas fa-arrow-right me-1"></i>View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <!-- List View -->
+        <div id="listViewContainer" class="d-none">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Status</th>
+                                <th>Recommendation</th>
+                                <th>Category</th>
+                                <th>Resources</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, recs in categories.items() %}
+                                {% for rec in recs %}
+                                <tr class="recommendation-item" 
+                                    data-category="{{ rec.category }}" 
+                                    data-status="{{ rec.status }}"
+                                    data-name="{{ rec.name.lower() }}">
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if rec.status == 'error' else 'warning' if rec.status == 'warning' else 'success' }}">
+                                            {{ rec.status.upper() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1">{{ rec.name }}</h6>
+                                            <small class="text-muted">{{ rec.description[:100] }}{% if rec.description|length > 100 %}...{% endif %}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ rec.category.replace('_', ' ').title() }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ rec.resource_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="window.location.href='{{ url_for('recommendation_details', recommendation_id=rec.id) }}'">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="investigateWithAI('{{ rec.id }}')">
+                                                <i class="fas fa-robot"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Filters Modal -->
+<div class="modal fade" id="filtersModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-filter me-2"></i>Advanced Filters
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="filterError" checked>
+                        <label class="form-check-label" for="filterError">
+                            <span class="badge bg-danger me-2">ERROR</span>Critical Issues
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="filterWarning" checked>
+                        <label class="form-check-label" for="filterWarning">
+                            <span class="badge bg-warning me-2">WARNING</span>Warnings
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="filterOk" checked>
+                        <label class="form-check-label" for="filterOk">
+                            <span class="badge bg-success me-2">OK</span>Healthy
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Resource Count</label>
+                    <select class="form-select" id="resourceFilter">
+                        <option value="">All</option>
+                        <option value="0">No Resources</option>
+                        <option value="1-10">1-10 Resources</option>
+                        <option value="11-50">11-50 Resources</option>
+                        <option value="50+">50+ Resources</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear All</button>
+                <button type="button" class="btn btn-primary" onclick="applyFilters()" data-bs-dismiss="modal">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Investigation Modal -->
+<div class="modal fade" id="aiInvestigationModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-robot me-2"></i>AI Investigation & Remediation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="aiInvestigationContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Investigating...</span>
+                        </div>
+                        <p class="mt-2">AI is analyzing the recommendation...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="generateRemediationBtn" onclick="generateRemediation()">
+                    <i class="fas fa-code me-1"></i>Generate Remediation Code
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentView = 'card';
+
+function switchView(view) {
+    currentView = view;
+    
+    if (view === 'card') {
+        document.getElementById('cardViewContainer').classList.remove('d-none');
+        document.getElementById('listViewContainer').classList.add('d-none');
+        document.getElementById('cardView').classList.add('active');
+        document.getElementById('listView').classList.remove('active');
+    } else {
+        document.getElementById('cardViewContainer').classList.add('d-none');
+        document.getElementById('listViewContainer').classList.remove('d-none');
+        document.getElementById('listView').classList.add('active');
+        document.getElementById('cardView').classList.remove('active');
+    }
+}
+
+function filterRecommendations() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const items = document.querySelectorAll('.recommendation-item');
+    
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const category = item.getAttribute('data-category');
+        
+        const matchesSearch = !searchTerm || name.includes(searchTerm);
+        const matchesCategory = !categoryFilter || category === categoryFilter;
+        
+        if (matchesSearch && matchesCategory) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function applyFilters() {
+    const showError = document.getElementById('filterError').checked;
+    const showWarning = document.getElementById('filterWarning').checked;
+    const showOk = document.getElementById('filterOk').checked;
+    const resourceFilter = document.getElementById('resourceFilter').value;
+    
+    const items = document.querySelectorAll('.recommendation-item');
+    
+    items.forEach(item => {
+        const status = item.getAttribute('data-status');
+        const resourceCount = parseInt(item.querySelector('[data-resources]')?.getAttribute('data-resources') || '0');
+        
+        let showStatus = false;
+        if (status === 'error' && showError) showStatus = true;
+        if (status === 'warning' && showWarning) showStatus = true;
+        if (status === 'ok' && showOk) showStatus = true;
+        
+        let showResource = true;
+        if (resourceFilter === '0') showResource = resourceCount === 0;
+        else if (resourceFilter === '1-10') showResource = resourceCount >= 1 && resourceCount <= 10;
+        else if (resourceFilter === '11-50') showResource = resourceCount >= 11 && resourceCount <= 50;
+        else if (resourceFilter === '50+') showResource = resourceCount > 50;
+        
+        if (showStatus && showResource) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function clearFilters() {
+    document.getElementById('filterError').checked = true;
+    document.getElementById('filterWarning').checked = true;
+    document.getElementById('filterOk').checked = true;
+    document.getElementById('resourceFilter').value = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('categoryFilter').value = '';
+    
+    document.querySelectorAll('.recommendation-item').forEach(item => {
+        item.style.display = '';
+    });
+}
+
+let currentRecommendationId = null;
+
+function investigateWithAI(recommendationId) {
+    currentRecommendationId = recommendationId;
+    const modal = new bootstrap.Modal(document.getElementById('aiInvestigationModal'));
+    modal.show();
+    
+    document.getElementById('aiInvestigationContent').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Investigating...</span>
+            </div>
+            <p class="mt-2">AI is analyzing the recommendation...</p>
+        </div>
+    `;
+    
+    fetch('/ai-investigate/' + recommendationId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('aiInvestigationContent').innerHTML = `
+                <div class="ai-analysis">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Analysis Summary</h6>
+                            <div class="mb-3 p-3 bg-light rounded">${data.analysis}</div>
+                            
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h6>
+                            <div class="mb-3 p-3 bg-light rounded">${data.risk_assessment}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-tasks me-2"></i>Recommended Actions</h6>
+                            <div class="mb-3 p-3 bg-light rounded">${data.actions}</div>
+                            
+                            <h6><i class="fas fa-clock me-2"></i>Priority</h6>
+                            <div class="mb-3">
+                                <span class="badge bg-${data.priority === 'High' ? 'danger' : data.priority === 'Medium' ? 'warning' : 'success'} fs-6">
+                                    ${data.priority} Priority
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="remediationSection" class="d-none">
+                        <hr>
+                        <h6><i class="fas fa-code me-2"></i>Remediation Code</h6>
+                        <div class="mb-3">
+                            <ul class="nav nav-tabs" id="codeTypeTabs">
+                                <li class="nav-item">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#cliTab">
+                                        <i class="fas fa-terminal me-1"></i>AWS CLI
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#cfnTab">
+                                        <i class="fas fa-layer-group me-1"></i>CloudFormation
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content mt-3">
+                                <div class="tab-pane fade show active" id="cliTab">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">AWS CLI Commands</small>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('cliCode')">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                    <pre class="bg-dark text-light p-3 rounded"><code id="cliCode">Loading...</code></pre>
+                                </div>
+                                <div class="tab-pane fade" id="cfnTab">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">CloudFormation Template</small>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="copyToClipboard('cfnCode')">
+                                                <i class="fas fa-copy"></i> Copy
+                                            </button>
+                                            <button class="btn btn-sm btn-success" onclick="deployCFN()">
+                                                <i class="fas fa-cloud-upload-alt"></i> Deploy
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <pre class="bg-dark text-light p-3 rounded"><code id="cfnCode">Loading...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Review all code carefully before execution. Test in a non-production environment first.
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Show the Generate Remediation button
+            document.getElementById('generateRemediationBtn').classList.remove('d-none');
+            document.getElementById('generateRemediationBtn').disabled = false;
+            document.getElementById('generateRemediationBtn').innerHTML = '<i class="fas fa-code me-1"></i>Generate Remediation Code';
+        } else {
+            document.getElementById('aiInvestigationContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('aiInvestigationContent').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error: ${error.message}
+            </div>
+        `;
+    });
+}
+
+function generateRemediation() {
+    document.getElementById('generateRemediationBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating...';
+    document.getElementById('generateRemediationBtn').disabled = true;
+    
+    fetch('/ai-generate-remediation/' + currentRecommendationId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('cliCode').textContent = data.cli_code;
+            document.getElementById('cfnCode').textContent = data.cfn_code;
+            document.getElementById('remediationSection').classList.remove('d-none');
+            
+            document.getElementById('generateRemediationBtn').innerHTML = '<i class="fas fa-check me-1"></i>Generated';
+            document.getElementById('generateRemediationBtn').classList.remove('btn-success');
+            document.getElementById('generateRemediationBtn').classList.add('btn-outline-success');
+        } else {
+            alert('Error generating remediation: ' + data.error);
+            document.getElementById('generateRemediationBtn').innerHTML = '<i class="fas fa-code me-1"></i>Generate Remediation Code';
+            document.getElementById('generateRemediationBtn').disabled = false;
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        document.getElementById('generateRemediationBtn').innerHTML = '<i class="fas fa-code me-1"></i>Generate Remediation Code';
+        document.getElementById('generateRemediationBtn').disabled = false;
+    });
+}
+
+function copyToClipboard(elementId) {
+    const code = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        // Show success feedback
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+        }, 2000);
+    });
+}
+
+function deployCFN() {
+    if (confirm('Are you sure you want to deploy this CloudFormation template? This will create/modify AWS resources.')) {
+        const cfnCode = document.getElementById('cfnCode').textContent;
+        
+        fetch('/deploy-cfn-remediation/' + currentRecommendationId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ template: cfnCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('CloudFormation deployment initiated. Stack ID: ' + data.stack_id);
+            } else {
+                alert('Deployment failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+    }
+}
+
+function syncData() {
+    // Check support level first
+    fetch('/api/support-level-check')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            document.getElementById('supportLevelMessage').textContent = data.message;
+            document.getElementById('supportLevelAlert').classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.log('Support level check failed:', error);
+    });
+    
+    // Redirect to sync endpoint
+    window.location.href = '/sync-data';
+}
+
+// Check support level on page load
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/support-level-check')
+    .then(response => response.json())
+    .then(data => {
+        const supportDisplay = document.getElementById('supportLevelDisplay');
+        
+        if (data.success) {
+            supportDisplay.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i>Support: ${data.level}`;
+        } else {
+            supportDisplay.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-1"></i>Support: ${data.level || 'Basic/Developer'}`;
+            document.getElementById('supportLevelMessage').textContent = data.message;
+            document.getElementById('supportLevelAlert').classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.log('Support level check failed:', error);
+        document.getElementById('supportLevelDisplay').innerHTML = `<i class="fas fa-times-circle text-danger me-1"></i>Support: Unknown`;
+    });
+});
+</script>
+
+<style>
+.recommendation-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.status-error {
+    border-left: 4px solid #dc3545;
+}
+
+.status-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.status-ok {
+    border-left: 4px solid #198754;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}

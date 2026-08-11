@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cache Status - TorWAR{% endblock %}
+{% block title %}Cache Status - TorWARTA{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -137,7 +137,7 @@
                                         <tr><td><strong>Cache Misses:</strong></td><td>{{ redis_info.keyspace_misses }}</td></tr>
                                     </table>
                                     
-                                    <h6 class="mt-3">TorWAR Cache Keys</h6>
+                                    <h6 class="mt-3">TorWARTA Cache Keys</h6>
                                     <table class="table table-sm">
                                         {% for key_name, key_info in redis_info.torwar_cache.items() %}
                                         <tr>
@@ -178,7 +178,7 @@
                     <div class="alert alert-info">
                         <h5><i class="bi bi-rocket"></i> Startup Status</h5>
                         {% if cache_info.is_first_startup %}
-                            <p><strong>First Startup Detected:</strong> TorWAR is fetching fresh data from AWS on first launch.</p>
+                            <p><strong>First Startup Detected:</strong> TorWARTA is fetching fresh data from AWS on first launch.</p>
                         {% endif %}
                         {% if not cache_info.startup_complete %}
                             <p><strong>Startup in Progress:</strong> Please wait while we load the latest Trusted Advisor data.</p>
